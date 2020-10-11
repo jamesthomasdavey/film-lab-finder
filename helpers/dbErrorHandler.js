@@ -1,15 +1,15 @@
 'use strict';
 
-/**
- * Get unique error field name
- */
+// Get unique error field name
 const uniqueMessage = error => {
   let output = '';
   try {
+    // extract the field name
     let fieldName = error.message.substring(
       error.message.lastIndexOf('.$') + 2,
       error.message.lastIndexOf('_1')
     );
+    // capitalize the field name
     output =
       fieldName.charAt(0).toUpperCase() +
       fieldName.slice(1) +
@@ -20,9 +20,7 @@ const uniqueMessage = error => {
   return output;
 };
 
-/**
- * Get the error message from error object
- */
+// Get the error message from error object
 exports.errorHandler = error => {
   let message = '';
 
