@@ -11,7 +11,7 @@ exports.register = (req, res) => {
   user.save((err, user) => {
     if (err) {
       return res.status(400).json({
-        err: errorHandler(err),
+        error: errorHandler(err),
       });
     }
     // prevent sending this data to user

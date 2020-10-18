@@ -7,6 +7,7 @@ const serviceTypeSchema = new mongoose.Schema(
       trim: true,
       required: true,
       maxlength: 32,
+      unique: true,
     },
   },
   { timestamps: true }

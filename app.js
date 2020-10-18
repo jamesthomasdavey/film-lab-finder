@@ -11,6 +11,9 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const serviceTypeRoutes = require('./routes/serviceType');
 
+// import seed
+const seed = require('./seed');
+
 // app
 const app = express();
 
@@ -21,7 +24,7 @@ mongoose
     useCreateIndex: true,
     useUnifiedTopology: true, // idk what this does
   })
-  .then(() => console.log('Connected to FLF database'));
+  .then(() => console.log('Connected to FLF database.'));
 
 // middlewares
 app.use(morgan('dev'));
@@ -43,5 +46,7 @@ app.listen(port, () => {
 
 // handle db error
 mongoose.connection.on('error', err => {
-  console.log(`DB connection error: ${err.message}`);
+  console.log(`DB connection error: ${err.message}.`);
 });
+
+seed.seedPermanentData();
