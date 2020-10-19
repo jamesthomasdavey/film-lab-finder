@@ -57,11 +57,13 @@ exports.signout = (req, res) => {
   res.json({ message: 'Signout successful' });
 };
 
+// makes sure that the user is signed in at all
 exports.requireSignin = expressJwt({
   secret: process.env.JWT_SECRET,
   userProperty: 'auth',
 });
 
+// makes sure that the signed in user is the same as the requested user
 exports.isAuth = (req, res, next) => {
   let user = req.profile && req.auth && req.profile._id == req.auth._id;
   if (!user) {
@@ -70,6 +72,7 @@ exports.isAuth = (req, res, next) => {
   next();
 };
 
+// makes sure that the signed in user is an admin
 exports.isAdmin = (req, res, next) => {
   if (req.profile.role === 0) {
     return res.status(403).json({

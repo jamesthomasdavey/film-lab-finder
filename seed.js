@@ -7,7 +7,9 @@ exports.seedPermanentData = () => {
   });
   develop.save((err, data) => {
     if (err) {
-      console.log(`Error: "Develop" already exists.`);
+      return console.log(
+        '"Develop" service type already exists. Seeding is probably not necessary right now.'
+      );
     } else {
       console.log('Added "Develop" service type.');
     }
