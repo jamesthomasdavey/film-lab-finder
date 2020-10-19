@@ -10,13 +10,13 @@ const filmSizeSchema = new mongoose.Schema(
       serviceTypes: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: ServiceType,
+          ref: 'ServiceType',
         },
       ],
       filmTypes: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: FilmType,
+          ref: 'FilmType',
         },
       ],
     },
