@@ -74,7 +74,7 @@ exports.isAuth = (req, res, next) => {
   next();
 };
 
-// makes sure that the requested user is an admin. i don't know why
+// makes sure that the requested user is an admin
 // so basically, if there's no requested user, this won't work
 exports.isAdmin = (req, res, next) => {
   if (req.profile.role === 0) {

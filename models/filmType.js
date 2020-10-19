@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
 
-const serviceTypeSchema = new mongoose.Schema(
+const filmTypeSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       unique: true,
     },
     compatibilities: {
-      filmTypes: [
+      serviceTypes: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: FilmType,
+          ref: ServiceType,
         },
       ],
       filmSizes: [
@@ -24,4 +24,4 @@ const serviceTypeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('ServiceType', serviceTypeSchema);
+module.exports = mongoose.model('FilmType', filmTypeSchema);

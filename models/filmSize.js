@@ -1,22 +1,22 @@
 const mongoose = require('mongoose');
 
-const serviceTypeSchema = new mongoose.Schema(
+const filmSizeSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       unique: true,
     },
     compatibilities: {
+      serviceTypes: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: ServiceType,
+        },
+      ],
       filmTypes: [
         {
           type: mongoose.Schema.Types.ObjectId,
           ref: FilmType,
-        },
-      ],
-      filmSizes: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: FilmSize,
         },
       ],
     },
@@ -24,4 +24,4 @@ const serviceTypeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('ServiceType', serviceTypeSchema);
+module.exports = mongoose.model('FilmSize', filmSizeSchema);
