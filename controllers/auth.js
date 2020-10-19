@@ -65,14 +65,17 @@ exports.requireSignin = expressJwt({
 
 // makes sure that the signed in user is the same as the requested user
 exports.isAuth = (req, res, next) => {
-  let user = req.profile && req.auth && req.profile._id == req.auth._id;
-  if (!user) {
-    return res.status(403).json({ error: 'Access denied' });
+  let authorized = req.profile && req.auth && req.profile._id == req.auth._id;
+  if (!authorized) {
+    return res
+      .status(403)
+      .json({ error: 'Requested user does not match logged in user' });
   }
   next();
 };
 
-// makes sure that the signed in user is an admin
+// makes sure that the requested user is an admin. i don't know why
+// so basically, if there's no requested user, this won't work
 exports.isAdmin = (req, res, next) => {
   if (req.profile.role === 0) {
     return res.status(403).json({

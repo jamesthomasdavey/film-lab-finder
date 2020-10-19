@@ -1,13 +1,23 @@
 const User = require('../models/user');
 
-exports.userById = (req, res, next, id) => {
-  User.findById(id).exec((err, user) => {
-    if (err || !user) {
+// takes the :userid parameter, finds the corresponding user, and sets 'req.profile' to this user
+exports.userById = (req, res, next, userId) => {
+  // User.findById(id).exec((err, user) => {
+  //   if (err || !user) {
+  //     return res.status(400).json({
+  //       error: 'User not found',
+  //     });
+  //   }
+  //   req.profile = user;
+  //   next();
+  // });
+  User.findById(userId, (err, foundUser) => {
+    if (err || !foundUser) {
       return res.status(400).json({
         error: 'User not found',
       });
     }
-    req.profile = user;
+    req.profile = foundUser;
     next();
   });
 };
