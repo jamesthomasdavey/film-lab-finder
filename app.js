@@ -49,4 +49,4 @@ mongoose.connection.on('error', err => {
   console.log(`DB connection error: ${err.message}.`);
 });
 
-// seed.seedAll();
+seed.seedAll();
