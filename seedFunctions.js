@@ -26,6 +26,10 @@ const identifiers = {
       name: 'Scan and print',
       _id: '5f8f58c2062b1b2a4900e99a',
     },
+    print: {
+      name: 'Print',
+      _id: '5f9082c22992d24cbe82d043',
+    },
   },
   filmTypes: {
     c41: {
@@ -97,6 +101,9 @@ const serviceTypes = [
         identifiers.filmSizes.f8x10._id,
       ],
     },
+    includedServiceTypes: {
+      dev: true,
+    },
   },
   {
     name: identifiers.serviceTypes.devScan.name,
@@ -117,6 +124,10 @@ const serviceTypes = [
         identifiers.filmSizes.f8x10._id,
       ],
     },
+    includedServiceTypes: {
+      dev: true,
+      scan: true,
+    },
   },
   {
     name: identifiers.serviceTypes.devScanPrint.name,
@@ -136,6 +147,11 @@ const serviceTypes = [
         identifiers.filmSizes.f4x5._id,
         identifiers.filmSizes.f8x10._id,
       ],
+    },
+    includedServiceTypes: {
+      dev: true,
+      scan: true,
+      print: true,
     },
   },
   {
@@ -158,6 +174,9 @@ const serviceTypes = [
         identifiers.filmSizes.f8x10._id,
       ],
     },
+    includedServiceTypes: {
+      scan: true,
+    },
   },
   {
     name: identifiers.serviceTypes.scanPrint.name,
@@ -178,6 +197,34 @@ const serviceTypes = [
         identifiers.filmSizes.f4x5._id,
         identifiers.filmSizes.f8x10._id,
       ],
+    },
+    includedServiceTypes: {
+      scan: true,
+      print: true,
+    },
+  },
+  {
+    name: identifiers.serviceTypes.print.name,
+    _id: identifiers.serviceTypes.print._id,
+    compatibilities: {
+      filmTypes: [
+        identifiers.filmTypes.c41._id,
+        identifiers.filmTypes.bw._id,
+        identifiers.filmTypes.e6._id,
+        identifiers.filmTypes.ecn2._id,
+      ],
+      filmSizes: [
+        identifiers.filmSizes.f35mm._id,
+        identifiers.filmSizes.f35mmPano._id,
+        identifiers.filmSizes.f35mmMounted._id,
+        identifiers.filmSizes.f120._id,
+        identifiers.filmSizes.f220._id,
+        identifiers.filmSizes.f4x5._id,
+        identifiers.filmSizes.f8x10._id,
+      ],
+    },
+    includedServiceTypes: {
+      print: true,
     },
   },
 ];
@@ -310,16 +357,7 @@ const filmSizes = [
 
 const services = [];
 
-const seedArrayToMongooseModel = (array, mongooseModel) => {
-  if (array.length === 0) return;
-  const newMongoObject = new mongooseModel(array[0]);
-  newMongoObject.save((err, data) => {
-    const newArray = [...array];
-    newArray.shift();
-    seedArrayToMongooseModel(newArray, mongooseModel);
-  });
-};
-
+// synchronous functions
 const addRemainingCompatibilities = () => {
   // add compatible service types to film types
   filmTypes.forEach(filmType => {
@@ -368,6 +406,7 @@ const addRemainingCompatibilities = () => {
 const buildServices = () => {
   // cycle through the service types
   serviceTypes.forEach(serviceType => {
+    const includedServiceTypes = serviceType.includedServiceTypes;
     // for each service type, cycle through its compatible film types
     serviceType.compatibilities.filmTypes.forEach(compatibleFilmTypeId => {
       // for each of its compatible film types, find the compatible film type in the filmtypes array
@@ -387,6 +426,7 @@ const buildServices = () => {
                         serviceType: serviceType._id,
                         filmType: filmType._id,
                         filmSize: filmSize._id,
+                        includedServiceTypes: includedServiceTypes,
                       });
                     }
                   }
@@ -400,15 +440,26 @@ const buildServices = () => {
   });
 };
 
+// asyncronous functions
+const seedArrayToMongooseModel = (array, mongooseModel) => {
+  if (array.length === 0) return;
+  const newMongoObject = new mongooseModel(array[0]);
+  newMongoObject.save((err, data) => {
+    const newArray = [...array];
+    newArray.shift();
+    seedArrayToMongooseModel(newArray, mongooseModel);
+  });
+};
+
+// execution
 exports.execute = () => {
-  // add compatibilities to the objects before adding to db
-  // addRemainingCompatibilities();
-  // build services
-  // buildServices();
-  // run these one at a time:
+  // always run these first
+  addRemainingCompatibilities();
+  buildServices();
+  // seed servicetypes, filmtypes, and filmsizes to mongoose model
   // seedArrayToMongooseModel(serviceTypes, ServiceType);
   // seedArrayToMongooseModel(filmTypes, FilmType);
   // seedArrayToMongooseModel(filmSizes, FilmSize);
-  // seedArrayToMongooseModel(services, Service);
+  seedArrayToMongooseModel(services, Service);
   return;
 };
