@@ -10,8 +10,8 @@ const labSchema = new mongoose.Schema({
     ref: 'User',
   },
   servicesOffered: {
-    type: Object,
-    default: {},
+    type: Array,
+    default: [],
   },
 });
 
