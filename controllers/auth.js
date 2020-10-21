@@ -26,36 +26,38 @@ exports.register = (req, res) => {
 exports.signin = (req, res) => {
   // find the user based on email
   const { email, password } = req.body;
-  User.findOne({ email: email }, (err, user) => {
-    if (err || !user) {
-      return res.status(400).json({
-        error: 'User with that email does not exist',
+  User.findOne({ email: email })
+    .then(user => {
+      // if user is found, make sure the email and password match
+      if (!user.authenticate(password)) {
+        return res
+          .status(401)
+          .json({ error: 'Email and password do not match' });
+      }
+      // generate a signed token with user id and secret
+      const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+      // persist the token as 't' in cookie with expiry date
+      res.cookie(cookieName, token, { expire: new Date() + 604800 });
+      // return response with user and token to frontend client
+      const { _id, name, email, role } = user;
+      return res.json({
+        token: token,
+        user: { _id, name, email, role },
       });
-    }
-    // if user is found, make sure the email and password match
-    // create authenticate method in user model
-    if (!user.authenticate(password)) {
-      return res.status(401).json({
-        error: 'Email and password do not match',
-      });
-    }
-    // generate a signed token with user id and secret
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
-    // persist the token as 't' in cookie with expiry date
-    res.cookie(cookieName, token, { expire: new Date() + 604800 });
-    // return response with user and token to frontend client
-    const { _id, name, email, role } = user;
-    return res.json({
-      token: token,
-      user: { _id, name, email, role },
-    });
-  });
+    })
+    .catch(err =>
+      res.status(400).json({ error: 'User with that email does not exist' })
+    );
 };
 
 exports.signout = (req, res) => {
   res.clearCookie(cookieName);
   res.json({ message: 'Signout successful' });
 };
+
+///////////////
+//// MIDDLEWARE
+///////////////
 
 // makes sure that the user is signed in at all
 exports.requireSignin = expressJwt({

@@ -4,8 +4,8 @@ const router = express.Router();
 const Service = require('../models/service');
 
 // @route   get /api/services
-// @desc    shows all available services
-// @access  nonexistant
+// @desc    shows service type, film type, and film size of all available services
+// @access  for reference only
 router.get('/services', (req, res) => {
   Service.find()
     .populate('serviceType', 'name')
