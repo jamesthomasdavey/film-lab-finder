@@ -6,37 +6,66 @@ const { errorHandler } = require('../helpers/dbErrorHandler');
 const cookieName = 'flf-token';
 
 exports.register = (req, res) => {
-  const newUser = new User(req.body);
-  newUser.save((err, createdUser) => {
-    if (err) {
-      return res.status(400).json({
-        err: errorHandler(err),
+  User.findOne({ email: req.body.email }).then(foundUser => {
+    if (foundUser)
+      return res
+        .status(400)
+        .json({ error: { email: 'This email has already been registered.' } });
+    const newUser = new User(req.body);
+    newUser.save((err, createdUser) => {
+      if (err) {
+        return res.status(400).json({
+          err: errorHandler(err),
+        });
+      }
+      // prevent sending this data to user
+      createdUser.salt = undefined;
+      createdUser.hashed_password = undefined;
+      return res.json({
+        user: createdUser,
       });
-    }
-    // prevent sending this data to user
-    createdUser.salt = undefined;
-    createdUser.hashed_password = undefined;
-    res.json({
-      user: createdUser,
     });
   });
 };
 
 exports.signin = (req, res) => {
-  // find the user based on email
-  User.findOne({ email: req.body.email }, (err, foundUser) => {
-    if (err || !foundUser) {
-      return res.status(400).json({
-        error: 'User with that email does not exist',
-      });
-    }
-    // if the user is found, make sure the email and password match
-    if (!foundUser.authenticate(req.body.password)) {
-      return res.status(401).json({
-        error: 'Email and password do not match',
-      });
-    }
-    // generate a signed token with user id and secret
+  // // find the user based on email
+  // User.findOne({ email: req.body.email }, (err, foundUser) => {
+  //   if (err || !foundUser) {
+  //     return res.status(400).json({
+  //       error: 'User with that email does not exist',
+  //     });
+  //   }
+  //   // if the user is found, make sure the email and password match
+  //   if (!foundUser.authenticate(req.body.password)) {
+  //     return res.status(401).json({
+  //       error: 'Email and password do not match',
+  //     });
+  //   }
+  //   // generate a signed token with user id and secret
+  //   const token = jwt.sign({ _id: foundUser._id }, process.env.JWT_SECRET);
+  //   // persist the token with expiry date
+  //   res.cookie(cookieName, token, { expire: new Date() + 604800 });
+  //   // return response with user and token to frontend client
+  //   return res.json({
+  //     token: token,
+  //     user: {
+  //       _id: foundUser._id,
+  //       email: foundUser.email,
+  //       name: foundUser.name,
+  //       role: foundUser.role,
+  //     },
+  //   });
+  // });
+  User.findOne({ email: req.body.email }).then(foundUser => {
+    if (!foundUser)
+      return res
+        .status(400)
+        .json({ error: { email: 'User with that email does not exist.' } });
+    if (!foundUser.authenticate(req.body.password))
+      return res
+        .status(401)
+        .json({ error: { password: 'Email and password do not match.' } });
     const token = jwt.sign({ _id: foundUser._id }, process.env.JWT_SECRET);
     // persist the token with expiry date
     res.cookie(cookieName, token, { expire: new Date() + 604800 });
