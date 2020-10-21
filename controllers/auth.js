@@ -12,12 +12,13 @@ exports.register = (req, res) => {
         .status(400)
         .json({ error: { email: 'This email has already been registered.' } });
     const newUser = new User(req.body);
-    newUser.save((err, createdUser) => {
-      if (err) {
+    newUser.save().then(createdUser => {
+      if (!createdUser)
         return res.status(400).json({
-          err: errorHandler(err),
+          error: {
+            general: 'An unknown error has occurred. Unable to register user.',
+          },
         });
-      }
       // prevent sending this data to user
       createdUser.salt = undefined;
       createdUser.hashed_password = undefined;
