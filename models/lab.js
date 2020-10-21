@@ -9,7 +9,10 @@ const labSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  servicesOffered: {},
+  servicesOffered: {
+    type: Object,
+    default: {},
+  },
 });
 
 module.exports = mongoose.model('Lab', labSchema);
