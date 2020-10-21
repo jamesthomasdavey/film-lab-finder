@@ -14,9 +14,7 @@ const cookieName = 'flf-token';
 exports.register = (req, res) => {
   let errors = {};
   User.findOne({ email: req.body.email }).then(foundUser => {
-    // if the email is already registered, send an error
     if (foundUser) errors.email = 'This email has already been registered.';
-    // if there are validation errors, send an error
     errors = { ...errors, ...validateRegisterInput(req.body) };
     if (!isEmpty(errors)) return res.status(400).json({ errors: errors });
     const newUser = new User(req.body);
@@ -32,15 +30,10 @@ exports.register = (req, res) => {
 };
 
 exports.signin = (req, res) => {
-  // const errors = validateSigninInput(req.body);
   if (!isEmpty(validateSigninInput(req.body)))
     return res.status(400).json({ errors: validateSigninInput(req.body) });
   User.findOne({ email: req.body.email }).then(foundUser => {
-    if (!foundUser)
-      return res
-        .status(400)
-        .json({ errors: { email: 'User with that email does not exist' } });
-    if (!foundUser.authenticate(req.body.password))
+    if (!foundUser || !foundUser.authenticate(req.body.password))
       return res
         .status(401)
         .json({ errors: { password: 'Email and password do not match' } });

@@ -11,8 +11,14 @@ const labSchema = new mongoose.Schema({
   },
   servicesOffered: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Service',
+      service: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Service',
+      },
+      baseCost: {
+        type: Number,
+        required: true,
+      },
     },
   ],
 });
