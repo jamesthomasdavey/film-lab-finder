@@ -2,6 +2,7 @@
 const ServiceType = require('./models/serviceType');
 const FilmType = require('./models/filmType');
 const FilmSize = require('./models/filmSize');
+const Service = require('./models/service');
 
 const identifiers = {
   serviceTypes: {
@@ -307,8 +308,20 @@ const filmSizes = [
   },
 ];
 
-const addCompatibilitiesToFilmTypes = () => {
-  // add service types
+const services = [];
+
+const seedArrayToMongooseModel = (array, mongooseModel) => {
+  if (array.length === 0) return;
+  const newMongoObject = new mongooseModel(array[0]);
+  newMongoObject.save((err, data) => {
+    const newArray = [...array];
+    newArray.shift();
+    seedArrayToMongooseModel(newArray, mongooseModel);
+  });
+};
+
+const addRemainingCompatibilities = () => {
+  // add compatible service types to film types
   filmTypes.forEach(filmType => {
     serviceTypes.forEach(serviceType => {
       let isCompatible = false;
@@ -322,10 +335,7 @@ const addCompatibilitiesToFilmTypes = () => {
       }
     });
   });
-};
-
-const addCompatibilitiesToFilmSizes = () => {
-  // add service types
+  // add compatible service types to film sizes
   filmSizes.forEach(filmSize => {
     serviceTypes.forEach(serviceType => {
       let isCompatible = false;
@@ -339,7 +349,7 @@ const addCompatibilitiesToFilmSizes = () => {
       }
     });
   });
-  // add film types
+  // add compatible film types to film sizes
   filmSizes.forEach(filmSize => {
     filmTypes.forEach(filmType => {
       let isCompatible = false;
@@ -355,25 +365,50 @@ const addCompatibilitiesToFilmSizes = () => {
   });
 };
 
-const seedArrayToMongooseModel = (array, mongooseModel) => {
-  if (array.length === 0) return;
-  const newMongoObject = new mongooseModel(array[0]);
-  newMongoObject.save((err, data) => {
-    const newArray = [...array];
-    newArray.shift();
-    seedArrayToMongooseModel(newArray, mongooseModel);
+const buildServices = () => {
+  // cycle through the service types
+  serviceTypes.forEach(serviceType => {
+    // for each service type, cycle through its compatible film types
+    serviceType.compatibilities.filmTypes.forEach(compatibleFilmTypeId => {
+      // for each of its compatible film types, find the compatible film type in the filmtypes array
+      filmTypes.forEach(filmType => {
+        if (filmType._id === compatibleFilmTypeId) {
+          // once you find the compatible film type, cycle through its compatible film sizes
+          filmType.compatibilities.filmSizes.forEach(compatibleFilmSizeId => {
+            // for each of it's compatible film sizes, find the compatible film size in the filmsize array
+            filmSizes.forEach(filmSize => {
+              if (filmSize._id === compatibleFilmSizeId) {
+                // once you find the compatible film size, cycle through its compatible service types
+                filmSize.compatibilities.serviceTypes.forEach(
+                  compatibleServiceTypeId => {
+                    if (serviceType._id === compatibleServiceTypeId) {
+                      // once you find a match, push the object into services
+                      services.push({
+                        serviceType: serviceType._id,
+                        filmType: filmType._id,
+                        filmSize: filmSize._id,
+                      });
+                    }
+                  }
+                );
+              }
+            });
+          });
+        }
+      });
+    });
   });
 };
 
-const compileServices = () => {};
-
 exports.execute = () => {
   // add compatibilities to the objects before adding to db
-  addCompatibilitiesToFilmTypes();
-  addCompatibilitiesToFilmSizes();
+  // addRemainingCompatibilities();
+  // build services
+  // buildServices();
   // run these one at a time:
   // seedArrayToMongooseModel(serviceTypes, ServiceType);
   // seedArrayToMongooseModel(filmTypes, FilmType);
   // seedArrayToMongooseModel(filmSizes, FilmSize);
+  // seedArrayToMongooseModel(services, Service);
   return;
 };
