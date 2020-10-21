@@ -11,13 +11,10 @@ exports.userById = (req, res, next, userId) => {
   //   req.profile = user;
   //   next();
   // });
-  User.findById(userId, (err, foundUser) => {
-    if (err || !foundUser) {
-      return res.status(400).json({
-        error: 'User not found',
-      });
-    }
-    req.profile = foundUser;
-    next();
-  });
+  User.findById(userId)
+    .then(foundUser => {
+      req.profile = foundUser;
+      next();
+    })
+    .catch(err => res.status(400).json({ error: 'User not found' }));
 };

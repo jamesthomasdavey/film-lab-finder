@@ -5,6 +5,9 @@ const { create } = require('../controllers/serviceType');
 
 const { requireSignin, isAuth, isAdmin } = require('../controllers/auth');
 
-router.post('/service-type/create', create);
+// @route   post /api/service-types/create
+// @desc    create a new service type; won't be using this
+// @access
+router.post('/service-types/create', create);
 
 module.exports = router;

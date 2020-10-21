@@ -454,12 +454,12 @@ const seedArrayToMongooseModel = (array, mongooseModel) => {
 // execution
 exports.execute = () => {
   // always run these first
-  addRemainingCompatibilities();
-  buildServices();
-  // seed servicetypes, filmtypes, and filmsizes to mongoose model
+  // addRemainingCompatibilities();
+  // buildServices();
+  // seeding; run these one at a time maybe
   // seedArrayToMongooseModel(serviceTypes, ServiceType);
   // seedArrayToMongooseModel(filmTypes, FilmType);
   // seedArrayToMongooseModel(filmSizes, FilmSize);
-  seedArrayToMongooseModel(services, Service);
+  // seedArrayToMongooseModel(services, Service);
   return;
 };

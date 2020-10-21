@@ -9,10 +9,12 @@ const labSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  servicesOffered: {
-    type: Array,
-    default: [],
-  },
+  servicesOffered: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Service',
+    },
+  ],
 });
 
 module.exports = mongoose.model('Lab', labSchema);
