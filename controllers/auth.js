@@ -1,24 +1,26 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken'); // to generate signed token
 const expressJwt = require('express-jwt'); // for authorization check
-const { errorHandler } = require('../helpers/dbErrorHandler');
+
+// validation
+const validateRegisterInput = require('../validation/register');
+const validateSigninInput = require('../validation/signin');
+const isEmpty = require('../validation/is-empty');
+
+const { validate } = require('uuid');
 
 const cookieName = 'flf-token';
 
 exports.register = (req, res) => {
+  let errors = {};
   User.findOne({ email: req.body.email }).then(foundUser => {
-    if (foundUser)
-      return res
-        .status(400)
-        .json({ error: { email: 'This email has already been registered.' } });
+    // if the email is already registered, send an error
+    if (foundUser) errors.email = 'This email has already been registered.';
+    // if there are validation errors, send an error
+    errors = { ...errors, ...validateRegisterInput(req.body) };
+    if (!isEmpty(errors)) return res.status(400).json({ errors: errors });
     const newUser = new User(req.body);
     newUser.save().then(createdUser => {
-      if (!createdUser)
-        return res.status(400).json({
-          error: {
-            general: 'An unknown error has occurred. Unable to register user.',
-          },
-        });
       // prevent sending this data to user
       createdUser.salt = undefined;
       createdUser.hashed_password = undefined;
@@ -30,43 +32,18 @@ exports.register = (req, res) => {
 };
 
 exports.signin = (req, res) => {
-  // // find the user based on email
-  // User.findOne({ email: req.body.email }, (err, foundUser) => {
-  //   if (err || !foundUser) {
-  //     return res.status(400).json({
-  //       error: 'User with that email does not exist',
-  //     });
-  //   }
-  //   // if the user is found, make sure the email and password match
-  //   if (!foundUser.authenticate(req.body.password)) {
-  //     return res.status(401).json({
-  //       error: 'Email and password do not match',
-  //     });
-  //   }
-  //   // generate a signed token with user id and secret
-  //   const token = jwt.sign({ _id: foundUser._id }, process.env.JWT_SECRET);
-  //   // persist the token with expiry date
-  //   res.cookie(cookieName, token, { expire: new Date() + 604800 });
-  //   // return response with user and token to frontend client
-  //   return res.json({
-  //     token: token,
-  //     user: {
-  //       _id: foundUser._id,
-  //       email: foundUser.email,
-  //       name: foundUser.name,
-  //       role: foundUser.role,
-  //     },
-  //   });
-  // });
+  // const errors = validateSigninInput(req.body);
+  if (!isEmpty(validateSigninInput(req.body)))
+    return res.status(400).json({ errors: validateSigninInput(req.body) });
   User.findOne({ email: req.body.email }).then(foundUser => {
     if (!foundUser)
       return res
         .status(400)
-        .json({ error: { email: 'User with that email does not exist.' } });
+        .json({ errors: { email: 'User with that email does not exist' } });
     if (!foundUser.authenticate(req.body.password))
       return res
         .status(401)
-        .json({ error: { password: 'Email and password do not match.' } });
+        .json({ errors: { password: 'Email and password do not match' } });
     const token = jwt.sign({ _id: foundUser._id }, process.env.JWT_SECRET);
     // persist the token with expiry date
     res.cookie(cookieName, token, { expire: new Date() + 604800 });
@@ -102,9 +79,9 @@ exports.requireSignin = expressJwt({
 exports.isAuth = (req, res, next) => {
   let authorized = req.profile && req.auth && req.profile._id == req.auth._id;
   if (!authorized) {
-    return res
-      .status(403)
-      .json({ error: 'Requested user does not match logged in user' });
+    return res.status(403).json({
+      errors: { general: 'Requested user does not match logged in user' },
+    });
   }
   next();
 };

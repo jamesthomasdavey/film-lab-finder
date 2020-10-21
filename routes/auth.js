@@ -7,17 +7,16 @@ const {
   signout,
   requireSignin,
 } = require('../controllers/auth');
-const { userRegisterValidator, userSigninValidator } = require('../validator');
 
 // @route   post /api/register
 // @desc    registers and signs in user
 // @access  signed out user
-router.post('/register', userRegisterValidator, register);
+router.post('/register', register);
 
 // @route   post /api/signin
 // @desc    signs in user
 // @access  signed out user
-router.post('/signin', userSigninValidator, signin);
+router.post('/signin', signin);
 
 // @route   get /api/signout
 // @desc    signs out user
