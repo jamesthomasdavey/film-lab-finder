@@ -35,7 +35,14 @@ router.get('/labs/:labId/edit-services', (req, res) => {
               }
             });
             // otherwise, return the foundservice
-            return matchedService ? matchedService : foundService;
+            if (matchedService) return matchedService;
+            return {
+              offeredByLab: false,
+              includedServiceTypes: foundService.includedServiceTypes,
+              serviceType: foundService.serviceType,
+              filmType: foundService.filmType,
+              filmSize: foundService.filmSize,
+            };
           })
         );
       });
