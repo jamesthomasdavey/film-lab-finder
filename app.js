@@ -10,6 +10,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const serviceTypeRoutes = require('./routes/serviceType');
 const serviceRoutes = require('./routes/service');
+const labRoutes = require('./routes/lab')
 
 // import seed
 const seedFunctions = require('./seedFunctions');
@@ -39,6 +40,7 @@ app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', serviceTypeRoutes);
 app.use('/api', serviceRoutes);
+app.use('/api', labRoutes);
 
 // setting up port variable
 const port = process.env.PORT || 8000;
