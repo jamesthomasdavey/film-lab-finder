@@ -25,4 +25,19 @@ router.get('/services', (req, res) => {
     );
 });
 
+// @router  post /api/services/find-one
+// @desc    show available services based on the parameters given
+// @access  public
+router.get('/services/find-one', (req, res) => {
+  const requestQuery = {};
+  if (req.body.serviceType) requestQuery.serviceType = req.body.serviceType;
+  if (req.body.filmType) requestQuery.filmType = req.body.filmType;
+  if (req.body.filmSize) requestQuery.filmSize = req.body.filmSize;
+  Service.find(requestQuery)
+    .then(foundServices => {
+      return res.json(foundServices);
+    })
+    .catch(() => res.json([]));
+});
+
 module.exports = router;

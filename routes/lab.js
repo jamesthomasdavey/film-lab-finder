@@ -7,7 +7,7 @@ const Service = require('../models/service');
 // @route   get /api/labs/:labId/edit-services
 // @desc    returns all available services, noting which ones the lab offers
 // @access  private
-router.get('/labs/:labId/edit-services', (req, res) => {
+router.get('/labs/:labId/services/edit', (req, res) => {
   Service.find({})
     .populate('serviceType', 'name')
     .populate('filmType', 'name')
