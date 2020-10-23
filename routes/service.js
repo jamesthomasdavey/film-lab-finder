@@ -11,13 +11,14 @@ router.get('/services', (req, res) => {
     .populate('serviceType', 'name')
     .populate('filmType', 'name')
     .populate('filmSize', 'name')
-    .then(services =>
+    .then(foundServices =>
       res.json(
-        services.map(service => {
+        foundServices.map(foundService => {
           return {
-            serviceType: service.serviceType.name,
-            filmType: service.filmType.name,
-            filmSize: service.filmSize.name,
+            _id: foundService._id,
+            serviceType: foundService.serviceType.name,
+            filmType: foundService.filmType.name,
+            filmSize: foundService.filmSize.name,
           };
         })
       )
