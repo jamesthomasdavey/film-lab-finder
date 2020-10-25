@@ -4,6 +4,36 @@ const router = express.Router();
 const Lab = require('../models/lab');
 const Service = require('../models/service');
 
+// @route   get /api/labs/find
+// @desc    returns all available labs, based on an array of services
+// @access  public
+router.get('/labs/find', (req, res) => {
+  const compiledLabs = [];
+  const findFromService = services => {
+    if (services.length === 0) {
+      return res.json([...new Set(compiledLabs)]);
+    }
+    Lab.find({ 'servicesOffered.service': services[0] }).then(foundLabs => {
+      foundLabs.forEach(foundLab => {
+        foundLab.servicesOffered.forEach(serviceOffered => {
+          console.log(serviceOffered.service);
+          if (serviceOffered.service.toString() === services[0].toString()) {
+            compiledLabs.push({
+              labId: foundLab._id,
+              labName: foundLab.name,
+              baseCost: serviceOffered.baseCost,
+            });
+          }
+        });
+      });
+      const newServices = [...services];
+      newServices.shift();
+      findFromService(newServices);
+    });
+  };
+  findFromService(req.body.services);
+});
+
 // @route   get /api/labs/:labId/edit-services
 // @desc    returns all available services, noting which ones the lab offers
 // @access  private
