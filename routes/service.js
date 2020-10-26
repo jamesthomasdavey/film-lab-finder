@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const thenBy = require('thenby');
+
+const sortServices = require('../helpers/sortServices');
 
 const Service = require('../models/service');
 
@@ -11,8 +14,9 @@ router.get('/services', (req, res) => {
     .populate('serviceType', 'name')
     .populate('filmType', 'name')
     .populate('filmSize', 'name')
-    .then(foundServices =>
-      res.json(
+    .then(foundServices => {
+      sortServices(foundServices);
+      return res.json(
         foundServices.map(foundService => {
           return {
             _id: foundService._id,
@@ -21,8 +25,8 @@ router.get('/services', (req, res) => {
             filmSize: foundService.filmSize.name,
           };
         })
-      )
-    );
+      );
+    });
 });
 
 // @router  get /api/services/find

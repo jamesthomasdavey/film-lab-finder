@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
+const sortServices = require('../helpers/sortServices');
+
 const Lab = require('../models/lab');
 const Service = require('../models/service');
 
@@ -43,6 +45,7 @@ router.get('/labs/:labId/services/edit', (req, res) => {
     .populate('filmType', 'name')
     .populate('filmSize', 'name')
     .then(foundServices => {
+      sortServices(foundServices);
       Lab.findById(req.params.labId).then(foundLab => {
         const labServices = [...foundLab.servicesOffered];
         res.json(
