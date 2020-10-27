@@ -17,8 +17,9 @@ router.get('/services', (req, res) => {
     .then(foundServices => {
       sortServices(foundServices);
       return res.json(
-        foundServices.map(foundService => {
+        foundServices.map((foundService, index) => {
           return {
+            index: index + 3,
             _id: foundService._id,
             serviceType: foundService.serviceType.name,
             filmType: foundService.filmType.name,
