@@ -26,6 +26,10 @@ const identifiers = {
       name: 'Scan and print',
       _id: '5f8f58c2062b1b2a4900e99a',
     },
+    devPrint: {
+      name: 'Develop and Print',
+      _id: '5f930f043306428bb3090e42',
+    },
     print: {
       name: 'Print',
       _id: '5f9082c22992d24cbe82d043',
@@ -201,6 +205,26 @@ const serviceTypes = [
     includedServiceTypes: {
       scan: true,
       print: true,
+    },
+  },
+  {
+    name: identifiers.serviceTypes.devPrint.name,
+    _id: identifiers.serviceTypes.print._id,
+    compatibilities: {
+      filmTypes: [
+        identifiers.filmTypes.c41._id,
+        identifiers.filmTypes.bw._id,
+        identifiers.filmTypes.e6._id,
+        identifiers.filmTypes.ecn2._id,
+      ],
+      filmSizes: [
+        identifiers.filmSizes.f35mm._id,
+        identifiers.filmSizes.f35mmPano._id,
+        identifiers.filmSizes.f120._id,
+        identifiers.filmSizes.f220._id,
+        identifiers.filmSizes.f4x5._id,
+        identifiers.filmSizes.f8x10._id,
+      ],
     },
   },
   {
