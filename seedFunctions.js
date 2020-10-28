@@ -238,7 +238,6 @@ const filmTypes = [
       filmSizes: [
         identifiers.filmSizes.f35mm._id,
         identifiers.filmSizes.f35mmPano._id,
-        identifiers.filmSizes.f35mmMounted._id,
         identifiers.filmSizes.f120._id,
         identifiers.filmSizes.f220._id,
         identifiers.filmSizes.f4x5._id,
@@ -254,7 +253,6 @@ const filmTypes = [
       filmSizes: [
         identifiers.filmSizes.f35mm._id,
         identifiers.filmSizes.f35mmPano._id,
-        identifiers.filmSizes.f35mmMounted._id,
         identifiers.filmSizes.f120._id,
         identifiers.filmSizes.f220._id,
         identifiers.filmSizes.f4x5._id,
@@ -286,7 +284,6 @@ const filmTypes = [
       filmSizes: [
         identifiers.filmSizes.f35mm._id,
         identifiers.filmSizes.f35mmPano._id,
-        identifiers.filmSizes.f35mmMounted._id,
         identifiers.filmSizes.f120._id,
         identifiers.filmSizes.f220._id,
       ],
