@@ -4,175 +4,223 @@ const labSchema = new mongoose.Schema({
   name: {
     type: String,
     unique: true,
+    required: true,
   },
   ownedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true,
   },
-  services: [
+  labServices: [
+    // each of these will apply to every single lab service
     {
-      service: {
+      referencedService: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Service',
+        required: true,
       },
-      doesOffer: {
-        type: Boolean,
-        default: false,
-      },
-      basePrice: {
-        type: Number,
-        required: doesOffer,
+      isEnabled: { type: Boolean, default: false },
+      price: { type: Number, default: 0 },
+      addOns: {
+        ship: {
+          isAllowed: { type: Boolean, default: true },
+          returnSleeved: {
+            isEnabled: { type: Boolean },
+            price: { type: Number, default: 0 },
+          },
+          returnMounted: {
+            isEnabled: { type: Boolean },
+            price: { type: Number, default: 0 },
+          },
+        },
+        dev: {
+          isAllowed: Boolean,
+          push1: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          push2: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          push3: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          pull1: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          pull2: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          pull3: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+        },
+        scan: {
+          isAllowed: Boolean,
+          rawScans: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          scannerB: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          scannerC: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          scanResB: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          scanResC: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          customScanB: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          customScanC: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+        },
+        print: {
+          isAllowed: Boolean,
+          printDimensionB: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          printDimensionC: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          customPrintB: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+          customPrintC: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+        },
       },
     },
+    // ^^^ each of these will apply to every single lab service
   ],
   shipSettings: {
-    canReturnUncutNegs: {
-      type: Boolean,
-      required: true,
-      default: true,
-    },
-    allowDropoff: {
-      type: Boolean,
-      required: true,
-      default: true,
-    },
-    allowPickup: {
-      type: Boolean,
-      required: true,
-      default: true,
-    },
-    deliveryCost: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
+    canReturnUncutNegs: { type: Boolean, default: true },
+    allowDropoff: { type: Boolean, default: true },
+    allowPickup: { type: Boolean, default: true },
+    shippingPrice: { type: Number, default: 10 },
   },
   serviceSettings: {
-    develop: {
-      isEnabled: {
-        type: Boolean,
-        default: false,
-      },
+    dev: {
+      isEnabled: { type: Boolean, default: false },
     },
     scan: {
-      isEnabled: {
-        type: Boolean,
-        default: false,
-      },
+      isEnabled: { type: Boolean, default: false },
       rawByOrder: {
-        isEnabled: {
-          type: Boolean,
-          default: false,
-        },
-        price: {
-          type: Number,
-          required: isEnabled,
-        },
+        isEnabled: { type: Boolean, default: false },
+        price: { type: Number, default: 10 },
       },
       scanners: {
-        scannerA: {
-          name: String,
-          desc: String,
+        defaultScanner: {
+          name: { type: String, default: 'Noritsu' },
+          desc: { type: String, default: '' },
         },
         scannerB: {
-          name: String,
-          desc: String,
+          name: { type: String, default: 'Fuji Frontier' },
+          desc: { type: String, default: '' },
         },
         scannerC: {
-          name: String,
-          desc: String,
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
+        },
+        scannerD: {
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
         },
       },
       scanResolutions: {
-        f35mmShortEdge: {
-          resA: Number,
-          resB: Number,
-          resC: Number,
+        sfShortEdge: {
+          defaultRes: { type: Number, default: 1002 },
+          resB: { type: Number, default: 2000 },
+          resC: { type: Number, default: 4000 },
         },
-        f120ShortEdge: {
-          resA: Number,
-          resB: Number,
-          resC: Number,
+        mfShortEdge: {
+          defaultRes: { type: Number, default: 1002 },
+          resB: { type: Number, default: 2000 },
+          resC: { type: Number, default: 4000 },
         },
         f4x5ShortEdge: {
-          resA: Number,
-          resB: Number,
-          resC: Number,
+          defaultRes: { type: Number, default: 1002 },
+          resB: { type: Number, default: 2000 },
+          resC: { type: Number, default: 4000 },
         },
         f8x10ShortEdge: {
-          resA: Number,
-          resB: Number,
-          resC: Number,
+          defaultRes: { type: Number, default: 1002 },
+          resB: { type: Number, default: 2000 },
+          resC: { type: Number, default: 4000 },
         },
       },
       customScanOptions: {
         a: {
-          name: String,
-          desc: String,
+          name: { type: String, default: 'Standard' },
+          desc: { type: String, default: '' },
         },
         b: {
-          name: String,
-          desc: String,
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
         },
         c: {
-          name: String,
-          desc: String,
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
         },
       },
     },
     print: {
-      isEnabled: {
-        type: Boolean,
-        default: false,
-      },
-      printers: {
-        printerA: {
-          name: String,
-          desc: String,
-        },
-        printerB: {
-          name: String,
-          desc: String,
-        },
-        printerC: {
-          name: String,
-          desc: String,
-        },
-      },
+      isEnabled: { type: Boolean, default: false },
       printDimensions: {
-        f35mmShortEdge: {
-          dimensionA: Number,
-          dimensionB: Number,
-          dimensionC: Number,
+        sfShortEdge: {
+          defaultDimension: { type: Number, default: 4 },
+          dimensionB: { type: Number, default: 5 },
+          dimensionC: { type: Number, default: 8 },
         },
-        f120ShortEdge: {
-          dimensionA: Number,
-          dimensionB: Number,
-          dimensionC: Number,
+        mfShortEdge: {
+          defaultDimension: { type: Number, default: 4 },
+          dimensionB: { type: Number, default: 5 },
+          dimensionC: { type: Number, default: 8 },
         },
         f4x5ShortEdge: {
-          dimensionA: Number,
-          dimensionB: Number,
-          dimensionC: Number,
+          defaultDimension: { type: Number, default: 4 },
+          dimensionB: { type: Number, default: 5 },
+          dimensionC: { type: Number, default: 8 },
         },
         f8x10ShortEdge: {
-          dimensionA: Number,
-          dimensionB: Number,
-          dimensionC: Number,
+          defaultDimension: { type: Number, default: 4 },
+          dimensionB: { type: Number, default: 5 },
+          dimensionC: { type: Number, default: 8 },
         },
       },
       customPrintOptions: {
         a: {
-          name: String,
-          desc: String,
+          name: { type: String, default: 'Standard' },
+          desc: { type: String, default: '' },
         },
         b: {
-          name: String,
-          desc: String,
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
         },
         c: {
-          name: String,
-          desc: String,
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
         },
       },
     },

@@ -19,20 +19,7 @@ const serviceTypeSchema = new mongoose.Schema({
       },
     ],
   },
-  includedServiceTypes: {
-    dev: {
-      type: Boolean,
-      default: false,
-    },
-    scan: {
-      type: Boolean,
-      default: false,
-    },
-    print: {
-      type: Boolean,
-      default: false,
-    },
-  },
+  includedServiceTypes: Object,
 });
 
 module.exports = mongoose.model('ServiceType', serviceTypeSchema);

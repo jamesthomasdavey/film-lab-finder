@@ -75,6 +75,28 @@ const identifiers = {
       _id: '5f8f58c2062b1b2a4900e99e',
     },
   },
+  addOns: {
+    pushPull: {
+      name: 'Push or pull',
+      _id: '5f98e5c4c9101a054c49021a',
+    },
+    rawScans: {
+      name: 'Raw scans',
+      _id: '5f98e5c5c9101a054c49021b',
+    },
+    scanner: {
+      name: 'Scanner',
+      _id: '5f98e5c5c9101a054c49021c',
+    },
+    scanRes: {
+      name: 'Scan resolution',
+      _id: '5f98e5c5c9101a054c49021d',
+    },
+    printSize: {
+      name: 'Print size',
+      _id: '5f98e5c5c9101a054c49021e',
+    },
+  },
 };
 
 const serviceTypes = [
@@ -100,6 +122,7 @@ const serviceTypes = [
     includedServiceTypes: {
       dev: true,
     },
+    allowedAddOns: {},
   },
   {
     name: identifiers.serviceTypes.devScan.name,
@@ -144,11 +167,11 @@ const serviceTypes = [
         identifiers.filmSizes.f8x10._id,
       ],
     },
-    includedServiceTypes: {
-      dev: true,
-      scan: true,
-      print: true,
-    },
+    includedServiceTypes: [
+      identifiers.serviceTypes.dev,
+      identifiers.serviceTypes.scan,
+      identifiers.serviceTypes.print,
+    ],
   },
   {
     name: identifiers.serviceTypes.scan.name,
@@ -421,8 +444,8 @@ const seedArrayToMongooseModel = (array, mongooseModel) => {
 // execution
 exports.execute = () => {
   // always run these first
-  addRemainingCompatibilities();
-  buildServices();
+  // addRemainingCompatibilities();
+  // buildServices();
   // seeding; run these one at a time maybe
   // seedArrayToMongooseModel(serviceTypes, ServiceType);
   // seedArrayToMongooseModel(filmTypes, FilmType);
