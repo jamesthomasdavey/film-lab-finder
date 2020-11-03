@@ -75,28 +75,6 @@ const identifiers = {
       _id: '5f8f58c2062b1b2a4900e99e',
     },
   },
-  addOns: {
-    pushPull: {
-      name: 'Push or pull',
-      _id: '5f98e5c4c9101a054c49021a',
-    },
-    rawScans: {
-      name: 'Raw scans',
-      _id: '5f98e5c5c9101a054c49021b',
-    },
-    scanner: {
-      name: 'Scanner',
-      _id: '5f98e5c5c9101a054c49021c',
-    },
-    scanRes: {
-      name: 'Scan resolution',
-      _id: '5f98e5c5c9101a054c49021d',
-    },
-    printSize: {
-      name: 'Print size',
-      _id: '5f98e5c5c9101a054c49021e',
-    },
-  },
 };
 
 const serviceTypes = [
@@ -270,6 +248,7 @@ const filmTypes = [
         identifiers.filmSizes.f8x10._id,
       ],
     },
+    includedFilmTypes: { e6: true },
   },
   {
     name: identifiers.filmTypes.ecn2.name,
@@ -309,6 +288,9 @@ const filmSizes = [
     compatibilities: {
       serviceTypes: [],
       filmTypes: [],
+    },
+    includedFilmSizes: {
+      f35mmMounted: true,
     },
   },
   {
@@ -396,7 +378,6 @@ const addRemainingCompatibilities = () => {
 const buildServices = () => {
   // cycle through the service types
   serviceTypes.forEach(serviceType => {
-    const includedServiceTypes = serviceType.includedServiceTypes;
     // for each service type, cycle through its compatible film types
     serviceType.compatibilities.filmTypes.forEach(compatibleFilmTypeId => {
       // for each of its compatible film types, find the compatible film type in the filmtypes array
@@ -416,7 +397,6 @@ const buildServices = () => {
                         serviceType: serviceType._id,
                         filmType: filmType._id,
                         filmSize: filmSize._id,
-                        includedServiceTypes: includedServiceTypes,
                       });
                     }
                   }
@@ -444,8 +424,8 @@ const seedArrayToMongooseModel = (array, mongooseModel) => {
 // execution
 exports.execute = () => {
   // always run these first
-  // addRemainingCompatibilities();
-  // buildServices();
+  addRemainingCompatibilities();
+  buildServices();
   // seeding; run these one at a time maybe
   // seedArrayToMongooseModel(serviceTypes, ServiceType);
   // seedArrayToMongooseModel(filmTypes, FilmType);

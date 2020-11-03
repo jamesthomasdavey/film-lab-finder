@@ -55,11 +55,57 @@ router.get('/labs/:labId/services/edit', (req, res) => {
 // @desc    creates a new lab based on parameters
 // @access  admin
 router.post('/labs/new', (req, res) => {
-  Service.find({})
-    .populate('serviceType')
-    .then(foundServices => {
-      res.json(foundServices[0]);
-    });
+  Lab.findOne({ name: req.body.name }).then(labWithMatchingName => {
+    if (labWithMatchingName)
+      return res
+        .status(400)
+        .json({ errors: { name: 'This name has already been registered.' } });
+    Service.find({})
+      .populate('serviceType')
+      .populate('filmType')
+      .populate('filmSize')
+      .then(foundServices => {
+        const labServices = foundServices.map(foundService => {
+          const labService = {
+            addOns: {
+              ship: { returnMounted: {}, returnSleeved: {} },
+              dev: {},
+              scan: {},
+              print: {},
+            },
+          };
+          labService.service = foundService._id;
+          // set the allowed and dissallowed addons
+          if (!foundService.filmSize.includedFilmSizes.f35mmMounted) {
+            labService.addOns.ship.returnSleeved.isAllowed = true;
+          }
+          if (
+            foundService.filmType.includedFilmTypes.e6 &&
+            !foundService.filmSize.includedFilmSizes.f35mmMounted
+          ) {
+            labService.addOns.ship.returnMounted.isAllowed = true;
+          }
+          if (foundService.serviceType.includedServiceTypes.dev) {
+            labService.addOns.dev.isAllowed = true;
+          }
+          if (foundService.serviceType.includedServiceTypes.scan) {
+            labService.addOns.scan.isAllowed = true;
+          }
+          if (foundService.serviceType.includedServiceTypes.print) {
+            labService.addOns.print.isAllowed = true;
+          }
+          return labService;
+        });
+        const newLab = new Lab({
+          name: req.body.name,
+          ownedBy: req.body.ownedBy,
+          labServices: labServices,
+        });
+        newLab.save().then(savedLab => {
+          return res.json(savedLab);
+        });
+      });
+  });
 });
 
 // @route   get /api/labs/:labId/settings/ship

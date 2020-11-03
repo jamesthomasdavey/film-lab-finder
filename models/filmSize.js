@@ -19,6 +19,9 @@ const filmSizeSchema = new mongoose.Schema({
       },
     ],
   },
+  includedFilmSizes: {
+    f35mmMounted: Boolean,
+  },
 });
 
 module.exports = mongoose.model('FilmSize', filmSizeSchema);

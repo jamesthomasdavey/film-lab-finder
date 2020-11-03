@@ -19,6 +19,9 @@ const filmTypeSchema = new mongoose.Schema({
       },
     ],
   },
+  includedFilmTypes: {
+    e6: Boolean,
+  },
 });
 
 module.exports = mongoose.model('FilmType', filmTypeSchema);
