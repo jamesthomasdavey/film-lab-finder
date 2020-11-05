@@ -418,7 +418,7 @@ const seedArrayToMongooseModel = (array, mongooseModel) => {
     const newArray = [...array];
     newArray.shift();
     seedArrayToMongooseModel(newArray, mongooseModel);
-  });
+});
 };
 
 // execution

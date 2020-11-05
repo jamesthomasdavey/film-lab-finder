@@ -6,7 +6,7 @@ const labSchema = new mongoose.Schema({
     unique: true,
     required: true,
   },
-  description: String,
+  description: { type: String, default: '' },
   ownedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -14,7 +14,6 @@ const labSchema = new mongoose.Schema({
   },
   settings: {
     shipSettings: {
-      canReturnUncutNegs: { type: Boolean, default: true },
       allowDropoff: { type: Boolean, default: true },
       allowPickup: { type: Boolean, default: true },
       shippingPrice: { type: Number, default: 10 },
@@ -30,54 +29,62 @@ const labSchema = new mongoose.Schema({
       },
       scanners: {
         defaultScanner: {
+          // make sure this is required if scanning is enabled
           name: { type: String, default: 'Noritsu' },
           desc: { type: String, default: '' },
         },
         scannerB: {
+          isEnabled: { type: Boolean, default: true },
           name: { type: String, default: 'Fuji Frontier' },
           desc: { type: String, default: '' },
         },
         scannerC: {
+          isEnabled: { type: Boolean, default: false },
           name: { type: String, default: '' },
           desc: { type: String, default: '' },
         },
         scannerD: {
+          isEnabled: { type: Boolean, default: false },
           name: { type: String, default: '' },
           desc: { type: String, default: '' },
         },
       },
       scanResolutions: {
-        sfShortEdge: {
-          defaultRes: { type: Number, default: 1002 },
-          resB: { type: Number, default: 2000 },
-          resC: { type: Number, default: 4000 },
+        defaultScanRes: {
+          // make sure this is required if scanning is enabled
+          sfShortEdge: { type: Number, default: 1002 },
+          mfShortEdge: { type: Number, default: 1002 },
+          f4x5ShortEdge: { type: Number, default: 1002 },
+          f8x10ShortEdge: { type: Number, default: 1002 },
         },
-        mfShortEdge: {
-          defaultRes: { type: Number, default: 1002 },
-          resB: { type: Number, default: 2000 },
-          resC: { type: Number, default: 4000 },
+        scanResB: {
+          isEnabled: { type: Boolean, default: true },
+          sfShortEdge: { type: Number, default: 2000 },
+          mfShortEdge: { type: Number, default: 2000 },
+          f4x5ShortEdge: { type: Number, default: 2000 },
+          f8x10ShortEdge: { type: Number, default: 2000 },
         },
-        f4x5ShortEdge: {
-          defaultRes: { type: Number, default: 1002 },
-          resB: { type: Number, default: 2000 },
-          resC: { type: Number, default: 4000 },
-        },
-        f8x10ShortEdge: {
-          defaultRes: { type: Number, default: 1002 },
-          resB: { type: Number, default: 2000 },
-          resC: { type: Number, default: 4000 },
+        scanResC: {
+          isEnabled: { type: Boolean, default: true },
+          sfShortEdge: { type: Number, default: 4000 },
+          mfShortEdge: { type: Number, default: 4000 },
+          f4x5ShortEdge: { type: Number, default: 4000 },
+          f8x10ShortEdge: { type: Number, default: 4000 },
         },
       },
       customScanOptions: {
-        a: {
+        defaultScanOption: {
+          // make sure this is required if scanning is enabled
           name: { type: String, default: 'Standard' },
           desc: { type: String, default: '' },
         },
-        b: {
+        scanOptionB: {
+          isEnabled: { type: Boolean, default: false },
           name: { type: String, default: '' },
           desc: { type: String, default: '' },
         },
-        c: {
+        scanOptionC: {
+          isEnabled: { type: Boolean, default: false },
           name: { type: String, default: '' },
           desc: { type: String, default: '' },
         },
@@ -85,38 +92,41 @@ const labSchema = new mongoose.Schema({
     },
     printSettings: {
       isEnabled: { type: Boolean, default: false },
-      printDimensions: {
-        sfShortEdge: {
-          defaultDimension: { type: Number, default: 4 },
-          dimensionB: { type: Number, default: 5 },
-          dimensionC: { type: Number, default: 8 },
+      printSizes: {
+        defaultPrintSize: {
+          sfShortEdge: { type: Number, default: 4 },
+          mfShortEdge: { type: Number, default: 4 },
+          f4x5ShortEdge: { type: Number, default: 4 },
+          f8x10ShortEdge: { type: Number, default: 4 },
         },
-        mfShortEdge: {
-          defaultDimension: { type: Number, default: 4 },
-          dimensionB: { type: Number, default: 5 },
-          dimensionC: { type: Number, default: 8 },
+        printSizeB: {
+          isEnabled: { type: Boolean, default: true },
+          sfShortEdge: { type: Number, default: 5 },
+          mfShortEdge: { type: Number, default: 5 },
+          f4x5ShortEdge: { type: Number, default: 5 },
+          f8x10ShortEdge: { type: Number, default: 5 },
         },
-        f4x5ShortEdge: {
-          defaultDimension: { type: Number, default: 4 },
-          dimensionB: { type: Number, default: 5 },
-          dimensionC: { type: Number, default: 8 },
-        },
-        f8x10ShortEdge: {
-          defaultDimension: { type: Number, default: 4 },
-          dimensionB: { type: Number, default: 5 },
-          dimensionC: { type: Number, default: 8 },
+        printSizeC: {
+          isEnabled: { type: Boolean, default: true },
+          sfShortEdge: { type: Number, default: 8 },
+          mfShortEdge: { type: Number, default: 8 },
+          f4x5ShortEdge: { type: Number, default: 8 },
+          f8x10ShortEdge: { type: Number, default: 8 },
         },
       },
       customPrintOptions: {
-        a: {
+        defaultPrintOption: {
+          // make sure this is required if printing is enabled
           name: { type: String, default: 'Standard' },
           desc: { type: String, default: '' },
         },
-        b: {
+        printOptionB: {
+          isEnabled: { type: Boolean, default: false },
           name: { type: String, default: '' },
           desc: { type: String, default: '' },
         },
-        c: {
+        printOptionC: {
+          isEnabled: { type: Boolean, default: false },
           name: { type: String, default: '' },
           desc: { type: String, default: '' },
         },
@@ -189,6 +199,10 @@ const labSchema = new mongoose.Schema({
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
+          scannerD: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
           scanResB: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
@@ -197,30 +211,30 @@ const labSchema = new mongoose.Schema({
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
-          customScanB: {
+          scanOptionB: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
-          customScanC: {
+          scanOptionC: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
         },
         print: {
           isAllowed: { type: Boolean, default: false },
-          printDimensionB: {
+          printSizeB: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
-          printDimensionC: {
+          printSizeC: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
-          customPrintB: {
+          printOptionB: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
-          customPrintC: {
+          printOptionC: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
