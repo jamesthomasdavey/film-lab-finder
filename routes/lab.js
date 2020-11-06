@@ -673,6 +673,15 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
           warnings.scanOptionB.push(message);
           warnings.scanOptionC.push(message);
         }
+        if (!labAllowsPrint) {
+          const message = 'You must enable printing to offer this add-on.';
+          warnings.defaultPrintSize.push(message);
+          warnings.printSizeB.push(message);
+          warnings.printSizeC.push(message);
+          warnings.defaultPrintOption.push(message);
+          warnings.printOptionB.push(message);
+          warnings.printOptionC.push(message);
+        }
         if (!labAllowsRawScansByRoll) {
           warnings.rawScans.push(
             'You must disable raw scans by order to offer this add-on.'
@@ -725,12 +734,12 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         }
         if (!labAllowsPrintOptionB) {
           warnings.printOptionB.push(
-            `You must enable the print option "${printOptionB}" to offer this add-on.`
+            `You must enable the print option "${printOptionBName}" to offer this add-on.`
           );
         }
         if (!labAllowsPrintOptionC) {
           warnings.printOptionC.push(
-            `You must enable the print option "${printOptionC}" to offer this add-on.`
+            `You must enable the print option "${printOptionCName}" to offer this add-on.`
           );
         }
       }
@@ -855,7 +864,13 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             messages: warnings.scannerD,
           },
         },
-        defaultScanRes: { name: defaultScanResName, isAllowed: scanAllowed },
+        defaultScanRes: {
+          name: defaultScanResName,
+          warning: {
+            isPresent: warnings.defaultScanRes.length > 0,
+            messages: warnings.defaultScanRes,
+          },
+        },
         scanResB: {
           name: scanResBName,
           warning: {
