@@ -176,112 +176,184 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
       populate: { path: 'filmSize' },
     })
     .then(foundLab => {
-      // get info for columns and rows
-      const devAllowed = foundLab.settings.devSettings.isEnabled;
-      const scanAllowed = foundLab.settings.scanSettings.isEnabled;
-      const printAllowed = foundLab.settings.printSettings.isEnabled;
-      // build out columns
+      // check what the lab allows
+      const labAllowsDev = foundLab.settings.devSettings.isEnabled;
+      const labAllowsScan = foundLab.settings.scanSettings.isEnabled;
+      const labAllowsPrint = foundLab.settings.printSettings.isEnabled;
+      const labAllowsRawScansByRoll = !foundLab.settings.scanSettings.rawByOrder
+        .isEnabled;
+      const labAllowsScannerB =
+        foundLab.settings.scanSettings.scanners.scannerB.isEnabled;
+      const labAllowsScannerC =
+        foundLab.settings.scanSettings.scanners.scannerC.isEnabled;
+      const labAllowsScannerD =
+        foundLab.settings.scanSettings.scanners.scannerD.isEnabled;
+      const labAllowsScanResB =
+        foundLab.settings.scanSettings.scanResolutions.scanResB.isEnabled;
+      const labAllowsScanResC =
+        foundLab.settings.scanSettings.scanResolutions.scanResC.isEnabled;
+      const labAllowsScanOptionB =
+        foundLab.settings.scanSettings.customScanOptions.scanOptionB.isEnabled;
+      const labAllowsScanOptionC =
+        foundLab.settings.scanSettings.customScanOptions.scanOptionC.isEnabled;
+      const labAllowsPrintSizeB =
+        foundLab.settings.printSettings.printSizes.printSizeB.isEnabled;
+      const labAllowsPrintSizeC =
+        foundLab.settings.printSettings.printSizes.printSizeC.isEnabled;
+      const labAllowsPrintOptionB =
+        foundLab.settings.printSettings.customPrintOptions.printOptionB
+          .isEnabled;
+      const labAllowsPrintOptionC =
+        foundLab.settings.printSettings.customPrintOptions.printOptionC
+          .isEnabled;
+      // get names for columns
+      const defaultScannerName =
+        foundLab.settings.scanSettings.scanners.defaultScanner.name ||
+        'Default Scanner';
+      const scannerBName =
+        foundLab.settings.scanSettings.scanners.scannerB.name || 'Scanner B';
+      const scannerCName =
+        foundLab.settings.scanSettings.scanners.scannerC.name || 'Scanner C';
+      const scannerDName =
+        foundLab.settings.scanSettings.scanners.scannerD.name || 'Scanner D';
+      const defaultScanResName =
+        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
+        'Default Scan Res';
+      const scanResBName =
+        foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
+        'Scan Res B';
+      const scanResCName =
+        foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
+        'Scan Res C';
+      const defaultScanOptionName =
+        foundLab.settings.scanSettings.customScanOptions.defaultScanOption
+          .name || 'Default Scan Option';
+      const scanOptionBName =
+        foundLab.settings.scanSettings.customScanOptions.scanOptionB.name ||
+        'Scan Option B';
+      const scanOptionCName =
+        foundLab.settings.scanSettings.customScanOptions.scanOptionC.name ||
+        'Scan Option C';
+      const defaultPrintSizeName =
+        foundLab.settings.printSettings.printSizes.defaultPrintSize.name ||
+        'Default Print Size';
+      const printSizeBName =
+        foundLab.settings.printSettings.printSizes.printSizeB.name ||
+        'Print Size B';
+      const printSizeCName =
+        foundLab.settings.printSettings.printSizes.printSizeC.name ||
+        'Print Size C';
+      const defaultPrintOptionName =
+        foundLab.settings.printSettings.customPrintOptions.defaultPrintOption
+          .name || 'Default Print Option';
+      const printOptionBName =
+        foundLab.settings.printSettings.customPrintOptions.printOptionB.name ||
+        'Print Option B';
+      const printOptionCName =
+        foundLab.settings.printSettings.customPrintOptions.printOptionC.name ||
+        'Print Option C';
+      // build out columns; if column is not enabled, it will not appear
       const columns = {
-        base: { isAllowed: true },
-        returnUnsleeved: { isAllowed: true },
-        returnSleeved: { isAllowed: true },
-        returnMounted: { isAllowed: true },
-        noPushPull: { isAllowed: devAllowed },
-        push1: { isAllowed: devAllowed },
-        push2: { isAllowed: devAllowed },
-        push3: { isAllowed: devAllowed },
-        pull1: { isAllowed: devAllowed },
-        pull2: { isAllowed: devAllowed },
-        pull3: { isAllowed: devAllowed },
-        jpegScans: { isAllowed: scanAllowed },
+        base: { name: 'Base', isAllowed: true },
+        returnUnsleeved: { name: 'Return Unsleeved', isAllowed: true },
+        returnSleeved: { name: 'Return Sleeved', isAllowed: true },
+        returnMounted: { name: 'Return Mounted', isAllowed: true },
+        noPushPull: { name: 'No Push/Pull', isAllowed: labAllowsDev },
+        push1: { name: 'Push +1', isAllowed: labAllowsDev },
+        push2: { name: 'Push +2', isAllowed: labAllowsDev },
+        push3: { name: 'Push +3', isAllowed: labAllowsDev },
+        pull1: { name: 'Pull -1', isAllowed: labAllowsDev },
+        pull2: { name: 'Pull -2', isAllowed: labAllowsDev },
+        pull3: { name: 'Pull -3', isAllowed: labAllowsDev },
+        jpegScans: { name: 'Jpeg Scans', isAllowed: labAllowsScan },
         rawScans: {
-          isAllowed:
-            scanAllowed && !foundLab.settings.scanSettings.rawByOrder.isEnabled,
+          name: 'Raw Scans',
+          isAllowed: labAllowsScan && labAllowsRawScansByRoll,
         },
-        defaultScanner: { isAllowed: scanAllowed },
+        defaultScanner: { name: defaultScannerName, isAllowed: labAllowsScan },
         scannerB: {
-          isAllowed:
-            scanAllowed &&
-            foundLab.settings.scanSettings.scanners.scannerB.isEnabled,
+          name: scannerBName,
+          isAllowed: labAllowsScan && labAllowsScannerB,
         },
         scannerC: {
-          isAllowed:
-            scanAllowed &&
-            foundLab.settings.scanSettings.scanners.scannerC.isEnabled,
+          name: scannerCName,
+          isAllowed: labAllowsScan && labAllowsScannerC,
         },
         scannerD: {
-          isAllowed:
-            scanAllowed &&
-            foundLab.settings.scanSettings.scanners.scannerD.isEnabled,
+          name: scannerDName,
+          isAllowed: labAllowsScan && labAllowsScannerD,
         },
-        defaultScanRes: { isAllowed: scanAllowed },
+        defaultScanRes: { name: defaultScanResName, isAllowed: labAllowsScan },
         scanResB: {
-          isAllowed:
-            scanAllowed &&
-            foundLab.settings.scanSettings.scanResolutions.scanResB.isEnabled,
+          name: scanResBName,
+          isAllowed: labAllowsScan && labAllowsScanResB,
         },
         scanResC: {
-          isAllowed:
-            scanAllowed &&
-            foundLab.settings.scanSettings.scanResolutions.scanResC.isEnabled,
+          name: scanResCName,
+          isAllowed: labAllowsScan && labAllowsScanResC,
         },
-        defaultScanOption: { isAllowed: scanAllowed },
+        defaultScanOption: {
+          name: defaultScanOptionName,
+          isAllowed: labAllowsScan,
+        },
         scanOptionB: {
-          isAllowed:
-            scanAllowed &&
-            foundLab.settings.scanSettings.customScanOptions.scanOptionB
-              .isEnabled,
+          name: scanOptionBName,
+          isAllowed: labAllowsScan && labAllowsScanOptionB,
         },
         scanOptionC: {
-          isAllowed:
-            scanAllowed &&
-            foundLab.settings.scanSettings.customScanOptions.scanOptionC
-              .isEnabled,
+          name: scanOptionCName,
+          isAllowed: labAllowsScan && labAllowsScanOptionC,
         },
-        defaultPrintSize: { isAllowed: printAllowed },
+        defaultPrintSize: {
+          name: defaultPrintSizeName,
+          isAllowed: labAllowsPrint,
+        },
         printSizeB: {
-          isAllowed:
-            printAllowed &&
-            foundLab.settings.printSettings.printSizes.printSizeB.isEnabled,
+          name: printSizeBName,
+          isAllowed: labAllowsPrint && labAllowsPrintSizeB,
         },
         printSizeC: {
-          isAllowed:
-            printAllowed &&
-            foundLab.settings.printSettings.printSizes.printSizeC.isEnabled,
+          name: printSizeCName,
+          isAllowed: labAllowsPrint && labAllowsPrintSizeC,
         },
-        defaultPrintOption: { isAllowed: printAllowed },
+        defaultPrintOption: {
+          name: defaultPrintOptionName,
+          isAllowed: labAllowsPrint,
+        },
         printOptionB: {
-          isAllowed:
-            printAllowed &&
-            foundLab.settings.printSettings.customPrintOptions.printOptionB
-              .isEnabled,
+          name: printOptionBName,
+          isAllowed: labAllowsPrint && labAllowsPrintOptionB,
         },
         printOptionC: {
-          isAllowed:
-            printAllowed &&
-            foundLab.settings.printSettings.customPrintOptions.printOptionC
-              .isEnabled,
+          name: printOptionCName,
+          isAllowed: labAllowsPrint && labAllowsPrintOptionC,
         },
       };
-      // build out rows
+      // build out rows; if row is not supported by the lab, it won't appear
       const rows = [];
       foundLab.labServices.forEach(foundLabService => {
+        const serviceIncludesDev =
+          foundLabService.service.serviceType.includedServiceTypes.dev;
+        const serviceIncludesScan =
+          foundLabService.service.serviceType.includedServiceTypes.scan;
+        const serviceIncludesPrint =
+          foundLabService.service.serviceType.includedServiceTypes.print;
         let labCanSupport = true;
         // if the service includes dev, make sure that the lab can support that
-        if (foundLabService.service.serviceType.includedServiceTypes.dev) {
-          if (!foundLab.settings.devSettings.isEnabled) {
+        if (serviceIncludesDev) {
+          if (!labAllowsDev) {
             labCanSupport = false;
           }
         }
         // if the service includes scan, make sure that the lab can support that
-        if (foundLabService.service.serviceType.includedServiceTypes.scan) {
-          if (!foundLab.settings.scanSettings.isEnabled) {
+        if (serviceIncludesScan) {
+          if (!labAllowsScan) {
             labCanSupport = false;
           }
         }
         // if the service includes print, make sure that the lab can support that
         if (foundLabService.service.serviceType.includedServiceTypes.print) {
-          if (!foundLab.settings.printSettings.isEnabled) {
+          if (!labAllowsPrint) {
             labCanSupport = false;
           }
         }
@@ -313,177 +385,132 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
               price: foundLabService.addOns.ship.returnMounted.price,
             },
             noPushPull: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev &&
-                columns.noPushPull.isAllowed,
+              isAllowed: serviceIncludesDev && columns.noPushPull.isAllowed,
               isEnabled: true,
               price: 0,
             },
             push1: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev &&
-                columns.push1.isAllowed,
+              isAllowed: serviceIncludesDev && columns.push1.isAllowed,
               isEnabled: foundLabService.addOns.dev.push1.isEnabled,
               price: foundLabService.addOns.dev.push1.price,
             },
             push2: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev &&
-                columns.push2.isAllowed,
+              isAllowed: serviceIncludesDev && columns.push2.isAllowed,
               isEnabled: foundLabService.addOns.dev.push2.isEnabled,
               price: foundLabService.addOns.dev.push2.price,
             },
             push3: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev &&
-                columns.push3.isAllowed,
+              isAllowed: serviceIncludesDev && columns.push3.isAllowed,
               isEnabled: foundLabService.addOns.dev.push3.isEnabled,
               price: foundLabService.addOns.dev.push3.price,
             },
             pull1: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev &&
-                columns.pull1.isAllowed,
+              isAllowed: serviceIncludesDev && columns.pull1.isAllowed,
               isEnabled: foundLabService.addOns.dev.pull1.isEnabled,
               price: foundLabService.addOns.dev.pull1.price,
             },
             pull2: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev &&
-                columns.pull2.isAllowed,
+              isAllowed: serviceIncludesDev && columns.pull2.isAllowed,
               isEnabled: foundLabService.addOns.dev.pull2.isEnabled,
               price: foundLabService.addOns.dev.pull2.price,
             },
             pull3: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev &&
-                columns.pull3.isAllowed,
+              isAllowed: serviceIncludesDev && columns.pull3.isAllowed,
               isEnabled: foundLabService.addOns.dev.pull3.isEnabled,
               price: foundLabService.addOns.dev.pull3.price,
             },
             jpegScans: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.jpegScans.isAllowed,
+              isAllowed: serviceIncludesScan && columns.jpegScans.isAllowed,
               isEnabled: true,
               price: 0,
             },
             rawScans: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.rawScans.isAllowed,
+              isAllowed: serviceIncludesScan && columns.rawScans.isAllowed,
               isEnabled: foundLabService.addOns.scan.rawScans.isEnabled,
               price: foundLabService.addOns.scan.rawScans.price,
             },
             defaultScanner: {
               isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.defaultScanner.isAllowed,
+                serviceIncludesScan && columns.defaultScanner.isAllowed,
               isEnabled: true,
               price: 0,
             },
             scannerB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.scannerB.isAllowed,
+              isAllowed: serviceIncludesScan && columns.scannerB.isAllowed,
               isEnabled: foundLabService.addOns.scan.scannerB.isEnabled,
               price: foundLabService.addOns.scan.scannerB.price,
             },
             scannerC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.scannerC.isAllowed,
+              isAllowed: serviceIncludesScan && columns.scannerC.isAllowed,
               isEnabled: foundLabService.addOns.scan.scannerC.isEnabled,
               price: foundLabService.addOns.scan.scannerC.price,
             },
             scannerD: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.scannerD.isAllowed,
+              isAllowed: serviceIncludesScan && columns.scannerD.isAllowed,
               isEnabled: foundLabService.addOns.scan.scannerD.isEnabled,
               price: foundLabService.addOns.scan.scannerD.price,
             },
             defaultScanRes: {
               isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.defaultScanRes.isAllowed,
+                serviceIncludesScan && columns.defaultScanRes.isAllowed,
               isEnabled: true,
               price: 0,
             },
             scanResB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.scanResB.isAllowed,
+              isAllowed: serviceIncludesScan && columns.scanResB.isAllowed,
               isEnabled: foundLabService.addOns.scan.scanResB.isEnabled,
               price: foundLabService.addOns.scan.scanResB.price,
             },
             scanResC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.scanResC.isAllowed,
+              isAllowed: serviceIncludesScan && columns.scanResC.isAllowed,
               isEnabled: foundLabService.addOns.scan.scanResC.isEnabled,
               price: foundLabService.addOns.scan.scanResC.price,
             },
             defaultScanOption: {
               isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.defaultScanOption.isAllowed,
+                serviceIncludesScan && columns.defaultScanOption.isAllowed,
               isEnabled: true,
               price: 0,
             },
             scanOptionB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.scanOptionB.isAllowed,
+              isAllowed: serviceIncludesScan && columns.scanOptionB.isAllowed,
               isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
               price: foundLabService.addOns.scan.scanOptionB.price,
             },
             scanOptionC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan &&
-                columns.scanOptionB.isAllowed,
+              isAllowed: serviceIncludesScan && columns.scanOptionB.isAllowed,
               isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
               price: foundLabService.addOns.scan.scanOptionB.price,
             },
             defaultPrintSize: {
               isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes
-                  .print && columns.defaultPrintSize.isAllowed,
+                serviceIncludesPrint && columns.defaultPrintSize.isAllowed,
               isEnabled: true,
               price: 0,
             },
             printSizeB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes
-                  .print && columns.printSizeB.isAllowed,
+              isAllowed: serviceIncludesPrint && columns.printSizeB.isAllowed,
               isEnabled: foundLabService.addOns.print.printSizeB.isEnabled,
               price: foundLabService.addOns.print.printSizeB.price,
             },
             printSizeC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes
-                  .print && columns.printSizeC.isAllowed,
+              isAllowed: serviceIncludesPrint && columns.printSizeC.isAllowed,
               isEnabled: foundLabService.addOns.print.printSizeC.isEnabled,
               price: foundLabService.addOns.print.printSizeC.price,
             },
             defaultPrintOption: {
               isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes
-                  .print && columns.defaultPrintOption.isAllowed,
+                serviceIncludesPrint && columns.defaultPrintOption.isAllowed,
               isEnabled: true,
               price: 0,
             },
             printOptionB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes
-                  .print && columns.printOptionB.isAllowed,
+              isAllowed: serviceIncludesPrint && columns.printOptionB.isAllowed,
               isEnabled: foundLabService.addOns.print.printOptionB.isEnabled,
               price: foundLabService.addOns.print.printOptionB.price,
             },
             printOptionC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes
-                  .print && columns.printOptionC.isAllowed,
+              isAllowed: serviceIncludesPrint && columns.printOptionC.isAllowed,
               isEnabled: foundLabService.addOns.print.printOptionC.isEnabled,
               price: foundLabService.addOns.print.printOptionC.price,
             },
@@ -512,194 +539,585 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       populate: { path: 'filmSize' },
     })
     .then(foundLab => {
-      return res.json(
-        foundLab.labServices.map(foundLabService => {
-          return {
-            serviceId: foundLabService.service._id,
-            serviceType: foundLabService.service.serviceType.name,
-            filmType: foundLabService.service.filmType.name,
-            filmSize: foundLabService.service.filmSize.name,
-            base: {
-              isAllowed: true,
-              isEnabled: foundLabService.isEnabled,
-              price: foundLabService.price,
-            },
-            returnUnsleeved: {
-              isAllowed: true,
-              isEnabled: true,
-              price: 0,
-              readOnly: true,
-            },
-            returnSleeved: {
-              isAllowed: foundLabService.addOns.ship.returnSleeved.isAllowed,
-              isEnabled: foundLabService.addOns.ship.returnSleeved.isEnabled,
-              price: foundLabService.addOns.ship.returnSleeved.price,
-            },
-            returnMounted: {
-              isAllowed: foundLabService.addOns.ship.returnMounted.isAllowed,
-              isEnabled: foundLabService.addOns.ship.returnMounted.isEnabled,
-              price: foundLabService.addOns.ship.returnMounted.price,
-            },
-            noPushPull: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev,
-              isEnabled: true,
-              price: 0,
-              readOnly: true,
-            },
-            push1: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev,
-              isEnabled: foundLabService.addOns.dev.push1.isEnabled,
-              price: foundLabService.addOns.dev.push1.price,
-            },
-            push2: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev,
-              isEnabled: foundLabService.addOns.dev.push2.isEnabled,
-              price: foundLabService.addOns.dev.push2.price,
-            },
-            push3: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev,
-              isEnabled: foundLabService.addOns.dev.push3.isEnabled,
-              price: foundLabService.addOns.dev.push3.price,
-            },
-            pull1: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev,
-              isEnabled: foundLabService.addOns.dev.pull1.isEnabled,
-              price: foundLabService.addOns.dev.pull1.price,
-            },
-            pull2: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev,
-              isEnabled: foundLabService.addOns.dev.pull2.isEnabled,
-              price: foundLabService.addOns.dev.pull2.price,
-            },
-            pull3: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.dev,
-              isEnabled: foundLabService.addOns.dev.pull3.isEnabled,
-              price: foundLabService.addOns.dev.pull3.price,
-            },
-            jpegScans: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: true,
-              price: 0,
-              readOnly: true,
-            },
-            rawScans: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: foundLabService.addOns.scan.rawScans.isEnabled,
-              price: foundLabService.addOns.scan.rawScans.price,
-            },
-            defaultScanner: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: true,
-              price: 0,
-              readOnly: true,
-            },
-            scannerB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: foundLabService.addOns.scan.scannerB.isEnabled,
-              price: foundLabService.addOns.scan.scannerB.price,
-            },
-            scannerC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: foundLabService.addOns.scan.scannerC.isEnabled,
-              price: foundLabService.addOns.scan.scannerC.price,
-            },
-            scannerD: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: foundLabService.addOns.scan.scannerD.isEnabled,
-              price: foundLabService.addOns.scan.scannerD.price,
-            },
-            defaultScanRes: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: true,
-              price: 0,
-              readOnly: true,
-            },
-            scanResB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: foundLabService.addOns.scan.scanResB.isEnabled,
-              price: foundLabService.addOns.scan.scanResB.price,
-            },
-            scanResC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: foundLabService.addOns.scan.scanResC.isEnabled,
-              price: foundLabService.addOns.scan.scanResC.price,
-            },
-            defaultScanOption: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: true,
-              price: 0,
-              readOnly: true,
-            },
-            scanOptionB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
-              price: foundLabService.addOns.scan.scanOptionB.price,
-            },
-            scanOptionC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.scan,
-              isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
-              price: foundLabService.addOns.scan.scanOptionB.price,
-            },
-            defaultPrintSize: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.print,
-              isEnabled: true,
-              price: 0,
-              readOnly: true,
-            },
-            printSizeB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.print,
-              isEnabled: foundLabService.addOns.print.printSizeB.isEnabled,
-              price: foundLabService.addOns.print.printSizeB.price,
-            },
-            printSizeC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.print,
-              isEnabled: foundLabService.addOns.print.printSizeC.isEnabled,
-              price: foundLabService.addOns.print.printSizeC.price,
-            },
-            defaultPrintOption: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.print,
-              isEnabled: true,
-              price: 0,
-              readOnly: true,
-            },
-            printOptionB: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.print,
-              isEnabled: foundLabService.addOns.print.printOptionB.isEnabled,
-              price: foundLabService.addOns.print.printOptionB.price,
-            },
-            printOptionC: {
-              isAllowed:
-                foundLabService.service.serviceType.includedServiceTypes.print,
-              isEnabled: foundLabService.addOns.print.printOptionC.isEnabled,
-              price: foundLabService.addOns.print.printOptionC.price,
-            },
-          };
-        })
-      );
+      // get the things that the lab allows
+      const labAllowsDev = foundLab.settings.devSettings.isEnabled;
+      const labAllowsScan = foundLab.settings.scanSettings.isEnabled;
+      const labAllowsPrint = foundLab.settings.printSettings.isEnabled;
+      const labAllowsRawScansByRoll = !foundLab.settings.scanSettings.rawByOrder
+        .isEnabled;
+      const labAllowsScannerB =
+        foundLab.settings.scanSettings.scanners.scannerB.isEnabled;
+      const labAllowsScannerC =
+        foundLab.settings.scanSettings.scanners.scannerC.isEnabled;
+      const labAllowsScannerD =
+        foundLab.settings.scanSettings.scanners.scannerD.isEnabled;
+      const labAllowsScanResB =
+        foundLab.settings.scanSettings.scanResolutions.scanResB.isEnabled;
+      const labAllowsScanResC =
+        foundLab.settings.scanSettings.scanResolutions.scanResC.isEnabled;
+      const labAllowsScanOptionB =
+        foundLab.settings.scanSettings.customScanOptions.scanOptionB.isEnabled;
+      const labAllowsScanOptionC =
+        foundLab.settings.scanSettings.customScanOptions.scanOptionC.isEnabled;
+      const labAllowsPrintSizeB =
+        foundLab.settings.printSettings.printSizes.printSizeB.isEnabled;
+      const labAllowsPrintSizeC =
+        foundLab.settings.printSettings.printSizes.printSizeC.isEnabled;
+      const labAllowsPrintOptionB =
+        foundLab.settings.printSettings.customPrintOptions.printOptionB
+          .isEnabled;
+      const labAllowsPrintOptionC =
+        foundLab.settings.printSettings.customPrintOptions.printOptionC
+          .isEnabled;
+      // get names for the custom defined columns
+      const defaultScannerName =
+        foundLab.settings.scanSettings.scanners.defaultScanner.name ||
+        'Default Scanner';
+      const scannerBName =
+        foundLab.settings.scanSettings.scanners.scannerB.name || 'Scanner B';
+      const scannerCName =
+        foundLab.settings.scanSettings.scanners.scannerC.name || 'Scanner C';
+      const scannerDName =
+        foundLab.settings.scanSettings.scanners.scannerD.name || 'Scanner D';
+      const defaultScanResName =
+        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
+        'Default Scan Res';
+      const scanResBName =
+        foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
+        'Scan Res B';
+      const scanResCName =
+        foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
+        'Scan Res C';
+      const defaultScanOptionName =
+        foundLab.settings.scanSettings.customScanOptions.defaultScanOption
+          .name || 'Default Scan Option';
+      const scanOptionBName =
+        foundLab.settings.scanSettings.customScanOptions.scanOptionB.name ||
+        'Scan Option B';
+      const scanOptionCName =
+        foundLab.settings.scanSettings.customScanOptions.scanOptionC.name ||
+        'Scan Option C';
+      const defaultPrintSizeName =
+        foundLab.settings.printSettings.printSizes.defaultPrintSize.name ||
+        'Default Print Size';
+      const printSizeBName =
+        foundLab.settings.printSettings.printSizes.printSizeB.name ||
+        'Print Size B';
+      const printSizeCName =
+        foundLab.settings.printSettings.printSizes.printSizeC.name ||
+        'Print Size C';
+      const defaultPrintOptionName =
+        foundLab.settings.printSettings.customPrintOptions.defaultPrintOption
+          .name || 'Default Print Option';
+      const printOptionBName =
+        foundLab.settings.printSettings.customPrintOptions.printOptionB.name ||
+        'Print Option B';
+      const printOptionCName =
+        foundLab.settings.printSettings.customPrintOptions.printOptionC.name ||
+        'Print Option C';
+      // create an object of warnings that will be added to the columns
+      const warnings = {
+        base: [],
+        returnUnsleeved: [],
+        returnSleeved: [],
+        returnMounted: [],
+        noPushPull: [],
+        push1: [],
+        push2: [],
+        push3: [],
+        pull1: [],
+        pull2: [],
+        pull3: [],
+        jpegScans: [],
+        rawScans: [],
+        defaultScanner: [],
+        scannerB: [],
+        scannerC: [],
+        scannerD: [],
+        defaultScanRes: [],
+        scanResB: [],
+        scanResC: [],
+        defaultScanOption: [],
+        scanOptionB: [],
+        scanOptionC: [],
+        defaultPrintSize: [],
+        printSizeB: [],
+        printSizeC: [],
+        defaultPrintOption: [],
+        printOptionB: [],
+        printOptionC: [],
+      };
+      // modify the warnings object where warnings apply
+      {
+        if (!labAllowsDev) {
+          const message = 'You must enable developing to offer this add-on.';
+          warnings.push1.push(message);
+          warnings.push2.push(message);
+          warnings.push3.push(message);
+          warnings.pull1.push(message);
+          warnings.pull2.push(message);
+          warnings.pull3.push(message);
+        }
+        if (!labAllowsScan) {
+          const message = 'You must enable scanning to offer this add-on.';
+          warnings.jpegScans.push(message);
+          warnings.rawScans.push(message);
+          warnings.defaultScanner.push(message);
+          warnings.scannerB.push(message);
+          warnings.scannerC.push(message);
+          warnings.scannerD.push(message);
+          warnings.defaultScanRes.push(message);
+          warnings.scanResB.push(message);
+          warnings.scanResC.push(message);
+          warnings.defaultScanOption.push(message);
+          warnings.scanOptionB.push(message);
+          warnings.scanOptionC.push(message);
+        }
+        if (!labAllowsRawScansByRoll) {
+          warnings.rawScans.push(
+            'You must disable raw scans by order to offer this add-on.'
+          );
+        }
+        if (!labAllowsScannerB) {
+          warnings.scannerB.push(
+            `You must enable the scanner "${scannerBName}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsScannerC) {
+          warnings.scannerC.push(
+            `You must enable the scanner "${scannerCName}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsScannerD) {
+          warnings.scannerD.push(
+            `You must enable the scanner "${scannerDName}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsScanResB) {
+          warnings.scanResB.push(
+            `You must enable the scan resolution "${scanResBName}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsScanResC) {
+          warnings.scanResC.push(
+            `You must enable the scan resolution "${scanResCName}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsScanOptionB) {
+          warnings.scanOptionB.push(
+            `You must enable the scan option "${scanOptionBName}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsScanOptionC) {
+          warnings.scanOptionC.push(
+            `You must enable the scan option "${scanOptionCName}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsPrintSizeB) {
+          warnings.printSizeB.push(
+            `You must enable the print size "${printSizeBName}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsPrintSizeC) {
+          warnings.printSizeC.push(
+            `You must enable the print size "${printSizeCName}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsPrintOptionB) {
+          warnings.printOptionB.push(
+            `You must enable the print option "${printOptionB}" to offer this add-on.`
+          );
+        }
+        if (!labAllowsPrintOptionC) {
+          warnings.printOptionC.push(
+            `You must enable the print option "${printOptionC}" to offer this add-on.`
+          );
+        }
+      }
+      // build columns
+      const columns = {
+        base: {
+          name: 'Base',
+          warning: {
+            isPresent: warnings.base.length > 0,
+            messages: warnings.base,
+          },
+        },
+        returnUnsleeved: {
+          name: 'Return Unsleeved',
+          warning: {
+            isPresent: warnings.returnUnsleeved.length > 0,
+            messages: warnings.returnUnsleeved,
+          },
+        },
+        returnSleeved: {
+          name: 'Return Sleeved',
+          warning: {
+            isPresent: warnings.returnSleeved.length > 0,
+            messages: warnings.returnSleeved,
+          },
+        },
+        returnMounted: {
+          name: 'Return Mounted',
+          warning: {
+            isPresent: warnings.returnMounted.length > 0,
+            messages: warnings.returnMounted,
+          },
+        },
+        noPushPull: {
+          name: 'No Push/Pull',
+          warning: {
+            isPresent: warnings.noPushPull.length > 0,
+            messages: warnings.noPushPull,
+          },
+        },
+        push1: {
+          name: 'Push +1',
+          warning: {
+            isPresent: warnings.push1.length > 0,
+            messages: warnings.push1,
+          },
+        },
+        push2: {
+          name: 'Push +2',
+          warning: {
+            isPresent: warnings.push2.length > 0,
+            messages: warnings.push2,
+          },
+        },
+        push3: {
+          name: 'Push +3',
+          warning: {
+            isPresent: warnings.push3.length > 0,
+            messages: warnings.push3,
+          },
+        },
+        pull1: {
+          name: 'Pull -1',
+          warning: {
+            isPresent: warnings.pull1.length > 0,
+            messages: warnings.pull1,
+          },
+        },
+        pull2: {
+          name: 'Pull -2',
+          warning: {
+            isPresent: warnings.pull2.length > 0,
+            messages: warnings.pull2,
+          },
+        },
+        pull3: {
+          name: 'Pull -3',
+          warning: {
+            isPresent: warnings.pull3.length > 0,
+            messages: warnings.pull3,
+          },
+        },
+        jpegScans: {
+          name: 'Jpeg Scans',
+          warning: {
+            isPresent: warnings.jpegScans.length > 0,
+            messages: warnings.jpegScans,
+          },
+        },
+        rawScans: {
+          name: 'Raw Scans',
+          warning: {
+            isPresent: warnings.rawScans.length > 0,
+            messages: warnings.rawScans,
+          },
+        },
+        defaultScanner: {
+          name: defaultScannerName,
+          warning: {
+            isPresent: warnings.defaultScanner.length > 0,
+            messages: warnings.defaultScanner,
+          },
+        },
+        scannerB: {
+          name: scannerBName,
+          warning: {
+            isPresent: warnings.scannerB.length > 0,
+            messages: warnings.scannerB,
+          },
+        },
+        scannerC: {
+          name: scannerCName,
+          warning: {
+            isPresent: warnings.scannerC.length > 0,
+            messages: warnings.scannerC,
+          },
+        },
+        scannerD: {
+          name: scannerDName,
+          warning: {
+            isPresent: warnings.scannerD.length > 0,
+            messages: warnings.scannerD,
+          },
+        },
+        defaultScanRes: { name: defaultScanResName, isAllowed: scanAllowed },
+        scanResB: {
+          name: scanResBName,
+          warning: {
+            isPresent: warnings.scanResB.length > 0,
+            messages: warnings.scanResB,
+          },
+        },
+        scanResC: {
+          name: scanResCName,
+          warning: {
+            isPresent: warnings.scanResC.length > 0,
+            messages: warnings.scanResC,
+          },
+        },
+        defaultScanOption: {
+          name: defaultScanOptionName,
+          warning: {
+            isPresent: warnings.defaultScanOption.length > 0,
+            messages: warnings.defaultScanOption,
+          },
+        },
+        scanOptionB: {
+          name: scanOptionBName,
+          warning: {
+            isPresent: warnings.scanOptionB.length > 0,
+            messages: warnings.scanOptionB,
+          },
+        },
+        scanOptionC: {
+          name: scanOptionCName,
+          warning: {
+            isPresent: warnings.scanOptionC.length > 0,
+            messages: warnings.scanOptionC,
+          },
+        },
+        defaultPrintSize: {
+          name: defaultPrintSizeName,
+          warning: {
+            isPresent: warnings.defaultPrintSize.length > 0,
+            messages: warnings.defaultPrintSize,
+          },
+        },
+        printSizeB: {
+          name: printSizeBName,
+          warning: {
+            isPresent: warnings.printSizeB.length > 0,
+            messages: warnings.printSizeB,
+          },
+        },
+        printSizeC: {
+          name: printSizeCName,
+          warning: {
+            isPresent: warnings.printSizeC.length > 0,
+            messages: warnings.printSizeC,
+          },
+        },
+        defaultPrintOption: {
+          name: defaultPrintOptionName,
+          warning: {
+            isPresent: warnings.defaultPrintOption.length > 0,
+            messages: warnings.defaultPrintOption,
+          },
+        },
+        printOptionB: {
+          name: printOptionBName,
+          warning: {
+            isPresent: warnings.printOptionB.length > 0,
+            messages: warnings.printOptionB,
+          },
+        },
+        printOptionC: {
+          name: printOptionCName,
+          warning: {
+            isPresent: warnings.printOptionC.length > 0,
+            messages: warnings.printOptionC,
+          },
+        },
+      };
+      // build rows
+      const rows = foundLab.labServices.map(foundLabService => {
+        const serviceIncludesDev =
+          foundLabService.service.serviceType.includedServiceTypes.dev;
+        const serviceIncludesScan =
+          foundLabService.service.serviceType.includedServiceTypes.scan;
+        const serviceIncludesPrint =
+          foundLabService.service.serviceType.includedServiceTypes.print;
+        const unsupportedServiceTypes = [];
+        if (serviceIncludesDev && !labAllowsDev) {
+          unsupportedServiceTypes.push('Developing');
+        }
+        if (serviceIncludesScan && !labAllowsScan) {
+          unsupportedServiceTypes.push('Scanning');
+        }
+        if (serviceIncludesPrint && !labAllowsPrint) {
+          unsupportedServiceTypes.push('Printing');
+        }
+        return {
+          serviceId: foundLabService.service._id,
+          serviceType: foundLabService.service.serviceType.name,
+          warning: {
+            isPresent: unsupportedServiceTypes.length > 0,
+            unsupportedServiceTypes: unsupportedServiceTypes,
+          },
+          filmType: foundLabService.service.filmType.name,
+          filmSize: foundLabService.service.filmSize.name,
+          base: {
+            isAllowed: true,
+            isEnabled: foundLabService.isEnabled,
+            price: foundLabService.price,
+          },
+          returnUnsleeved: {
+            isAllowed: true,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          returnSleeved: {
+            isAllowed: foundLabService.addOns.ship.returnSleeved.isAllowed,
+            isEnabled: foundLabService.addOns.ship.returnSleeved.isEnabled,
+            price: foundLabService.addOns.ship.returnSleeved.price,
+          },
+          returnMounted: {
+            isAllowed: foundLabService.addOns.ship.returnMounted.isAllowed,
+            isEnabled: foundLabService.addOns.ship.returnMounted.isEnabled,
+            price: foundLabService.addOns.ship.returnMounted.price,
+          },
+          noPushPull: {
+            isAllowed: serviceIncludesDev,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          push1: {
+            isAllowed: serviceIncludesDev,
+            isEnabled: foundLabService.addOns.dev.push1.isEnabled,
+            price: foundLabService.addOns.dev.push1.price,
+          },
+          push2: {
+            isAllowed: serviceIncludesDev,
+            isEnabled: foundLabService.addOns.dev.push2.isEnabled,
+            price: foundLabService.addOns.dev.push2.price,
+          },
+          push3: {
+            isAllowed: serviceIncludesDev,
+            isEnabled: foundLabService.addOns.dev.push3.isEnabled,
+            price: foundLabService.addOns.dev.push3.price,
+          },
+          pull1: {
+            isAllowed: serviceIncludesDev,
+            isEnabled: foundLabService.addOns.dev.pull1.isEnabled,
+            price: foundLabService.addOns.dev.pull1.price,
+          },
+          pull2: {
+            isAllowed: serviceIncludesDev,
+            isEnabled: foundLabService.addOns.dev.pull2.isEnabled,
+            price: foundLabService.addOns.dev.pull2.price,
+          },
+          pull3: {
+            isAllowed: serviceIncludesDev,
+            isEnabled: foundLabService.addOns.dev.pull3.isEnabled,
+            price: foundLabService.addOns.dev.pull3.price,
+          },
+          jpegScans: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          rawScans: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: foundLabService.addOns.scan.rawScans.isEnabled,
+            price: foundLabService.addOns.scan.rawScans.price,
+          },
+          defaultScanner: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          scannerB: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: foundLabService.addOns.scan.scannerB.isEnabled,
+            price: foundLabService.addOns.scan.scannerB.price,
+          },
+          scannerC: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: foundLabService.addOns.scan.scannerC.isEnabled,
+            price: foundLabService.addOns.scan.scannerC.price,
+          },
+          scannerD: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: foundLabService.addOns.scan.scannerD.isEnabled,
+            price: foundLabService.addOns.scan.scannerD.price,
+          },
+          defaultScanRes: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          scanResB: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: foundLabService.addOns.scan.scanResB.isEnabled,
+            price: foundLabService.addOns.scan.scanResB.price,
+          },
+          scanResC: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: foundLabService.addOns.scan.scanResC.isEnabled,
+            price: foundLabService.addOns.scan.scanResC.price,
+          },
+          defaultScanOption: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          scanOptionB: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
+            price: foundLabService.addOns.scan.scanOptionB.price,
+          },
+          scanOptionC: {
+            isAllowed: serviceIncludesScan,
+            isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
+            price: foundLabService.addOns.scan.scanOptionB.price,
+          },
+          defaultPrintSize: {
+            isAllowed: serviceIncludesPrint,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          printSizeB: {
+            isAllowed: serviceIncludesPrint,
+            isEnabled: foundLabService.addOns.print.printSizeB.isEnabled,
+            price: foundLabService.addOns.print.printSizeB.price,
+          },
+          printSizeC: {
+            isAllowed: serviceIncludesPrint,
+            isEnabled: foundLabService.addOns.print.printSizeC.isEnabled,
+            price: foundLabService.addOns.print.printSizeC.price,
+          },
+          defaultPrintOption: {
+            isAllowed: serviceIncludesPrint,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          printOptionB: {
+            isAllowed: serviceIncludesPrint,
+            isEnabled: foundLabService.addOns.print.printOptionB.isEnabled,
+            price: foundLabService.addOns.print.printOptionB.price,
+          },
+          printOptionC: {
+            isAllowed: serviceIncludesPrint,
+            isEnabled: foundLabService.addOns.print.printOptionC.isEnabled,
+            price: foundLabService.addOns.print.printOptionC.price,
+          },
+        };
+      });
+      // send columns and rows
+      return res.json({ columns: columns, rows: rows });
     });
 });
 

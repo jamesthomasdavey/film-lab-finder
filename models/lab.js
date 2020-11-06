@@ -13,11 +13,11 @@ const labSchema = new mongoose.Schema({
     required: true,
   },
   settings: {
-    shipSettings: {
-      allowDropoff: { type: Boolean, default: true },
-      allowPickup: { type: Boolean, default: true },
-      shippingPrice: { type: Number, default: 10 },
-    },
+    // shipSettings: {
+    // allowDropoff: { type: Boolean, default: true },
+    // allowPickup: { type: Boolean, default: true },
+    // shippingPrice: { type: Number, default: 10 },
+    // },
     devSettings: {
       isEnabled: { type: Boolean, default: false },
     },
@@ -34,7 +34,7 @@ const labSchema = new mongoose.Schema({
           desc: { type: String, default: '' },
         },
         scannerB: {
-          isEnabled: { type: Boolean, default: true },
+          isEnabled: { type: Boolean, default: false },
           name: { type: String, default: 'Fuji Frontier' },
           desc: { type: String, default: '' },
         },
@@ -52,20 +52,23 @@ const labSchema = new mongoose.Schema({
       scanResolutions: {
         defaultScanRes: {
           // make sure this is required if scanning is enabled
+          name: { type: String, default: 'Medium Scans' },
           sfShortEdge: { type: Number, default: 1002 },
           mfShortEdge: { type: Number, default: 1002 },
           f4x5ShortEdge: { type: Number, default: 1002 },
           f8x10ShortEdge: { type: Number, default: 1002 },
         },
         scanResB: {
-          isEnabled: { type: Boolean, default: true },
+          isEnabled: { type: Boolean, default: false },
+          name: { type: String, default: 'Large Scans' },
           sfShortEdge: { type: Number, default: 2000 },
           mfShortEdge: { type: Number, default: 2000 },
           f4x5ShortEdge: { type: Number, default: 2000 },
           f8x10ShortEdge: { type: Number, default: 2000 },
         },
         scanResC: {
-          isEnabled: { type: Boolean, default: true },
+          isEnabled: { type: Boolean, default: false },
+          name: { type: String, default: 'X-Large Scans' },
           sfShortEdge: { type: Number, default: 4000 },
           mfShortEdge: { type: Number, default: 4000 },
           f4x5ShortEdge: { type: Number, default: 4000 },
@@ -73,14 +76,15 @@ const labSchema = new mongoose.Schema({
         },
       },
       customScanOptions: {
+        name: { type: String, default: 'Premium Scan Options' },
         defaultScanOption: {
           // make sure this is required if scanning is enabled
-          name: { type: String, default: 'Standard' },
+          name: { type: String, default: 'Standard Scan' },
           desc: { type: String, default: '' },
         },
         scanOptionB: {
           isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: '' },
+          name: { type: String, default: 'Premium Scan' },
           desc: { type: String, default: '' },
         },
         scanOptionC: {
@@ -94,20 +98,24 @@ const labSchema = new mongoose.Schema({
       isEnabled: { type: Boolean, default: false },
       printSizes: {
         defaultPrintSize: {
+          // make sure this is required if printing is enabled
+          name: { type: String, default: 'Medium Prints' },
           sfShortEdge: { type: Number, default: 4 },
           mfShortEdge: { type: Number, default: 4 },
           f4x5ShortEdge: { type: Number, default: 4 },
           f8x10ShortEdge: { type: Number, default: 4 },
         },
         printSizeB: {
-          isEnabled: { type: Boolean, default: true },
+          isEnabled: { type: Boolean, default: false },
+          name: { type: String, default: 'Large Prints' },
           sfShortEdge: { type: Number, default: 5 },
           mfShortEdge: { type: Number, default: 5 },
           f4x5ShortEdge: { type: Number, default: 5 },
           f8x10ShortEdge: { type: Number, default: 5 },
         },
         printSizeC: {
-          isEnabled: { type: Boolean, default: true },
+          isEnabled: { type: Boolean, default: false },
+          name: { type: String, default: 'X-Large Prints' },
           sfShortEdge: { type: Number, default: 8 },
           mfShortEdge: { type: Number, default: 8 },
           f4x5ShortEdge: { type: Number, default: 8 },
@@ -117,12 +125,12 @@ const labSchema = new mongoose.Schema({
       customPrintOptions: {
         defaultPrintOption: {
           // make sure this is required if printing is enabled
-          name: { type: String, default: 'Standard' },
+          name: { type: String, default: 'Glossy' },
           desc: { type: String, default: '' },
         },
         printOptionB: {
           isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: '' },
+          name: { type: String, default: 'Matte' },
           desc: { type: String, default: '' },
         },
         printOptionC: {
