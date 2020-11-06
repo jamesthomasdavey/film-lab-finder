@@ -286,7 +286,7 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
           }
         }
         // if the lab can support the row, we'll add the row
-        if (labCanSupport) {
+        if (labCanSupport && foundLabService.isEnabled) {
           rows.push({
             serviceId: foundLabService.service._id,
             serviceType: foundLabService.service.serviceType.name,
@@ -294,14 +294,13 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
             filmSize: foundLabService.service.filmSize.name,
             base: {
               isAllowed: true,
-              isEnabled: foundLabService.isEnabled,
+              isEnabled: true,
               price: foundLabService.price,
             },
             returnUnsleeved: {
               isAllowed: true,
               isEnabled: true,
               price: 0,
-              readOnly: true,
             },
             returnSleeved: {
               isAllowed: foundLabService.addOns.ship.returnSleeved.isAllowed,
@@ -319,7 +318,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                 columns.noPushPull.isAllowed,
               isEnabled: true,
               price: 0,
-              readOnly: true,
             },
             push1: {
               isAllowed:
@@ -369,7 +367,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                 columns.jpegScans.isAllowed,
               isEnabled: true,
               price: 0,
-              readOnly: true,
             },
             rawScans: {
               isAllowed:
@@ -384,7 +381,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                 columns.defaultScanner.isAllowed,
               isEnabled: true,
               price: 0,
-              readOnly: true,
             },
             scannerB: {
               isAllowed:
@@ -413,7 +409,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                 columns.defaultScanRes.isAllowed,
               isEnabled: true,
               price: 0,
-              readOnly: true,
             },
             scanResB: {
               isAllowed:
@@ -435,7 +430,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                 columns.defaultScanOption.isAllowed,
               isEnabled: true,
               price: 0,
-              readOnly: true,
             },
             scanOptionB: {
               isAllowed:
@@ -457,7 +451,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                   .print && columns.defaultPrintSize.isAllowed,
               isEnabled: true,
               price: 0,
-              readOnly: true,
             },
             printSizeB: {
               isAllowed:
@@ -479,7 +472,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                   .print && columns.defaultPrintOption.isAllowed,
               isEnabled: true,
               price: 0,
-              readOnly: true,
             },
             printOptionB: {
               isAllowed:
@@ -502,74 +494,236 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
     });
 });
 
+// @router  get /api/labs/:labId/settings/service-pricing/edit
+// @desc    find the lab and retrive its full service pricing settings
+// @access  private
+router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
+  Lab.findById(req.params.labId)
+    .populate({
+      path: 'labServices.service',
+      populate: { path: 'serviceType' },
+    })
+    .populate({
+      path: 'labServices.service',
+      populate: { path: 'filmType' },
+    })
+    .populate({
+      path: 'labServices.service',
+      populate: { path: 'filmSize' },
+    })
+    .then(foundLab => {
+      return res.json(
+        foundLab.labServices.map(foundLabService => {
+          return {
+            serviceId: foundLabService.service._id,
+            serviceType: foundLabService.service.serviceType.name,
+            filmType: foundLabService.service.filmType.name,
+            filmSize: foundLabService.service.filmSize.name,
+            base: {
+              isAllowed: true,
+              isEnabled: foundLabService.isEnabled,
+              price: foundLabService.price,
+            },
+            returnUnsleeved: {
+              isAllowed: true,
+              isEnabled: true,
+              price: 0,
+              readOnly: true,
+            },
+            returnSleeved: {
+              isAllowed: foundLabService.addOns.ship.returnSleeved.isAllowed,
+              isEnabled: foundLabService.addOns.ship.returnSleeved.isEnabled,
+              price: foundLabService.addOns.ship.returnSleeved.price,
+            },
+            returnMounted: {
+              isAllowed: foundLabService.addOns.ship.returnMounted.isAllowed,
+              isEnabled: foundLabService.addOns.ship.returnMounted.isEnabled,
+              price: foundLabService.addOns.ship.returnMounted.price,
+            },
+            noPushPull: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.dev,
+              isEnabled: true,
+              price: 0,
+              readOnly: true,
+            },
+            push1: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.dev,
+              isEnabled: foundLabService.addOns.dev.push1.isEnabled,
+              price: foundLabService.addOns.dev.push1.price,
+            },
+            push2: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.dev,
+              isEnabled: foundLabService.addOns.dev.push2.isEnabled,
+              price: foundLabService.addOns.dev.push2.price,
+            },
+            push3: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.dev,
+              isEnabled: foundLabService.addOns.dev.push3.isEnabled,
+              price: foundLabService.addOns.dev.push3.price,
+            },
+            pull1: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.dev,
+              isEnabled: foundLabService.addOns.dev.pull1.isEnabled,
+              price: foundLabService.addOns.dev.pull1.price,
+            },
+            pull2: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.dev,
+              isEnabled: foundLabService.addOns.dev.pull2.isEnabled,
+              price: foundLabService.addOns.dev.pull2.price,
+            },
+            pull3: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.dev,
+              isEnabled: foundLabService.addOns.dev.pull3.isEnabled,
+              price: foundLabService.addOns.dev.pull3.price,
+            },
+            jpegScans: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: true,
+              price: 0,
+              readOnly: true,
+            },
+            rawScans: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: foundLabService.addOns.scan.rawScans.isEnabled,
+              price: foundLabService.addOns.scan.rawScans.price,
+            },
+            defaultScanner: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: true,
+              price: 0,
+              readOnly: true,
+            },
+            scannerB: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: foundLabService.addOns.scan.scannerB.isEnabled,
+              price: foundLabService.addOns.scan.scannerB.price,
+            },
+            scannerC: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: foundLabService.addOns.scan.scannerC.isEnabled,
+              price: foundLabService.addOns.scan.scannerC.price,
+            },
+            scannerD: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: foundLabService.addOns.scan.scannerD.isEnabled,
+              price: foundLabService.addOns.scan.scannerD.price,
+            },
+            defaultScanRes: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: true,
+              price: 0,
+              readOnly: true,
+            },
+            scanResB: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: foundLabService.addOns.scan.scanResB.isEnabled,
+              price: foundLabService.addOns.scan.scanResB.price,
+            },
+            scanResC: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: foundLabService.addOns.scan.scanResC.isEnabled,
+              price: foundLabService.addOns.scan.scanResC.price,
+            },
+            defaultScanOption: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: true,
+              price: 0,
+              readOnly: true,
+            },
+            scanOptionB: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
+              price: foundLabService.addOns.scan.scanOptionB.price,
+            },
+            scanOptionC: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.scan,
+              isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
+              price: foundLabService.addOns.scan.scanOptionB.price,
+            },
+            defaultPrintSize: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.print,
+              isEnabled: true,
+              price: 0,
+              readOnly: true,
+            },
+            printSizeB: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.print,
+              isEnabled: foundLabService.addOns.print.printSizeB.isEnabled,
+              price: foundLabService.addOns.print.printSizeB.price,
+            },
+            printSizeC: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.print,
+              isEnabled: foundLabService.addOns.print.printSizeC.isEnabled,
+              price: foundLabService.addOns.print.printSizeC.price,
+            },
+            defaultPrintOption: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.print,
+              isEnabled: true,
+              price: 0,
+              readOnly: true,
+            },
+            printOptionB: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.print,
+              isEnabled: foundLabService.addOns.print.printOptionB.isEnabled,
+              price: foundLabService.addOns.print.printOptionB.price,
+            },
+            printOptionC: {
+              isAllowed:
+                foundLabService.service.serviceType.includedServiceTypes.print,
+              isEnabled: foundLabService.addOns.print.printOptionC.isEnabled,
+              price: foundLabService.addOns.print.printOptionC.price,
+            },
+          };
+        })
+      );
+    });
+});
+
 // @route   put /api/labs/:labId/settings/service-pricing
 // @desc    find the lab and edit its service pricing settings
 // @access  private
 router.put('/labs/:labId/settings/service-pricing', (req, res) => {
-  Lab.findById(req.params.labId)
-    // .populate({
-    //   path: 'labServices.service',
-    //   populate: { path: 'serviceType' },
-    // })
-    // .populate({
-    //   path: 'labServices.service',
-    //   populate: { path: 'filmType' },
-    // })
-    // .populate({
-    //   path: 'labServices.service',
-    //   populate: { path: 'filmSize' },
-    // })
-    .then(foundLab => {
-      const errors = [];
-      // check what the lab is allowed to do
-      const labAllowances = {
-        dev: foundLab.settings.devSettings.isEnabled,
-        scan: foundLab.settings.scanSettings.isEnabled,
-        print: foundLab.settings.printSettings.isEnabled,
-        scannerB:
-          foundLab.settings.scanSettings.isEnabled &&
-          foundLab.settings.scanSettings.scanners.scannerB.isEnabled,
-        scannerC:
-          foundLab.settings.scanSettings.isEnabled &&
-          foundLab.settings.scanSettings.scanners.scannerC.isEnabled,
-        scannerD:
-          foundLab.settings.scanSettings.isEnabled &&
-          foundLab.settings.scanSettings.scanners.scannerD.isEnabled,
-        scanResB:
-          foundLab.settings.scanSettings.isEnabled &&
-          foundLab.settings.scanSettings.scanResolutions.scanResB.isEnabled,
-        scanResC:
-          foundLab.settings.scanSettings.isEnabled &&
-          foundLab.settings.scanSettings.scanResolutions.scanResC.isEnabled,
-        scanOptionB:
-          foundLab.settings.scanSettings.isEnabled &&
-          foundLab.settings.scanSettings.customScanOptions.scanOptionB
-            .isEnabled,
-        scanOptionC:
-          foundLab.settings.scanSettings.isEnabled &&
-          foundLab.settings.scanSettings.customScanOptions.scanOptionC
-            .isEnabled,
-        printSizeB:
-          foundLab.settings.printSettings.isEnabled &&
-          foundLab.settings.printSettings.printSizes.printSizeB.isEnabled,
-        printSizeC:
-          foundLab.settings.printSettings.isEnabled &&
-          foundLab.settings.printSettings.printSizes.printSizeC.isEnabled,
-        printOptionB:
-          foundLab.settings.printSettings.isEnabled &&
-          foundLab.settings.printSettings.customPrintOptions.printOptionB
-            .isEnabled,
-        printOptionC:
-          foundLab.settings.printSettings.isEnabled &&
-          foundLab.settings.printSettings.customPrintOptions.printOptionC
-            .isEnabled,
-      };
-      // cycle through the reqbody labservices (recursively)
-      const applyChangesToLab = reqBodyLabServices => {
-        if (reqBodyLabServices.length === 0) {
-          // this where you finally hit "save" or send back the errors if there are any
-          return console.log('done');
+  // todo: make sure that user is lab owner
+  Lab.findById(req.params.labId).then(foundLab => {
+    const errors = [];
+    // cycle through the reqbody labservices (recursively)
+    const applyChangesToLab = reqBodyLabServices => {
+      if (reqBodyLabServices.length === 0) {
+        // todo: if the errors array isn't empty, send it back
+        if (errors.length > 0) {
+          return res.status(400).json({ errors: errors });
+        } else {
+          // todo: otherwise, save and redirect
+          foundLab.save().then(data => {
+            return res.json({ success: true });
+          });
         }
+      } else {
+        // console.log(reqBodyLabServices);
         Service.findById(reqBodyLabServices[0].serviceId)
           .populate('serviceType')
           .populate('filmType')
@@ -577,7 +731,7 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
           .then(foundService => {
             // create an error object
             const serviceError = {
-              serviceId: reqBodyLabServices[0].serviceId,
+              serviceId: reqBodyLabServices[0].serviceId.toString(),
               messages: {
                 base: [],
                 returnSleeved: [],
@@ -589,244 +743,470 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                 pull2: [],
                 pull3: [],
                 rawScans: [],
+                scannerB: [],
+                scannerC: [],
+                scannerD: [],
+                scanResB: [],
+                scanResC: [],
+                scanOptionB: [],
+                scanOptionC: [],
+                printSizeB: [],
+                printSizeC: [],
+                printOptionB: [],
+                printOptionC: [],
               },
             };
-            // check what the referenced service includes
-            const foundServiceInclusions = {
-              serviceType: {
-                dev: foundService.serviceType.includedServiceTypes.dev,
-                scan: foundService.serviceType.includedServiceTypes.scan,
-                print: foundService.serviceType.includedServiceTypes.print,
-              },
-              filmType: {
-                e6: foundService.filmType.includedFilmTypes.e6,
-              },
-              filmSize: {
-                f35mmMounted:
-                  foundService.filmSize.includedFilmSizes.f35mmMounted,
-              },
-            };
-            // create a "disable only" variable incase that's all the user wants to do
-            let userIsDisablingService = false;
-            if (!reqBodyLabServices[0].base.isEnabled) {
-              userIsDisablingService = true;
-            } else {
-              // check for possible errors
-              // if enabling and the referenced service has a service type that the lab doesn't allow, add an error
+            // add necessary errors
+            {
+              // check what the service includes
+              const serviceIncludesDev =
+                foundService.serviceType.includedServiceTypes.dev;
+              const serviceIncludesScan =
+                foundService.serviceType.includedServiceTypes.scan;
+              const serviceIncludesPrint =
+                foundService.serviceType.includedServiceTypes.print;
+              const serviceIncludesE6 =
+                foundService.filmType.includedFilmTypes.e6;
+              const serviceIncludesF35mmMounted =
+                foundService.filmSize.includedFilmSizes.f35mmMounted;
+              const validatePrice = (addOn, addOnName) => {
+                if (!addOn.price && Number(addOn.price) !== 0) {
+                  serviceError.messages[addOnName].push(
+                    'Price is required when enabling this cell.'
+                  );
+                } else if (Number(addOn.price) > 999.99) {
+                  serviceError.messages[addOnName].push(
+                    'Price must not exceed $999.99.'
+                  );
+                } else if (Number(addOn.price < 0)) {
+                  serviceError.messages[addOnName].push(
+                    'Price must not be below $0.'
+                  );
+                }
+              };
+              // if enabling, validate the price
               if (reqBodyLabServices[0].base.isEnabled) {
-                if (
-                  foundServiceInclusions.serviceType.dev &&
-                  !labAllowances.dev
-                ) {
-                  serviceError.messages.base.push(
-                    'Developing is not currently enabled.'
-                  );
-                }
-                if (
-                  foundServiceInclusions.serviceType.scan &&
-                  !labAllowances.scan
-                ) {
-                  serviceError.messages.base.push(
-                    'Scanning is not currently enabled.'
-                  );
-                }
-                if (
-                  foundServiceInclusions.serviceType.print &&
-                  !labAllowances.print
-                ) {
-                  serviceError.messages.base.push(
-                    'Printing is not currently enabled.'
-                  );
-                }
+                validatePrice(reqBodyLabServices[0].base, 'base');
               }
               // if enabling return sleeved and the referenced service is for mounted film, add an error
               if (reqBodyLabServices[0].returnSleeved.isEnabled) {
-                if (foundServiceInclusions.filmSize.f35mmMounted) {
+                if (serviceIncludesF35mmMounted) {
                   serviceError.messages.returnSleeved.push(
                     'Mounted film cannot be sleeved.'
                   );
+                } else {
+                  validatePrice(
+                    reqBodyLabServices[0].returnSleeved,
+                    'returnSleeved'
+                  );
                 }
               }
-              // if enabling return mounted and the film is not slide film or is already mounted, add an error
+              // possible errors for returning mounted
               if (reqBodyLabServices[0].returnMounted.isEnabled) {
-                if (foundServiceInclusions.filmSize.f35mmMounted) {
+                if (serviceIncludesF35mmMounted) {
                   serviceError.messages.returnMounted.push(
                     'Mounted film cannot be re-mounted.'
                   );
                 }
-                if (!foundServiceInclusions.filmType.e6) {
+                if (!serviceIncludesE6) {
                   serviceError.messages.returnMounted.push(
                     'Only slide film may be mounted.'
                   );
                 }
+                if (!serviceIncludesF35mmMounted && serviceIncludesE6)
+                  validatePrice(
+                    reqBodyLabServices[0].returnMounted,
+                    'returnMounted'
+                  );
               }
-              // if enabling dev related services but the lab doesn't allow it, add an error
-              if (!labAllowances.dev) {
-                if (reqBodyLabServices[0].push1.isEnabled) {
-                  serviceError.messages.push1.push('Developing is not enabled');
-                }
-                if (reqBodyLabServices[0].push2.isEnabled) {
-                  serviceError.messages.push2.push('Developing is not enabled');
-                }
-                if (reqBodyLabServices[0].push3.isEnabled) {
-                  serviceError.messages.push3.push('Developing is not enabled');
-                }
-                if (reqBodyLabServices[0].pull1.isEnabled) {
-                  serviceError.messages.pull1.push('Developing is not enabled');
-                }
-                if (reqBodyLabServices[0].pull2.isEnabled) {
-                  serviceError.messages.pull2.push('Developing is not enabled');
-                }
-                if (reqBodyLabServices[0].pull3.isEnabled) {
-                  serviceError.messages.pull3.push('Developing is not enabled');
+              // possible errors for push1
+              if (reqBodyLabServices[0].push1.isEnabled) {
+                // add error if service doesn't include developing
+                if (!serviceIncludesDev) {
+                  serviceError.messages.push1.push(
+                    'Service type does not include developing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].push1, 'push1');
                 }
               }
-              // if enabling scan related services but the lab doesn't allow it, add an error
-              if (!labAllowances.scan) {
-                if (reqBodyLabServices[0].rawScans.isEnabled) {
+              // possible errors for push2
+              if (reqBodyLabServices[0].push2.isEnabled) {
+                // add error if service doesn't include developing
+                if (!serviceIncludesDev) {
+                  serviceError.messages.push2.push(
+                    'Service type does not include developing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].push2, 'push2');
+                }
+              }
+              // possible errors for push3
+              if (reqBodyLabServices[0].push3.isEnabled) {
+                // add error if service doesn't include developing
+                if (!serviceIncludesDev) {
+                  serviceError.messages.push3.push(
+                    'Service type does not include developing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].push3, 'push3');
+                }
+              }
+              // possible errors for pull1
+              if (reqBodyLabServices[0].pull1.isEnabled) {
+                // add error if service doesn't include developing
+                if (!serviceIncludesDev) {
+                  serviceError.messages.pull1.push(
+                    'Service type does not include developing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].pull1, 'pull1');
+                }
+              }
+              // possible errors for pull2
+              if (reqBodyLabServices[0].pull2.isEnabled) {
+                // add error if service doesn't include developing
+                if (!serviceIncludesDev) {
+                  serviceError.messages.pull2.push(
+                    'Service type does not include developing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].pull2, 'pull2');
+                }
+              }
+              // possible errors for pull3
+              if (reqBodyLabServices[0].pull3.isEnabled) {
+                // add error if service doesn't include developing
+                if (!serviceIncludesDev) {
+                  serviceError.messages.pull3.push(
+                    'Service type does not include developing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].pull3, 'pull3');
+                }
+              }
+              // possible error for raw scans
+              if (reqBodyLabServices[0].rawScans.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
                   serviceError.messages.rawScans.push(
-                    'Scanning is not enabled.'
+                    'Service type does not include scanning.'
                   );
-                }
-                if (reqBodyLabServices[0].scannerB.isEnabled) {
-                  serviceError.messages.scannerB.push(
-                    'Scanning is not enabled.'
-                  );
-                }
-                if (reqBodyLabServices[0].scannerC.isEnabled) {
-                  serviceError.messages.scannerC.push(
-                    'Scanning is not enabled.'
-                  );
-                }
-                if (reqBodyLabServices[0].scannerD.isEnabled) {
-                  serviceError.messages.scannerD.push(
-                    'Scanning is not enabled.'
-                  );
-                }
-                if (reqBodyLabServices[0].scanResB.isEnabled) {
-                  serviceError.messages.scanResB.push(
-                    'Scanning is not enabled.'
-                  );
-                }
-                if (reqBodyLabServices[0].scanResC.isEnabled) {
-                  serviceError.messages.scanResC.push(
-                    'Scanning is not enabled.'
-                  );
-                }
-                if (reqBodyLabServices[0].scanOptionB.isEnabled) {
-                  serviceError.messages.scanOptionB.push(
-                    'Scanning is not enabled.'
-                  );
-                }
-                if (reqBodyLabServices[0].scanOptionC.isEnabled) {
-                  serviceError.messages.scanOptionC.push(
-                    'Scanning is not enabled.'
-                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].rawScans, 'rawScans');
                 }
               }
-              // if enabling print related services but the lab doesn't allow it, add an error
-              if (!labAllowances.print) {
-                if (reqBodyLabServices[0].printSizeB.isEnabled) {
-                  serviceError.messages.printSizeB.push(
-                    'Printing is not enabled.'
-                  );
-                }
-                if (reqBodyLabServices[0].printSizeC.isEnabled) {
-                  serviceError.messages.printSizeC.push(
-                    'Printing is not enabled.'
-                  );
-                }
-                if (reqBodyLabServices[0].printOptionB.isEnabled) {
-                  serviceError.messages.printOptionB.push(
-                    'Printing is not enabled.'
-                  );
-                }
-                if (reqBodyLabServices[0].printOptionC.isEnabled) {
-                  serviceError.messages.printOptionC.push(
-                    'Printing is not enabled.'
-                  );
-                }
-              }
-              // if enabling scannerb but the lab doesn't allow it, add an error
+              // possible error for scannerb
               if (reqBodyLabServices[0].scannerB.isEnabled) {
-                if (!labAllowances.scannerB) {
-                  ('This scanner has not been enabled.');
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerB.push(
+                    'Service type does not include scanning.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].scannerB, 'scannerB');
                 }
               }
-              // if enabling scannerc but the lab doesn't allow it, add an error
+              // possible error for scannerc
               if (reqBodyLabServices[0].scannerC.isEnabled) {
-                if (!labAllowances.scannerC) {
-                  ('This scanner has not been enabled.');
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerC.push(
+                    'Service type does not include scanning.'
+                  );
+                } else {
+                  validatePrice(reqBodyLabServices[0].scannerC, 'scannerC');
                 }
               }
-              // if enabling scannerd but the lab doesn't allow it, add an error
+              // possible error for scannerd
               if (reqBodyLabServices[0].scannerD.isEnabled) {
-                if (!labAllowances.scannerD) {
-                  ('This scanner has not been enabled.');
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerD.push(
+                    'Service type does not include scanning.'
+                  );
+                } else {
+                  validatePrice(reqBodyLabServices[0].scannerD, 'scannerD');
                 }
               }
-              // if enabling scanresb but the lab doesn't allow it, add an error
+              // possible error for scanresb
               if (reqBodyLabServices[0].scanResB.isEnabled) {
-                if (!labAllowances.scanResB) {
-                  ('This scan resolution has not been enabled.');
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scanResB.push(
+                    'Service type does not include scanning.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].scanResB, 'scanResB');
                 }
               }
-              // if enabling scanresc but the lab doesn't allow it, add an error
+              // possible error for scanresc
               if (reqBodyLabServices[0].scanResC.isEnabled) {
-                if (!labAllowances.scanResC) {
-                  ('This scan resolution has not been enabled.');
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scanResC.push(
+                    'Service type does not include scanning.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].scanResC, 'scanResC');
                 }
               }
-              // if enabling scanoptionb but the lab doesn't allow it, add an error
+              // possible error for scanoptionb
               if (reqBodyLabServices[0].scanOptionB.isEnabled) {
-                if (!labAllowances.scanOptionB) {
-                  ('This scan option has not been enabled.');
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scanOptionB.push(
+                    'Service type does not include scanning.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(
+                    reqBodyLabServices[0].scanOptionB,
+                    'scanOptionB'
+                  );
                 }
               }
-              // if enabling scanoptionc but the lab doesn't allow it, add an error
+              // possible error for scanoptionc
               if (reqBodyLabServices[0].scanOptionC.isEnabled) {
-                if (!labAllowances.scanOptionC) {
-                  ('This scan option has not been enabled.');
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scanOptionC.push(
+                    'Service type does not include scanning.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(
+                    reqBodyLabServices[0].scanOptionC,
+                    'scanOptionC'
+                  );
                 }
               }
-              // if enabling printsizeb but the lab doesn't allow it, add an error
+              // possible error for printsizeb
               if (reqBodyLabServices[0].printSizeB.isEnabled) {
-                if (!labAllowances.printSizeB) {
-                  ('This print size has not been enabled.');
+                // add error if service doesn't include printing
+                if (!serviceIncludesPrint) {
+                  serviceError.messages.printSizeB.push(
+                    'Service type does not include printing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].printSizeB, 'printSizeB');
                 }
               }
-              // if enabling printsizec but the lab doesn't allow it, add an error
+              // possible error for printsizec
               if (reqBodyLabServices[0].printSizeC.isEnabled) {
-                if (!labAllowances.printSizeC) {
-                  ('This print size has not been enabled.');
+                // add error if service doesn't include printing
+                if (!serviceIncludesPrint) {
+                  serviceError.messages.printSizeC.push(
+                    'Service type does not include printing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(reqBodyLabServices[0].printSizeC, 'printSizeC');
                 }
               }
-              // if enabling printoptionb but the lab doesn't allow it, add an error
+              // possible error for printoptionb
               if (reqBodyLabServices[0].printOptionB.isEnabled) {
-                if (!labAllowances.printOptionB) {
-                  ('This print option has not been enabled.');
+                // add error if service doesn't include printing
+                if (!serviceIncludesPrint) {
+                  serviceError.messages.printOptionB.push(
+                    'Service type does not include printing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(
+                    reqBodyLabServices[0].printOptionB,
+                    'printOptionB'
+                  );
                 }
               }
-              // if enabling printoptionc but the lab doesn't allow it, add an error
+              // possible error for printoptionc
               if (reqBodyLabServices[0].printOptionC.isEnabled) {
-                if (!labAllowances.printOptionC) {
-                  ('This print size has not been enabled.');
+                // add error if service doesn't include printing
+                if (!serviceIncludesPrint) {
+                  serviceError.messages.printOptionC.push(
+                    'Service type does not include printing.'
+                  );
+                } else {
+                  // validate the price
+                  validatePrice(
+                    reqBodyLabServices[0].printOptionC,
+                    'printOptionC'
+                  );
                 }
               }
             }
-            if (req.body) const newArray = [...reqBodyLabServices];
+            // create a "has error messages" variable to decide if we should push the serviceerror object
+            let hasErrorMessages = false;
+            Object.keys(serviceError.messages).forEach(itemName => {
+              if (serviceError.messages[itemName].length > 0) {
+                hasErrorMessages = true;
+              }
+            });
+            // push the serviceError if there are error messages
+            if (hasErrorMessages) {
+              errors.push(serviceError);
+            }
+            // update the appropriate lab service if there are no error messages
+            else {
+              // todo: find the corresponding lab service
+              foundLab.labServices.forEach((labService, index) => {
+                if (
+                  labService.service.toString() ===
+                  reqBodyLabServices[0].serviceId.toString()
+                ) {
+                  // update all the stuff
+                  {
+                    foundLab.labServices[index].isEnabled =
+                      reqBodyLabServices[0].base.isEnabled;
+                    foundLab.labServices[index].price =
+                      reqBodyLabServices[0].base.price;
+
+                    foundLab.labServices[
+                      index
+                    ].addOns.ship.returnSleeved.isEnabled =
+                      reqBodyLabServices[0].returnSleeved.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.ship.returnSleeved.price =
+                      reqBodyLabServices[0].returnSleeved.price;
+
+                    foundLab.labServices[
+                      index
+                    ].addOns.ship.returnMounted.isEnabled =
+                      reqBodyLabServices[0].returnMounted.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.ship.returnMounted.price =
+                      reqBodyLabServices[0].returnMounted.price;
+
+                    foundLab.labServices[index].addOns.dev.push1.isEnabled =
+                      reqBodyLabServices[0].push1.isEnabled;
+                    foundLab.labServices[index].addOns.dev.push1.price =
+                      reqBodyLabServices[0].push1.price;
+
+                    foundLab.labServices[index].addOns.dev.push2.isEnabled =
+                      reqBodyLabServices[0].push2.isEnabled;
+                    foundLab.labServices[index].addOns.dev.push2.price =
+                      reqBodyLabServices[0].push2.price;
+
+                    foundLab.labServices[index].addOns.dev.push3.isEnabled =
+                      reqBodyLabServices[0].push3.isEnabled;
+                    foundLab.labServices[index].addOns.dev.push3.price =
+                      reqBodyLabServices[0].push3.price;
+
+                    foundLab.labServices[index].addOns.dev.pull1.isEnabled =
+                      reqBodyLabServices[0].pull1.isEnabled;
+                    foundLab.labServices[index].addOns.dev.pull1.price =
+                      reqBodyLabServices[0].pull1.price;
+
+                    foundLab.labServices[index].addOns.dev.pull2.isEnabled =
+                      reqBodyLabServices[0].pull2.isEnabled;
+                    foundLab.labServices[index].addOns.dev.pull2.price =
+                      reqBodyLabServices[0].pull2.price;
+
+                    foundLab.labServices[index].addOns.dev.pull3.isEnabled =
+                      reqBodyLabServices[0].pull3.isEnabled;
+                    foundLab.labServices[index].addOns.dev.pull3.price =
+                      reqBodyLabServices[0].pull3.price;
+
+                    foundLab.labServices[index].addOns.scan.rawScans.isEnabled =
+                      reqBodyLabServices[0].rawScans.isEnabled;
+                    foundLab.labServices[index].addOns.scan.rawScans.price =
+                      reqBodyLabServices[0].rawScans.price;
+
+                    foundLab.labServices[index].addOns.scan.scannerB.isEnabled =
+                      reqBodyLabServices[0].scannerB.isEnabled;
+                    foundLab.labServices[index].addOns.scan.scannerB.price =
+                      reqBodyLabServices[0].scannerB.price;
+
+                    foundLab.labServices[index].addOns.scan.scannerC.isEnabled =
+                      reqBodyLabServices[0].scannerC.isEnabled;
+                    foundLab.labServices[index].addOns.scan.scannerC.price =
+                      reqBodyLabServices[0].scannerC.price;
+
+                    foundLab.labServices[index].addOns.scan.scannerD.isEnabled =
+                      reqBodyLabServices[0].scannerD.isEnabled;
+                    foundLab.labServices[index].addOns.scan.scannerD.price =
+                      reqBodyLabServices[0].scannerD.price;
+
+                    foundLab.labServices[index].addOns.scan.scanResB.isEnabled =
+                      reqBodyLabServices[0].scanResB.isEnabled;
+                    foundLab.labServices[index].addOns.scan.scanResB.price =
+                      reqBodyLabServices[0].scanResB.price;
+
+                    foundLab.labServices[index].addOns.scan.scanResC.isEnabled =
+                      reqBodyLabServices[0].scanResC.isEnabled;
+                    foundLab.labServices[index].addOns.scan.scanResC.price =
+                      reqBodyLabServices[0].scanResC.price;
+
+                    foundLab.labServices[
+                      index
+                    ].addOns.scan.scanOptionB.isEnabled =
+                      reqBodyLabServices[0].scanOptionB.isEnabled;
+                    foundLab.labServices[index].addOns.scan.scanOptionB.price =
+                      reqBodyLabServices[0].scanOptionB.price;
+
+                    foundLab.labServices[
+                      index
+                    ].addOns.scan.scanOptionC.isEnabled =
+                      reqBodyLabServices[0].scanOptionC.isEnabled;
+                    foundLab.labServices[index].addOns.scan.scanOptionC.price =
+                      reqBodyLabServices[0].scanOptionC.price;
+
+                    foundLab.labServices[
+                      index
+                    ].addOns.print.printSizeB.isEnabled =
+                      reqBodyLabServices[0].printSizeB.isEnabled;
+                    foundLab.labServices[index].addOns.print.printSizeB.price =
+                      reqBodyLabServices[0].printSizeB.price;
+
+                    foundLab.labServices[
+                      index
+                    ].addOns.print.printSizeC.isEnabled =
+                      reqBodyLabServices[0].printSizeC.isEnabled;
+                    foundLab.labServices[index].addOns.print.printSizeC.price =
+                      reqBodyLabServices[0].printSizeC.price;
+
+                    foundLab.labServices[
+                      index
+                    ].addOns.print.printOptionB.isEnabled =
+                      reqBodyLabServices[0].printOptionB.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.print.printOptionB.price =
+                      reqBodyLabServices[0].printOptionB.price;
+
+                    foundLab.labServices[
+                      index
+                    ].addOns.print.printOptionC.isEnabled =
+                      reqBodyLabServices[0].printOptionC.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.print.printOptionC.price =
+                      reqBodyLabServices[0].printOptionC.price;
+                  }
+                }
+              });
+            }
+            const newArray = [...reqBodyLabServices];
             newArray.shift();
             applyChangesToLab(newArray);
           });
-      };
-      applyChangesToLab(req.body.labServices);
-      // if the user just wants to disable it, just disable it without making any other changes
-      // if the user doesn't want to disable it, make sure that it's allowed according to the lab
-      // also, make sure that it's allowed according to the service
-      // if the changes are allowed, update the corresponding labservice
-      // if the errors array isn't empty, send the errors array
-      // otherwise, save it
-    });
+      }
+    };
+    applyChangesToLab(req.body.labServices);
+  });
 });
 
 module.exports = router;
