@@ -98,11 +98,17 @@ router.post('/labs/new', (req, res) => {
           labServices: labServices,
         });
         newLab.save().then(savedLab => {
+          if (!savedLab)
+            return res.status(400).json({ error: 'Unabled to save lab.' });
           return res.json(savedLab);
         });
       });
   });
 });
+
+/////////////////////
+/// MAIN SETTINGS ///
+/////////////////////
 
 // @route   get /api/labs/:labId/settings
 // @desc    find the lab and retrieve its name and description settings
@@ -117,6 +123,18 @@ router.get('/labs/:labId/settings', (req, res) => {
   });
 });
 
+// @route   get /api/labs/:labId/settings/edit
+// @desc    find the lab and retrieve its name and description settings
+// @access  private
+
+// @route   put /api/labs/:labId/settings
+// @desc    find the lab and retrieve its name and description settings
+// @access  private
+
+/////////////////////
+/// SHIP SETTINGS ///
+/////////////////////
+
 // @route   get /api/labs/:labId/settings/ship
 // @desc    find the lab and retrieve its ship settings
 // @access  private
@@ -126,6 +144,18 @@ router.get('/labs/:labId/settings/ship', (req, res) => {
     return res.json(foundLab.settings.shipSettings);
   });
 });
+
+// @route   get /api/labs/:labId/settings/ship/edit
+// @desc    find the lab and retrieve its ship settings
+// @access  private
+
+// @route   put /api/labs/:labId/settings/ship
+// @desc    find the lab and retrieve its ship settings
+// @access  private
+
+////////////////////
+/// DEV SETTINGS ///
+////////////////////
 
 // @route   get /api/labs/:labId/settings/dev
 // @desc    find the lab and retrieve its dev settings
@@ -137,6 +167,18 @@ router.get('/labs/:labId/settings/dev', (req, res) => {
   });
 });
 
+// @route   get /api/labs/:labId/settings/dev/edit
+// @desc    find the lab and retrieve its full dev settings
+// @access  private
+
+// @route   put /api/labs/:labId/settings/dev
+// @desc    find the lab and update its dev settings
+// @access  private
+
+/////////////////////
+/// SCAN SETTINGS ///
+/////////////////////
+
 // @route   get /api/labs/:labId/settings/scan
 // @desc    find the lab and retrieve its scan settings
 // @access  private
@@ -147,6 +189,98 @@ router.get('/labs/:labId/settings/scan', (req, res) => {
   });
 });
 
+// @route   get /api/labs/:labId/settings/scan/edit
+// @desc    find the lab and retrieve its full scan settings
+// @access  private
+router.get('/labs/:labId/settings/scan/edit', (req, res) => {
+  // todo: make sure that user is lab owner
+  Lab.findById(req.params.labId).then(foundLab => {
+    return res.json(foundLab.settings.scanSettings);
+  });
+});
+
+// @route   put /api/labs/:labId/settings/scan
+// @desc    find the lab and update its scan settings
+// @access  private
+router.put('/labs/:labId/settings/scan', (req, res) => {
+  // todo: make sure that user is lab owner
+  const errors = {
+    rawByOrderPrice: [],
+    defaultScannerName: [],
+    defaultScannerDesc: [],
+    scannerBName: [],
+    scannerBDesc: [],
+    scannerCName: [],
+    scannerCDesc: [],
+    scannerDName: [],
+    scannerDDesc: [],
+    defaultScanResName: [],
+    defaultScanResSfShortEdge: [],
+    defaultScanResMfShortEdge: [],
+    defaultScanResF4x5ShortEdge: [],
+    defaultScanResF8x10ShortEdge: [],
+    scanResBName: [],
+    scanResBSfShortEdge: [],
+    scanResBMfShortEdge: [],
+    scanResBF4x5ShortEdge: [],
+    scanResBF8x10ShortEdge: [],
+    scanResCName: [],
+    scanResCSfShortEdge: [],
+    scanResCMfShortEdge: [],
+    scanResCF4x5ShortEdge: [],
+    scanResCF8x10ShortEdge: [],
+    customScanOptionsName: [],
+    defaultScanOptionName: [],
+    defaultScanOptionDesc: [],
+    scanOptionBName: [],
+    scanOptionBDesc: [],
+    scanOptionCName: [],
+    scanOptionCDesc: [],
+  };
+  // todo: handle all possible errors
+  {
+    // TODO:...
+    // if scanning is enabled,
+    //// throw error if defaultscannername is not defined
+    //// throw error if defaultscanresname is not defined
+    //// throw error if defaultscanressfshortedge is not defined
+    //// throw error if defaultscanresmfshortedge is not defined
+    //// throw error if defaultscanresf4x5shortedge is not defined
+    //// throw error if defaultscanresf8x10shortedge is not defined
+    //// throw error if customscanoptionsname is not defined
+    //// throw error if defaultscanoptionname is not defined
+    // if scannerb is enabled,
+    //// throw error if scannerbname is not defined
+    // if scannerc is enabled,
+    //// throw error if scannercname is not defined
+    // if scannerd is enabled,
+    //// throw error if scannerdname is not defined
+    // if scanresb is enabled,
+    //// throw error if scanresbname is not defined
+    //// throw error if scanresbsfshortedge is not defined
+    //// throw error if scanresbmfshortedge is not defined
+    //// throw error if scanresbf4x5shortedge is not defined
+    //// throw error if scanresbf8x10shortedge is not defined
+    // if scanresc is enabled,
+    //// throw error if scanrescname is not defined
+    //// throw error if scanrescsfshortedge is not defined
+    //// throw error if scanrescmfshortedge is not defined
+    //// throw error if scanrescf4x5shortedge is not defined
+    //// throw error if scanrescf8x10shortedge is not defined
+    // if scanoptionb is enabled,
+    //// throw error if scanoptionbname is not defined
+    // if scanoptionc is enabled,
+    //// throw error if scanoptioncname is not defined
+    ///////////////
+    // throw errors for any names and descriptions that are too long (if they are present at all)
+    // throw errors for any numbers that are not within range (if there is a number at all)
+  }
+});
+
+//////////////////////
+/// PRINT SETTINGS ///
+//////////////////////
+
 // @route   get /api/labs/:labId/settings/print
 // @desc    find the lab and retrieve its print settings
 // @access  private
@@ -156,6 +290,457 @@ router.get('/labs/:labId/settings/print', (req, res) => {
     return res.json(foundLab.settings.printSettings);
   });
 });
+
+// @route   get /api/labs/:labId/settings/print/edit
+// @desc    find the lab and retrieve its full print settings
+// @access  private
+router.get('/labs/:labId/settings/print/edit', (req, res) => {
+  // todo: make sure that user is lab owner
+  Lab.findById(req.params.labId).then(foundLab => {
+    return res.json(foundLab.settings.printSettings);
+  });
+});
+
+// @route   put /api/labs/:labId/settings/print
+// @desc    find the lab and update its print settings
+// @access  private
+router.put('/labs/:labId/settings/print', (req, res) => {
+  // todo: make sure that user is lab owner
+  const errors = {
+    defaultPrintSizeName: [],
+    defaultPrintSizeSfShortEdge: [],
+    defaultPrintSizeMfShortEdge: [],
+    defaultPrintSizeF4x5ShortEdge: [],
+    defaultPrintSizeF8x10ShortEdge: [],
+    printSizeBName: [],
+    printSizeBSfShortEdge: [],
+    printSizeBMfShortEdge: [],
+    printSizeBF4x5ShortEdge: [],
+    printSizeBF8x10ShortEdge: [],
+    printSizeCName: [],
+    printSizeCSfShortEdge: [],
+    printSizeCMfShortEdge: [],
+    printSizeCF4x5ShortEdge: [],
+    printSizeCF8x10ShortEdge: [],
+    defaultPrintOptionName: [],
+    defaultPrintOptionDesc: [],
+    printOptionBName: [],
+    printOptionBDesc: [],
+    printOptionCName: [],
+    printOptionCDesc: [],
+  };
+  // handle all possible errors
+  {
+    // if printing is enabled,
+    if (req.body.printIsEnabled) {
+      //// throw error if default print size name is not defined
+      {
+        if (!req.body.defaultPrintSizeName.trim()) {
+          errors.defaultPrintSizeName.push(
+            'Default print size must have a name if printing is enabled.'
+          );
+        }
+      }
+      //// throw error if sfShortEdge is not defined
+      {
+        if (req.body.defaultPrintSizeSfShortEdge === '') {
+          errors.defaultPrintSizeSfShortEdge.push(
+            'Small format print size must be defined if printing is enabled.'
+          );
+        }
+      }
+      //// throw error if mfShortEdge is not defined
+      {
+        if (req.body.defaultPrintSizeMfShortEdge === '') {
+          errors.defaultPrintSizeMfShortEdge.push(
+            'Medium format print size must be defined if printing is enabled.'
+          );
+        }
+      }
+      //// throw error if f4x5ShortEdge is not defined
+      {
+        if (req.body.defaultPrintSizeF4x5ShortEdge === '') {
+          errors.defaultPrintSizeF4x5ShortEdge.push(
+            '4x5 large format print size must be defined if printing is enabled.'
+          );
+        }
+      }
+      //// throw error if f8x10ShortEdge is not defined
+      {
+        if (req.body.defaultPrintSizeF8x10ShortEdge === '') {
+          errors.defaultPrintSizeF8x10ShortEdge.push(
+            '8x10 large format print size must be defined if printing is enabled.'
+          );
+        }
+      }
+      //// throw error if default print option name is not defined
+      {
+        if (!req.body.defaultPrintOptionName.trim()) {
+          errors.defaultPrintOptionName.push(
+            'Default print option must have a name if printing is enabled.'
+          );
+        }
+      }
+    }
+    // if print size b is enabled,
+    if (req.body.printSizeBIsEnabled) {
+      //// throw error if print size b name is not defined
+      {
+        if (!req.body.printSizeBName.trim()) {
+          errors.printSizeBName.push('Print size must have a name if enabled.');
+        }
+      }
+      //// throw error if sfShortEdge is not defined
+      {
+        if (req.body.printSizeBSfShortEdge === '') {
+          errors.printSizeBSfShortEdge.push(
+            'Small format print size must be defined if print size is enabled.'
+          );
+        }
+      }
+      //// throw error if mfShortEdge is not defined
+      {
+        if (req.body.printSizeBMfShortEdge === '') {
+          errors.printSizeBMfShortEdge.push(
+            'Medium format print size must be defined if print size is enabled.'
+          );
+        }
+      }
+      //// throw error if f4x5ShortEdge is not defined
+      {
+        if (req.body.printSizeBF4x5ShortEdge === '') {
+          errors.printSizeBF4x5ShortEdge.push(
+            '4x5 large format print size must be defined if print size is enabled.'
+          );
+        }
+      }
+      //// throw error if f8x10ShortEdge is not defined
+      {
+        if (req.body.printSizeBF8x10ShortEdge === '') {
+          errors.printSizeBF8x10ShortEdge.push(
+            '8x10 large format print size must be defined if print size is enabled.'
+          );
+        }
+      }
+    }
+    // if print size b is enabled,
+    if (req.body.printSizeCIsEnabled) {
+      //// throw error if print size c name is not defined
+      {
+        if (!req.body.printSizeCName.trim()) {
+          errors.printSizeCName.push('Print size must have a name if enabled.');
+        }
+      }
+      //// throw error if sfShortEdge is not defined
+      {
+        if (req.body.printSizeCSfShortEdge === '') {
+          errors.printSizeCSfShortEdge.push(
+            'Small format print size must be defined if print size is enabled.'
+          );
+        }
+      }
+      //// throw error if mfShortEdge is not defined
+      {
+        if (req.body.printSizeCMfShortEdge === '') {
+          errors.printSizeCMfShortEdge.push(
+            'Medium format print size must be defined if print size is enabled.'
+          );
+        }
+      }
+      //// throw error if f4x5ShortEdge is not defined
+      {
+        if (req.body.printSizeCF4x5ShortEdge === '') {
+          errors.printSizeCF4x5ShortEdge.push(
+            '4x5 large format print size must be defined if print size is enabled.'
+          );
+        }
+      }
+      //// throw error if f8x10ShortEdge is not defined
+      {
+        if (req.body.printSizeCF8x10ShortEdge === '') {
+          errors.printSizeCF8x10ShortEdge.push(
+            '8x10 large format print size must be defined if print size is enabled.'
+          );
+        }
+      }
+    }
+    // if print option b is enabled,
+    if (req.body.printOptionBIsEnabled) {
+      //// throw error if print option b name is not defined
+      {
+        if (!req.body.printOptionBName.trim()) {
+          errors.printOptionBName.push(
+            'Custom print option must have a name if enabled.'
+          );
+        }
+      }
+    }
+    // if print option c is enabled,
+    if (req.body.printOptionCIsEnabled) {
+      //// throw error if print option c name is not defined
+      {
+        if (!req.body.printOptionCIsEnabled.trim()) {
+          errors.printOptionCIsEnabled.push(
+            'Custom print option must have a name if enabled.'
+          );
+        }
+      }
+    }
+    // throw errors for any names and descriptions that are too long (if they are present at all)
+    {
+      if (req.body.defaultPrintSizeName.trim()) {
+        if (req.body.defaultPrintSizeName.trim().length > 50) {
+          errors.defaultPrintSizeName.name.push(
+            'Print size name must be less than 50 characters'
+          );
+        }
+      }
+      if (req.body.printSizeBName.trim()) {
+        if (req.body.printSizeBName.trim().length > 50) {
+          errors.printSizeBName.push(
+            'Print size name must be less than 50 characters'
+          );
+        }
+      }
+      if (req.body.printSizeCName.trim()) {
+        if (req.body.printSizeCName.trim().length > 50) {
+          errors.printSizeCName.push(
+            'Print size name must be less than 50 characters'
+          );
+        }
+      }
+      if (req.body.defaultPrintOptionName.trim()) {
+        if (req.body.defaultPrintOptionName.trim().length > 50) {
+          errors.defaultPrintOptionName.push(
+            'Default print option name must be less than 50 characters'
+          );
+        }
+      }
+      if (req.body.defaultPrintOptionDesc.trim()) {
+        if (req.body.defaultPrintOptionDesc.trim().length > 150) {
+          errors.defaultPrintOptionDesc.push(
+            'Default print option description must be less than 150 characters'
+          );
+        }
+      }
+      if (req.body.printOptionBName.trim()) {
+        if (req.body.printOptionBName.trim().length > 50) {
+          errors.printOptionBName.push(
+            'Custom print option name must be less than 50 characters'
+          );
+        }
+      }
+      if (req.body.printOptionBDesc.trim()) {
+        if (req.body.printOptionBDesc.trim().length > 150) {
+          errors.printOptionBDesc.push(
+            'Custom print option description must be less than 150 characters'
+          );
+        }
+      }
+      if (req.body.printOptionCName.trim()) {
+        if (req.body.printOptionCName.trim().length > 50) {
+          errors.printOptionCName.push(
+            'Custom print option name must be less than 50 characters'
+          );
+        }
+      }
+      if (req.body.printOptionCDesc.trim()) {
+        if (req.body.printOptionCDesc.trim().length > 150) {
+          errors.printOptionCDesc.push(
+            'Custom print option description must be less than 150 characters'
+          );
+        }
+      }
+    }
+    // throw errors for any numbers that are not within range (if there is a number at all)
+    {
+      // default print size
+      {
+        if (
+          typeof req.body.defaultPrintSizeSfShortEdge === 'number' &&
+          (req.body.defaultPrintSizeSfShortEdge < 1 ||
+            req.body.defaultPrintSizeSfShortEdge > 24)
+        ) {
+          errors.defaultPrintSizeSfShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+        if (
+          typeof req.body.defaultPrintSizeMfShortEdge === 'number' &&
+          (req.body.defaultPrintSizeMfShortEdge < 1 ||
+            req.body.defaultPrintSizeMfShortEdge > 24)
+        ) {
+          errors.defaultPrintSizeMfShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+        if (
+          typeof req.body.defaultPrintSizeF4x5ShortEdge === 'number' &&
+          (req.body.defaultPrintSizeF4x5ShortEdge < 1 ||
+            req.body.defaultPrintSizeF4x5ShortEdge > 24)
+        ) {
+          errors.defaultPrintSizeF4x5ShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+        if (
+          typeof req.body.defaultPrintSizeF8x10ShortEdge === 'number' &&
+          (req.body.defaultPrintSizeF8x10ShortEdge < 1 ||
+            req.body.defaultPrintSizeF8x10ShortEdge > 24)
+        ) {
+          errors.defaultPrintSizeF8x10ShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+      }
+      // print size b
+      {
+        if (
+          typeof req.body.printSizeBSfShortEdge === 'number' &&
+          (req.body.printSizeBSfShortEdge < 1 ||
+            req.body.printSizeBSfShortEdge > 24)
+        ) {
+          errors.printSizeBSfShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+        if (
+          typeof req.body.printSizeBMfShortEdge === 'number' &&
+          (req.body.printSizeBMfShortEdge < 1 ||
+            req.body.printSizeBMfShortEdge > 24)
+        ) {
+          errors.printSizeBMfShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+        if (
+          typeof req.body.printSizeBF4x5ShortEdge === 'number' &&
+          (req.body.printSizeBF4x5ShortEdge < 1 ||
+            req.body.printSizeBF4x5ShortEdge > 24)
+        ) {
+          errors.printSizeBF4x5ShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+        if (
+          typeof req.body.printSizeBF8x10ShortEdge === 'number' &&
+          (req.body.printSizeBF8x10ShortEdge < 1 ||
+            req.body.printSizeBF8x10ShortEdge > 24)
+        ) {
+          errors.printSizeBF8x10ShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+      }
+      // print size c
+      {
+        if (
+          typeof req.body.printSizeCSfShortEdge === 'number' &&
+          (req.body.printSizeCSfShortEdge < 1 ||
+            req.body.printSizeCSfShortEdge > 24)
+        ) {
+          errors.printSizeCSfShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+        if (
+          typeof req.body.printSizeCMfShortEdge === 'number' &&
+          (req.body.printSizeCMfShortEdge < 1 ||
+            req.body.printSizeCMfShortEdge > 24)
+        ) {
+          errors.printSizeCMfShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+        if (
+          typeof req.body.printSizeCF4x5ShortEdge === 'number' &&
+          (req.body.printSizeCF4x5ShortEdge < 1 ||
+            req.body.printSizeCF4x5ShortEdge > 24)
+        ) {
+          errors.printSizeCF4x5ShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+        if (
+          typeof req.body.printSizeCF8x10ShortEdge === 'number' &&
+          (req.body.printSizeCF8x10ShortEdge < 1 ||
+            req.body.printSizeCF8x10ShortEdge > 24)
+        ) {
+          errors.printSizeCF8x10ShortEdge.push(
+            'Short edge dimension be between 1 and 24.'
+          );
+        }
+      }
+    }
+  }
+  // if any of the errors arrays have a length of greater than 0, return the errors object
+  let hasErrors = false;
+  Object.keys(errors).forEach(itemName => {
+    if (errors[itemName].length > 0) {
+      hasErrors = true;
+    }
+  });
+  if (hasErrors) {
+    return res.status(400).json({ errors: errors });
+  }
+  // otherwise, update the lab
+  Lab.findById(req.params.labId).then(foundLab => {
+    if (!foundLab) return res.status(404).json({ error: 'Lab not found' });
+    foundLab.settings.printSettings = {
+      isEnabled: req.body.printIsEnabled,
+      printSizes: {
+        defaultPrintSize: {
+          name: req.body.defaultPrintSizeName,
+          sfShortEdge: req.body.defaultPrintSizeSfShortEdge,
+          mfShortEdge: req.body.defaultPrintSizeMfShortEdge,
+          f4x5ShortEdge: req.body.defaultPrintSizeF4x5ShortEdge,
+          f8x10ShortEdge: req.body.defaultPrintSizeF8x10ShortEdge,
+        },
+        printSizeB: {
+          isEnabled: req.body.printSizeBIsEnabled,
+          name: req.body.printSizeBName,
+          sfShortEdge: req.body.printSizeBSfShortEdge,
+          mfShortEdge: req.body.printSizeBMfShortEdge,
+          f4x5ShortEdge: req.body.printSizeBF4x5ShortEdge,
+          f8x10ShortEdge: req.body.printSizeBF8x10ShortEdge,
+        },
+        printSizeC: {
+          isEnabled: req.body.printSizeCIsEnabled,
+          name: req.body.printSizeCName,
+          sfShortEdge: req.body.printSizeCSfShortEdge,
+          mfShortEdge: req.body.printSizeCMfShortEdge,
+          f4x5ShortEdge: req.body.printSizeCF4x5ShortEdge,
+          f8x10ShortEdge: req.body.printSizeCF8x10ShortEdge,
+        },
+      },
+      customPrintOptions: {
+        defaultPrintOption: {
+          name: req.body.defaultPrintOptionName,
+          desc: req.body.defaultPrintOptionDesc,
+        },
+        printOptionB: {
+          isEnabled: req.body.printOptionBIsEnabled,
+          name: req.body.printOptionBName,
+          desc: req.body.printOptionBDesc,
+        },
+        printOptionC: {
+          isEnabled: req.body.printOptionCIsEnabled,
+          name: req.body.printOptionCName,
+          desc: req.body.printOptionCDesc,
+        },
+      },
+    };
+    foundLab.save().then(savedLab => {
+      if (!savedLab)
+        return res.status(400).json({ error: 'Unable to save lab' });
+      return res.json({ success: true });
+    });
+  });
+});
+
+////////////////////////////////
+/// SERVICE PRICING SETTINGS ///
+////////////////////////////////
 
 // @route   get /api/labs/:labId/settings/service-pricing
 // @desc    find the lab and retrieve its service pricing settings
@@ -522,7 +1107,7 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
 });
 
 // @router  get /api/labs/:labId/settings/service-pricing/edit
-// @desc    find the lab and retrive its full service pricing settings
+// @desc    find the lab and retrieve its full service pricing settings
 // @access  private
 router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
   Lab.findById(req.params.labId)
@@ -1137,7 +1722,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
 });
 
 // @route   put /api/labs/:labId/settings/service-pricing
-// @desc    find the lab and edit its service pricing settings
+// @desc    find the lab and update its service pricing settings
 // @access  private
 router.put('/labs/:labId/settings/service-pricing', (req, res) => {
   // todo: make sure that user is lab owner
