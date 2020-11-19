@@ -13,11 +13,11 @@ const labSchema = new mongoose.Schema({
     required: true,
   },
   settings: {
-    // shipSettings: {
-    // allowDropoff: { type: Boolean, default: true },
-    // allowPickup: { type: Boolean, default: true },
-    // shippingPrice: { type: Number, default: 10 },
-    // },
+    shipSettings: {
+      allowDropoff: { type: Boolean, default: false },
+      allowPickup: { type: Boolean, default: false },
+      shippingPrice: { type: Number, default: 10 },
+    },
     devSettings: {
       isEnabled: { type: Boolean, default: false },
     },
@@ -142,7 +142,7 @@ const labSchema = new mongoose.Schema({
     },
   },
   labServices: [
-    // each of these will apply to every single lab service
+    // one of these will apply to every single lab service
     {
       service: {
         type: mongoose.Schema.Types.ObjectId,
@@ -249,7 +249,6 @@ const labSchema = new mongoose.Schema({
         },
       },
     },
-    // ^^^ each of these will apply to every single lab service
   ],
 });
 

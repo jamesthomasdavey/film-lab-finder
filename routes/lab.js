@@ -99,6 +99,7 @@ router.post('/labs/new', (req, res) => {
           ownedBy: req.body.ownedBy,
           labServices: labServices,
         });
+        if (req.body._id) newLab._id = req.body._id;
         newLab.save().then(savedLab => {
           if (!savedLab)
             return res.status(400).json({ error: 'Unabled to save lab.' });
@@ -150,10 +151,19 @@ router.get('/labs/:labId/settings/ship', (req, res) => {
 // @route   get /api/labs/:labId/settings/ship/edit
 // @desc    find the lab and retrieve its ship settings
 // @access  private
+router.get('/labs/:labId/settings/ship/edit', (req, res) => {
+  // todo: make sure that user is lab owner
+  Lab.findById(req.params.labId).then(foundLab => {
+    return res.json(foundLab.settings.shipSettings);
+  });
+});
 
 // @route   put /api/labs/:labId/settings/ship
 // @desc    find the lab and retrieve its ship settings
 // @access  private
+router.put('/labs/:labId/settings/ship', (req, res) => {
+  // todo: make sure that user is lab owner
+});
 
 ////////////////////
 /// DEV SETTINGS ///
@@ -172,10 +182,27 @@ router.get('/labs/:labId/settings/dev', (req, res) => {
 // @route   get /api/labs/:labId/settings/dev/edit
 // @desc    find the lab and retrieve its full dev settings
 // @access  private
+router.get('/labs/:labId/settings/dev/edit', (req, res) => {
+  // todo: make sure that user is lab owner
+  Lab.findById(req.params.labId).then(foundLab => {
+    return res.json(foundLab.settings.devSettings);
+  });
+});
 
 // @route   put /api/labs/:labId/settings/dev
 // @desc    find the lab and update its dev settings
 // @access  private
+router.put('/labs/:labId/settings/dev', (req, res) => {
+  // todo: make sure that user is lab owner
+  Lab.findById(req.params.labId).then(foundLab => {
+    foundLab.settings.devSettings.isEnabled = req.body.devIsEnabled;
+    foundLab.save().then(savedLab => {
+      if (!savedLab)
+        return res.status(400).json({ error: 'Unable to save lab' });
+      return res.json({ success: true });
+    });
+  });
+});
 
 /////////////////////
 /// SCAN SETTINGS ///
@@ -1425,12 +1452,12 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
       // build out rows; if row is not supported by the lab, it won't appear
       const rows = [];
       foundLab.labServices.forEach(foundLabService => {
-        const serviceIncludesDev =
-          foundLabService.service.serviceType.includedServiceTypes.dev;
-        const serviceIncludesScan =
-          foundLabService.service.serviceType.includedServiceTypes.scan;
-        const serviceIncludesPrint =
-          foundLabService.service.serviceType.includedServiceTypes.print;
+        const serviceIncludesDev = foundLabService.addOns.dev.isAllowed;
+        // foundLabService.service.serviceType.includedServiceTypes.dev;
+        const serviceIncludesScan = foundLabService.addOns.scan.isAllowed;
+        // foundLabService.service.serviceType.includedServiceTypes.scan;
+        const serviceIncludesPrint = foundLabService.addOns.print.isAllowed;
+        // foundLabService.service.serviceType.includedServiceTypes.print;
         let labCanSupport = true;
         // if the service includes dev, make sure that the lab can support that
         if (serviceIncludesDev) {
@@ -1445,7 +1472,7 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
           }
         }
         // if the service includes print, make sure that the lab can support that
-        if (foundLabService.service.serviceType.includedServiceTypes.print) {
+        if (serviceIncludesPrint) {
           if (!labAllowsPrint) {
             labCanSupport = false;
           }
@@ -2044,12 +2071,12 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       };
       // build rows
       const rows = foundLab.labServices.map(foundLabService => {
-        const serviceIncludesDev =
-          foundLabService.service.serviceType.includedServiceTypes.dev;
-        const serviceIncludesScan =
-          foundLabService.service.serviceType.includedServiceTypes.scan;
-        const serviceIncludesPrint =
-          foundLabService.service.serviceType.includedServiceTypes.print;
+        const serviceIncludesDev = foundLabService.addOns.dev.isAllowed;
+        // foundLabService.service.serviceType.includedServiceTypes.dev;
+        const serviceIncludesScan = foundLabService.addOns.scan.isAllowed;
+        // foundLabService.service.serviceType.includedServiceTypes.scan;
+        const serviceIncludesPrint = foundLabService.addOns.print.isAllowed;
+        // foundLabService.service.serviceType.includedServiceTypes.print;
         const unsupportedServiceTypes = [];
         if (serviceIncludesDev && !labAllowsDev) {
           unsupportedServiceTypes.push('Developing');
@@ -2249,7 +2276,6 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
           });
         }
       } else {
-        // console.log(reqBodyLabServices);
         Service.findById(reqBodyLabServices[0].serviceId)
           .populate('serviceType')
           .populate('filmType')

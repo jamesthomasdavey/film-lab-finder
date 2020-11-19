@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const thenBy = require('thenby');
 
 const sortServices = require('../helpers/sortServices');
 
