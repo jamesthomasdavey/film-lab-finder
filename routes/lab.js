@@ -9,6 +9,8 @@ const service = require('../models/service');
 const Service = require('../models/service');
 const ServiceType = require('../models/serviceType');
 
+const isNumber = require('../validation/is-number');
+
 // @route   ***** CHANGE THIS ***** get /api/labs/find
 // @desc    returns all available labs, based on an array of services
 // @access  public
@@ -239,42 +241,548 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
   };
   // todo: handle all possible errors
   {
-    // TODO:...
     // if scanning is enabled,
-    //// throw error if defaultscannername is not defined
-    //// throw error if defaultscanresname is not defined
-    //// throw error if defaultscanressfshortedge is not defined
-    //// throw error if defaultscanresmfshortedge is not defined
-    //// throw error if defaultscanresf4x5shortedge is not defined
-    //// throw error if defaultscanresf8x10shortedge is not defined
-    //// throw error if customscanoptionsname is not defined
-    //// throw error if defaultscanoptionname is not defined
+    if (req.body.scanIsEnabled) {
+      //// throw error if defaultscannername is not defined
+      {
+        if (!req.body.defaultScannerName.trim()) {
+          errors.defaultScannerName.push(
+            'Default scanner must have a name if scanning is enabled.'
+          );
+        }
+      }
+      //// throw error if defaultscanresname is not defined
+      {
+        if (!req.body.defaultScanResName.trim()) {
+          errors.defaultScanResName.push(
+            'Default scan resolution must have a name if scanning is enabled.'
+          );
+        }
+      }
+      //// throw error if defaultscanressfshortedge is not defined
+      {
+        if (!isNumber(req.body.defaultScanResSfShortEdge)) {
+          errors.defaultScanResSfShortEdge.push(
+            'Small format scan resolution must be defined if scanning is enabled.'
+          );
+        }
+      }
+      //// throw error if defaultscanresmfshortedge is not defined
+      {
+        if (!isNumber(req.body.defaultScanResMfShortEdge)) {
+          errors.defaultScanResMfShortEdge.push(
+            'Medium format scan resolution must be defined if scanning is enabled.'
+          );
+        }
+      }
+      //// throw error if defaultscanresf4x5shortedge is not defined
+      {
+        if (!isNumber(req.body.defaultScanResF4x5ShortEdge)) {
+          errors.defaultScanResF4x5ShortEdge.push(
+            '4x5 large format scan resolution must be defined if scanning is enabled.'
+          );
+        }
+      }
+      //// throw error if defaultscanresf8x10shortedge is not defined
+      {
+        if (!isNumber(req.body.defaultScanResF8x10ShortEdge)) {
+          errors.defaultScanResF8x10ShortEdge.push(
+            '8x10 large format scan resolution must be defined if scanning is enabled.'
+          );
+        }
+      }
+      //// throw error if customscanoptionsname is not defined
+      {
+        if (!req.body.customScanOptionsName.trim()) {
+          errors.customScanOptionsName.push(
+            'Custom scan options must have a name if scanning is enabled.'
+          );
+        }
+      }
+      //// throw error if defaultscanoptionname is not defined
+      {
+        if (!req.body.defaultScanOptionName.trim()) {
+          errors.defaultScanOptionName.push(
+            'Default scan option must be defined if scanning is enabled.'
+          );
+        }
+      }
+    }
+    // if raw by order is enabled,
+    if (req.body.rawByOrderIsEnabled) {
+      //// throw error if rawbyorderprice is not defined
+      if (!isNumber(req.body.rawByOrderPrice)) {
+        errors.rawByOrderPrice.push(
+          'Price must be defined if raw by order is enabled.'
+        );
+      }
+    }
     // if scannerb is enabled,
-    //// throw error if scannerbname is not defined
+    if (req.body.scannerBIsEnabled) {
+      //// throw error if scannerbname is not defined
+      if (!req.body.scannerBName.trim()) {
+        errors.scannerBName.push('Scanner B must have a name if enabled.');
+      }
+    }
     // if scannerc is enabled,
-    //// throw error if scannercname is not defined
+    if (req.body.scannerCIsEnabled) {
+      //// throw error if scannercname is not defined
+      if (!req.body.scannerCName.trim()) {
+        errors.scannerCName.push('Scanner C must have a name if enabled.');
+      }
+    }
     // if scannerd is enabled,
-    //// throw error if scannerdname is not defined
+    if (req.body.scannerDIsEnabled) {
+      //// throw error if scannerdname is not defined
+      if (!req.body.scannerDName.trim()) {
+        errors.scannerDName.push('Scanner D must have a name if enabled.');
+      }
+    }
     // if scanresb is enabled,
-    //// throw error if scanresbname is not defined
-    //// throw error if scanresbsfshortedge is not defined
-    //// throw error if scanresbmfshortedge is not defined
-    //// throw error if scanresbf4x5shortedge is not defined
-    //// throw error if scanresbf8x10shortedge is not defined
+    if (req.body.scanResBIsEnabled) {
+      //// throw error if scanresbname is not defined
+      if (!req.body.scanResBName.trim()) {
+        errors.scanResBName.push(
+          'Scan resolution B must have a name if enabled.'
+        );
+      }
+      //// throw error if scanresbsfshortedge is not defined
+      if (!isNumber(req.body.scanResBSfShortEdge)) {
+        errors.scanResBSfShortEdge.push(
+          'Small format scan resolution must be defined if enabled.'
+        );
+      }
+      //// throw error if scanresbmfshortedge is not defined
+      if (!isNumber(req.body.scanResBMfShortEdge)) {
+        errors.scanResBMfShortEdge.push(
+          'Medium format scan resolution must be defined if enabled.'
+        );
+      }
+      //// throw error if scanresbf4x5shortedge is not defined
+      if (!isNumber(req.body.scanResBF4x5ShortEdge)) {
+        errors.scanResBF4x5ShortEdge.push(
+          '4x5 large format scan resolution must be defined if enabled.'
+        );
+      }
+      //// throw error if scanresbf8x10shortedge is not defined
+      if (!isNumber(req.body.scanResBF8x10ShortEdge)) {
+        errors.scanResBF8x10ShortEdge.push(
+          '8x10 large format scan resolution must be defined if enabled.'
+        );
+      }
+    }
     // if scanresc is enabled,
-    //// throw error if scanrescname is not defined
-    //// throw error if scanrescsfshortedge is not defined
-    //// throw error if scanrescmfshortedge is not defined
-    //// throw error if scanrescf4x5shortedge is not defined
-    //// throw error if scanrescf8x10shortedge is not defined
+    if (req.body.scanResCIsEnabled) {
+      //// throw error if scanrescname is not defined
+      if (!req.body.scanResCName.trim()) {
+        errors.scanResCName.push(
+          'Scan resolution C must have a name if enabled.'
+        );
+      }
+      //// throw error if scanrescsfshortedge is not defined
+      if (!isNumber(req.body.scanResCSfShortEdge)) {
+        errors.scanResCSfShortEdge.push(
+          'Small format scan resolution must be defined if enabled.'
+        );
+      }
+      //// throw error if scanrescmfshortedge is not defined
+      if (!isNumber(req.body.scanResCMfShortEdge)) {
+        errors.scanResCMfShortEdge.push(
+          'Medium format scan resolution must be defined if enabled.'
+        );
+      }
+      //// throw error if scanrescf4x5shortedge is not defined
+      if (!isNumber(req.body.scanResCF4x5ShortEdge)) {
+        errors.scanResCF4x5ShortEdge.push(
+          '4x5 large format scan resolution must be defined if enabled.'
+        );
+      }
+      //// throw error if scanrescf8x10shortedge is not defined
+      if (!isNumber(req.body.scanResCF8x10ShortEdge)) {
+        errors.scanResCF8x10ShortEdge.push(
+          '8x10 large format scan resolution must be defined if enabled.'
+        );
+      }
+    }
     // if scanoptionb is enabled,
-    //// throw error if scanoptionbname is not defined
+    if (req.body.scanOptionBIsEnabled) {
+      //// throw error if scanoptionbname is not defined
+      if (!req.body.scanOptionBName.trim()) {
+        errors.scanOptionBName.push(
+          'Custom scan option must have a name if enabled.'
+        );
+      }
+    }
     // if scanoptionc is enabled,
-    //// throw error if scanoptioncname is not defined
+    if (req.body.scanOptionCIsEnabled) {
+      //// throw error if scanoptioncname is not defined
+      if (!req.body.scanOptionCName.trim()) {
+        errors.scanOptionCName.push(
+          'Custom scan option must have a name if enabled.'
+        );
+      }
+    }
     ///////////////
     // throw errors for any names and descriptions that are too long (if they are present at all)
+    {
+      if (req.body.defaultScannerName.trim()) {
+        if (req.body.defaultScannerName.trim().length > 50) {
+          errors.defaultScannerName.push(
+            'Scanner name must not exceed 50 characters.'
+          );
+        }
+      }
+      if (req.body.defaultScannerDesc.trim()) {
+        if (req.body.defaultScannerDesc.trim().length > 150) {
+          errors.defaultScannerDesc.push(
+            'Scanner description must not exceed 150 characters.'
+          );
+        }
+      }
+      if (req.body.scannerBName.trim()) {
+        if (req.body.scannerBName.trim().length > 50) {
+          errors.scannerBName.push(
+            'Scanner name must not exceed 50 characters.'
+          );
+        }
+      }
+      if (req.body.scannerBDesc.trim()) {
+        if (req.body.scannerBDesc.trim().length > 150) {
+          errors.scannerBDesc.push(
+            'Scanner description must not exceed 150 characters.'
+          );
+        }
+      }
+      if (req.body.scannerCName.trim()) {
+        if (req.body.scannerCName.trim().length > 50) {
+          errors.scannerCName.push(
+            'Scanner name must not exceed 50 characters.'
+          );
+        }
+      }
+      if (req.body.scannerCDesc.trim()) {
+        if (req.body.scannerCDesc.trim().length > 150) {
+          errors.scannerCDesc.push(
+            'Scanner description must not exceed 150 characters.'
+          );
+        }
+      }
+      if (req.body.scannerDName.trim()) {
+        if (req.body.scannerDName.trim().length > 50) {
+          errors.scannerDName.push(
+            'Scanner name must not exceed 50 characters.'
+          );
+        }
+      }
+      if (req.body.scannerDDesc.trim()) {
+        if (req.body.scannerDDesc.trim().length > 150) {
+          errors.scannerDDesc.push(
+            'Scanner description must not exceed 150 characters.'
+          );
+        }
+      }
+      // defaultScanResName
+      if (req.body.defaultScanResName.trim()) {
+        if (req.body.defaultScanResName.trim().length > 50) {
+          errors.defaultScanResName.push(
+            'Scan resolution name must not exceed 50 characters.'
+          );
+        }
+      }
+      // scanResBName
+      if (req.body.scanResBName.trim()) {
+        if (req.body.scanResBName.trim().length > 50) {
+          errors.scanResBName.push(
+            'Scan resolution name must not exceed 50 characters.'
+          );
+        }
+      }
+      // scanResCName
+      if (req.body.scanResCName.trim()) {
+        if (req.body.scanResCName.trim().length > 50) {
+          errors.scanResCName.push(
+            'Scan resolution name must not exceed 50 characters.'
+          );
+        }
+      }
+      // customScanOptionsName
+      if (req.body.customScanOptionsName.trim()) {
+        if (req.body.customScanOptionsName.trim().length > 50) {
+          errors.customScanOptionsName.push(
+            'Custom scan options name must not exceed 50 characters.'
+          );
+        }
+      }
+      // defaultScanOptionName
+      if (req.body.defaultScanOptionName.trim()) {
+        if (req.body.defaultScanOptionName.trim().length > 50) {
+          errors.defaultScanOptionName.push(
+            'Default scan option name must not exceed 50 characters.'
+          );
+        }
+      }
+      // defaultScanOptionDesc
+      if (req.body.defaultScanOptionDesc.trim()) {
+        if (req.body.defaultScanOptionDesc.trim().length > 150) {
+          errors.defaultScanOptionDesc.push(
+            'Default scan option description must not exceed 150 characters.'
+          );
+        }
+      }
+      // scanOptionBName
+      if (req.body.scanOptionBName.trim()) {
+        if (req.body.scanOptionBName.trim().length > 50) {
+          errors.scanOptionBName.push(
+            'Custom scan option name must not exceed 50 characters.'
+          );
+        }
+      }
+      // scanOptionBDesc
+      if (req.body.scanOptionBDesc.trim()) {
+        if (req.body.scanOptionBDesc.trim().length > 150) {
+          errors.scanOptionBDesc.push(
+            'Custom scan option description must not exceed 150 characters.'
+          );
+        }
+      }
+      // scanOptionCName
+      if (req.body.scanOptionCName.trim()) {
+        if (req.body.scanOptionCName.trim().length > 50) {
+          errors.scanOptionCName.push(
+            'Custom scan option name must not exceed 50 characters.'
+          );
+        }
+      }
+      // scanOptionCDesc
+      if (req.body.scanOptionCDesc.trim()) {
+        if (req.body.scanOptionCDesc.trim().length > 150) {
+          errors.scanOptionCDesc.push(
+            'Custom scan option description must not exceed 150 characters.'
+          );
+        }
+      }
+    }
     // throw errors for any numbers that are not within range (if there is a number at all)
+    {
+      // rawByOrderPrice
+      if (
+        isNumber(req.body.rawByOrderPrice) &&
+        (req.body.rawByOrderPrice < 0.01 || req.body.rawByOrderPrice > 999.99)
+      ) {
+        errors.rawByOrderPrice.push(
+          'Raw by order price must be between $0.01 and $999.99.'
+        );
+      }
+      // defaultScanResSfShortEdge
+      if (
+        isNumber(req.body.defaultScanResSfShortEdge) &&
+        (req.body.defaultScanResSfShortEdge < 100 ||
+          req.body.defaultScanResSfShortEdge > 10000)
+      ) {
+        errors.defaultScanResSfShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // defaultScanResMfShortEdge
+      if (
+        isNumber(req.body.defaultScanResMfShortEdge) &&
+        (req.body.defaultScanResMfShortEdge < 100 ||
+          req.body.defaultScanResMfShortEdge > 10000)
+      ) {
+        errors.defaultScanResMfShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // defaultScanResF4x5ShortEdge
+      if (
+        isNumber(req.body.defaultScanResF4x5ShortEdge) &&
+        (req.body.defaultScanResF4x5ShortEdge < 100 ||
+          req.body.defaultScanResF4x5ShortEdge > 10000)
+      ) {
+        errors.defaultScanResF4x5ShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // defaultScanResF8x10ShortEdge
+      if (
+        isNumber(req.body.defaultScanResF8x10ShortEdge) &&
+        (req.body.defaultScanResF8x10ShortEdge < 100 ||
+          req.body.defaultScanResF8x10ShortEdge > 10000)
+      ) {
+        errors.defaultScanResF8x10ShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // scanResBSfShortEdge
+      if (
+        isNumber(req.body.scanResBSfShortEdge) &&
+        (req.body.scanResBSfShortEdge < 100 ||
+          req.body.scanResBSfShortEdge > 10000)
+      ) {
+        errors.scanResBSfShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // scanResBMfShortEdge
+      if (
+        isNumber(req.body.scanResBMfShortEdge) &&
+        (req.body.scanResBMfShortEdge < 100 ||
+          req.body.scanResBMfShortEdge > 10000)
+      ) {
+        errors.scanResBMfShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // scanResBF4x5ShortEdge
+      if (
+        isNumber(req.body.scanResBF4x5ShortEdge) &&
+        (req.body.scanResBF4x5ShortEdge < 100 ||
+          req.body.scanResBF4x5ShortEdge > 10000)
+      ) {
+        errors.scanResBF4x5ShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // scanResBF8x10ShortEdge
+      if (
+        isNumber(req.body.scanResBF8x10ShortEdge) &&
+        (req.body.scanResBF8x10ShortEdge < 100 ||
+          req.body.scanResBF8x10ShortEdge > 10000)
+      ) {
+        errors.scanResBF8x10ShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // scanResCSfShortEdge
+      if (
+        isNumber(req.body.scanResCSfShortEdge) &&
+        (req.body.scanResCSfShortEdge < 100 ||
+          req.body.scanResCSfShortEdge > 10000)
+      ) {
+        errors.scanResCSfShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // scanResCMfShortEdge
+      if (
+        isNumber(req.body.scanResCMfShortEdge) &&
+        (req.body.scanResCMfShortEdge < 100 ||
+          req.body.scanResCMfShortEdge > 10000)
+      ) {
+        errors.scanResCMfShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // scanResCF4x5ShortEdge
+      if (
+        isNumber(req.body.scanResCF4x5ShortEdge) &&
+        (req.body.scanResCF4x5ShortEdge < 100 ||
+          req.body.scanResCF4x5ShortEdge > 10000)
+      ) {
+        errors.scanResCF4x5ShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+      // scanResF8x10ShortEdge
+      if (
+        isNumber(req.body.scanResF8x10ShortEdge) &&
+        (req.body.scanResF8x10ShortEdge < 100 ||
+          req.body.scanResF8x10ShortEdge > 10000)
+      ) {
+        errors.scanResF8x10ShortEdge.push(
+          'Scan resolution short edge must be between 100px and 10,000px.'
+        );
+      }
+    }
   }
+  // if any of the errors arrays have a length of greater than 0, return the errors object
+  let hasErrors = false;
+  Object.keys(errors).forEach(itemName => {
+    if (errors[itemName].length > 0) {
+      hasErrors = true;
+    }
+  });
+  if (hasErrors) {
+    return res.status(400).json({ errors: errors });
+  }
+  Lab.findById(req.params.labId).then(foundLab => {
+    if (!foundLab) return res.status(404).json({ error: 'Lab not found' });
+    foundLab.settings.scanSettings = {
+      isEnabled: req.body.scanIsEnabled,
+      rawByOrder: {
+        isEnabled: req.body.rawByOrderIsEnabled,
+        price: req.body.rawByOrderPrice,
+      },
+      scanners: {
+        defaultScanner: {
+          name: req.body.defaultScannerName.trim(),
+          desc: req.body.defaultScannerDesc.trim(),
+        },
+        scannerB: {
+          isEnabled: req.body.scannerBIsEnabled,
+          name: req.body.scannerBName.trim(),
+          desc: req.body.scannerBDesc.trim(),
+        },
+        scannerC: {
+          isEnabled: req.body.scannerCIsEnabled,
+          name: req.body.scannerCName.trim(),
+          desc: req.body.scannerCDesc.trim(),
+        },
+        scannderD: {
+          isEnabled: req.body.scannerDIsEnabled,
+          name: req.body.scannerDName.trim(),
+          desc: req.body.scannerDDesc.trim(),
+        },
+      },
+      scanResolutions: {
+        defaultScanRes: {
+          name: req.body.defaultScanResName.trim(),
+          sfShortEdge: req.body.defaultScanResSfShortEdge,
+          mfShortEdge: req.body.defaultScanResMfShortEdge,
+          f4x5ShortEdge: req.body.defaultScanResF4x5ShortEdge,
+          f8x10ShortEdge: req.body.defaultScanResF8x10ShortEdge,
+        },
+        scanResB: {
+          isEnabled: req.body.scanResBIsEnabled,
+          name: req.body.scanResBName.trim(),
+          sfShortEdge: req.body.scanResBSfShortEdge,
+          mfShortEdge: req.body.scanResBMfShortEdge,
+          f4x5ShortEdge: req.body.scanResBF4x5ShortEdge,
+          f8x10ShortEdge: req.body.scanResBF8x10ShortEdge,
+        },
+        scanResC: {
+          isEnabled: req.body.scanResCIsEnabled,
+          name: req.body.scanResCName.trim(),
+          sfShortEdge: req.body.scanResCSfShortEdge,
+          mfShortEdge: req.body.scanResCMfShortEdge,
+          f4x5ShortEdge: req.body.scanResCF4x5ShortEdge,
+          f8x10ShortEdge: req.body.scanResF8x10ShortEdge,
+        },
+      },
+      customScanOptions: {
+        name: req.body.customScanOptionsName.trim(),
+        defaultScanOption: {
+          name: req.body.defaultScanOptionName.trim(),
+          desc: req.body.defaultScanOptionDesc.trim(),
+        },
+        scanOptionB: {
+          isEnabled: req.body.scanOptionBIsEnabled,
+          name: req.body.scanOptionBName.trim(),
+          desc: req.body.scanOptionBDesc.trim(),
+        },
+        scanOptionC: {
+          isEnabled: req.body.scanOptionCIsEnabled,
+          name: req.body.scanOptionCName.trim(),
+          desc: req.body.scanOptionCDesc.trim(),
+        },
+      },
+    };
+    foundLab.save().then(savedLab => {
+      if (!savedLab)
+        return res.status(400).json({ error: 'Unable to save lab' });
+      return res.json({ success: true });
+    });
+  });
 });
 
 //////////////////////
@@ -333,7 +841,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
   {
     // if printing is enabled,
     if (req.body.printIsEnabled) {
-      //// throw error if default print size name is not defined
+      //// if default print size is not enabled, throw an error
       {
         if (!req.body.defaultPrintSizeName.trim()) {
           errors.defaultPrintSizeName.push(
@@ -341,33 +849,33 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
       }
-      //// throw error if sfShortEdge is not defined
+      //// if default sfShortEdge is not a number, throw an error
       {
-        if (req.body.defaultPrintSizeSfShortEdge === '') {
+        if (!isNumber(req.body.defaultPrintSizeSfShortEdge)) {
           errors.defaultPrintSizeSfShortEdge.push(
             'Small format print size must be defined if printing is enabled.'
           );
         }
       }
-      //// throw error if mfShortEdge is not defined
+      //// if default mfShortEdge is not a number, throw an error
       {
-        if (req.body.defaultPrintSizeMfShortEdge === '') {
+        if (!isNumber(req.body.defaultPrintSizeMfShortEdge)) {
           errors.defaultPrintSizeMfShortEdge.push(
             'Medium format print size must be defined if printing is enabled.'
           );
         }
       }
-      //// throw error if f4x5ShortEdge is not defined
+      //// if default f4x5ShortEdge is not a number, throw an error
       {
-        if (req.body.defaultPrintSizeF4x5ShortEdge === '') {
+        if (!isNumber(req.body.defaultPrintSizeF4x5ShortEdge)) {
           errors.defaultPrintSizeF4x5ShortEdge.push(
             '4x5 large format print size must be defined if printing is enabled.'
           );
         }
       }
-      //// throw error if f8x10ShortEdge is not defined
+      //// if default f8x10ShortEdge is not a bynberm throw an error
       {
-        if (req.body.defaultPrintSizeF8x10ShortEdge === '') {
+        if (!isNumber(req.body.defaultPrintSizeF8x10ShortEdge)) {
           errors.defaultPrintSizeF8x10ShortEdge.push(
             '8x10 large format print size must be defined if printing is enabled.'
           );
@@ -392,7 +900,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       }
       //// throw error if sfShortEdge is not defined
       {
-        if (req.body.printSizeBSfShortEdge === '') {
+        if (!isNumber(req.body.printSizeBSfShortEdge)) {
           errors.printSizeBSfShortEdge.push(
             'Small format print size must be defined if print size is enabled.'
           );
@@ -400,7 +908,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       }
       //// throw error if mfShortEdge is not defined
       {
-        if (req.body.printSizeBMfShortEdge === '') {
+        if (!isNumber(req.body.printSizeBMfShortEdge)) {
           errors.printSizeBMfShortEdge.push(
             'Medium format print size must be defined if print size is enabled.'
           );
@@ -408,7 +916,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       }
       //// throw error if f4x5ShortEdge is not defined
       {
-        if (req.body.printSizeBF4x5ShortEdge === '') {
+        if (!isNumber(req.body.printSizeBF4x5ShortEdge)) {
           errors.printSizeBF4x5ShortEdge.push(
             '4x5 large format print size must be defined if print size is enabled.'
           );
@@ -416,7 +924,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       }
       //// throw error if f8x10ShortEdge is not defined
       {
-        if (req.body.printSizeBF8x10ShortEdge === '') {
+        if (!isNumber(req.body.printSizeBF8x10ShortEdge)) {
           errors.printSizeBF8x10ShortEdge.push(
             '8x10 large format print size must be defined if print size is enabled.'
           );
@@ -433,7 +941,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       }
       //// throw error if sfShortEdge is not defined
       {
-        if (req.body.printSizeCSfShortEdge === '') {
+        if (!isNumber(req.body.printSizeCSfShortEdge)) {
           errors.printSizeCSfShortEdge.push(
             'Small format print size must be defined if print size is enabled.'
           );
@@ -441,7 +949,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       }
       //// throw error if mfShortEdge is not defined
       {
-        if (req.body.printSizeCMfShortEdge === '') {
+        if (!isNumber(req.body.printSizeCMfShortEdge)) {
           errors.printSizeCMfShortEdge.push(
             'Medium format print size must be defined if print size is enabled.'
           );
@@ -449,7 +957,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       }
       //// throw error if f4x5ShortEdge is not defined
       {
-        if (req.body.printSizeCF4x5ShortEdge === '') {
+        if (!isNumber(req.body.printSizeCF4x5ShortEdge)) {
           errors.printSizeCF4x5ShortEdge.push(
             '4x5 large format print size must be defined if print size is enabled.'
           );
@@ -457,7 +965,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       }
       //// throw error if f8x10ShortEdge is not defined
       {
-        if (req.body.printSizeCF8x10ShortEdge === '') {
+        if (!isNumber(req.body.printSizeCF8x10ShortEdge)) {
           errors.printSizeCF8x10ShortEdge.push(
             '8x10 large format print size must be defined if print size is enabled.'
           );
@@ -491,63 +999,63 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       if (req.body.defaultPrintSizeName.trim()) {
         if (req.body.defaultPrintSizeName.trim().length > 50) {
           errors.defaultPrintSizeName.name.push(
-            'Print size name must be less than 50 characters'
+            'Print size name must not exceed 50 characters.'
           );
         }
       }
       if (req.body.printSizeBName.trim()) {
         if (req.body.printSizeBName.trim().length > 50) {
           errors.printSizeBName.push(
-            'Print size name must be less than 50 characters'
+            'Print size name must not exceed 50 characters.'
           );
         }
       }
       if (req.body.printSizeCName.trim()) {
         if (req.body.printSizeCName.trim().length > 50) {
           errors.printSizeCName.push(
-            'Print size name must be less than 50 characters'
+            'Print size name must not exceed 50 characters.'
           );
         }
       }
       if (req.body.defaultPrintOptionName.trim()) {
         if (req.body.defaultPrintOptionName.trim().length > 50) {
           errors.defaultPrintOptionName.push(
-            'Default print option name must be less than 50 characters'
+            'Default print option name must not exceed 50 characters.'
           );
         }
       }
       if (req.body.defaultPrintOptionDesc.trim()) {
         if (req.body.defaultPrintOptionDesc.trim().length > 150) {
           errors.defaultPrintOptionDesc.push(
-            'Default print option description must be less than 150 characters'
+            'Default print option description must not exceed 150 characters.'
           );
         }
       }
       if (req.body.printOptionBName.trim()) {
         if (req.body.printOptionBName.trim().length > 50) {
           errors.printOptionBName.push(
-            'Custom print option name must be less than 50 characters'
+            'Custom print option name must not exceed 50 characters.'
           );
         }
       }
       if (req.body.printOptionBDesc.trim()) {
         if (req.body.printOptionBDesc.trim().length > 150) {
           errors.printOptionBDesc.push(
-            'Custom print option description must be less than 150 characters'
+            'Custom print option description must not exceed 150 characters.'
           );
         }
       }
       if (req.body.printOptionCName.trim()) {
         if (req.body.printOptionCName.trim().length > 50) {
           errors.printOptionCName.push(
-            'Custom print option name must be less than 50 characters'
+            'Custom print option name must not exceed 50 characters.'
           );
         }
       }
       if (req.body.printOptionCDesc.trim()) {
         if (req.body.printOptionCDesc.trim().length > 150) {
           errors.printOptionCDesc.push(
-            'Custom print option description must be less than 150 characters'
+            'Custom print option description must not exceed 150 characters.'
           );
         }
       }
@@ -557,7 +1065,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       // default print size
       {
         if (
-          typeof req.body.defaultPrintSizeSfShortEdge === 'number' &&
+          isNumber(req.body.defaultPrintSizeSfShortEdge) &&
           (req.body.defaultPrintSizeSfShortEdge < 1 ||
             req.body.defaultPrintSizeSfShortEdge > 24)
         ) {
@@ -566,7 +1074,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
         if (
-          typeof req.body.defaultPrintSizeMfShortEdge === 'number' &&
+          isNumber(req.body.defaultPrintSizeMfShortEdge) &&
           (req.body.defaultPrintSizeMfShortEdge < 1 ||
             req.body.defaultPrintSizeMfShortEdge > 24)
         ) {
@@ -575,7 +1083,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
         if (
-          typeof req.body.defaultPrintSizeF4x5ShortEdge === 'number' &&
+          isNumber(req.body.defaultPrintSizeF4x5ShortEdge) &&
           (req.body.defaultPrintSizeF4x5ShortEdge < 1 ||
             req.body.defaultPrintSizeF4x5ShortEdge > 24)
         ) {
@@ -584,7 +1092,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
         if (
-          typeof req.body.defaultPrintSizeF8x10ShortEdge === 'number' &&
+          isNumber(req.body.defaultPrintSizeF8x10ShortEdge) &&
           (req.body.defaultPrintSizeF8x10ShortEdge < 1 ||
             req.body.defaultPrintSizeF8x10ShortEdge > 24)
         ) {
@@ -596,7 +1104,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       // print size b
       {
         if (
-          typeof req.body.printSizeBSfShortEdge === 'number' &&
+          isNumber(req.body.printSizeBSfShortEdge) &&
           (req.body.printSizeBSfShortEdge < 1 ||
             req.body.printSizeBSfShortEdge > 24)
         ) {
@@ -605,7 +1113,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
         if (
-          typeof req.body.printSizeBMfShortEdge === 'number' &&
+          isNumber(req.body.printSizeBMfShortEdge) &&
           (req.body.printSizeBMfShortEdge < 1 ||
             req.body.printSizeBMfShortEdge > 24)
         ) {
@@ -614,7 +1122,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
         if (
-          typeof req.body.printSizeBF4x5ShortEdge === 'number' &&
+          isNumber(req.body.printSizeBF4x5ShortEdge) &&
           (req.body.printSizeBF4x5ShortEdge < 1 ||
             req.body.printSizeBF4x5ShortEdge > 24)
         ) {
@@ -623,7 +1131,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
         if (
-          typeof req.body.printSizeBF8x10ShortEdge === 'number' &&
+          isNumber(req.body.printSizeBF8x10ShortEdge) &&
           (req.body.printSizeBF8x10ShortEdge < 1 ||
             req.body.printSizeBF8x10ShortEdge > 24)
         ) {
@@ -635,7 +1143,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       // print size c
       {
         if (
-          typeof req.body.printSizeCSfShortEdge === 'number' &&
+          isNumber(req.body.printSizeCSfShortEdge) &&
           (req.body.printSizeCSfShortEdge < 1 ||
             req.body.printSizeCSfShortEdge > 24)
         ) {
@@ -644,7 +1152,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
         if (
-          typeof req.body.printSizeCMfShortEdge === 'number' &&
+          isNumber(req.body.printSizeCMfShortEdge) &&
           (req.body.printSizeCMfShortEdge < 1 ||
             req.body.printSizeCMfShortEdge > 24)
         ) {
@@ -653,7 +1161,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
         if (
-          typeof req.body.printSizeCF4x5ShortEdge === 'number' &&
+          isNumber(req.body.printSizeCF4x5ShortEdge) &&
           (req.body.printSizeCF4x5ShortEdge < 1 ||
             req.body.printSizeCF4x5ShortEdge > 24)
         ) {
@@ -662,7 +1170,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
           );
         }
         if (
-          typeof req.body.printSizeCF8x10ShortEdge === 'number' &&
+          isNumber(req.body.printSizeCF8x10ShortEdge) &&
           (req.body.printSizeCF8x10ShortEdge < 1 ||
             req.body.printSizeCF8x10ShortEdge > 24)
         ) {
@@ -690,7 +1198,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       isEnabled: req.body.printIsEnabled,
       printSizes: {
         defaultPrintSize: {
-          name: req.body.defaultPrintSizeName,
+          name: req.body.defaultPrintSizeName.trim(),
           sfShortEdge: req.body.defaultPrintSizeSfShortEdge,
           mfShortEdge: req.body.defaultPrintSizeMfShortEdge,
           f4x5ShortEdge: req.body.defaultPrintSizeF4x5ShortEdge,
@@ -698,7 +1206,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
         },
         printSizeB: {
           isEnabled: req.body.printSizeBIsEnabled,
-          name: req.body.printSizeBName,
+          name: req.body.printSizeBName.trim(),
           sfShortEdge: req.body.printSizeBSfShortEdge,
           mfShortEdge: req.body.printSizeBMfShortEdge,
           f4x5ShortEdge: req.body.printSizeBF4x5ShortEdge,
@@ -706,7 +1214,7 @@ router.put('/labs/:labId/settings/print', (req, res) => {
         },
         printSizeC: {
           isEnabled: req.body.printSizeCIsEnabled,
-          name: req.body.printSizeCName,
+          name: req.body.printSizeCName.trim(),
           sfShortEdge: req.body.printSizeCSfShortEdge,
           mfShortEdge: req.body.printSizeCMfShortEdge,
           f4x5ShortEdge: req.body.printSizeCF4x5ShortEdge,
@@ -715,18 +1223,18 @@ router.put('/labs/:labId/settings/print', (req, res) => {
       },
       customPrintOptions: {
         defaultPrintOption: {
-          name: req.body.defaultPrintOptionName,
-          desc: req.body.defaultPrintOptionDesc,
+          name: req.body.defaultPrintOptionName.trim(),
+          desc: req.body.defaultPrintOptionDesc.trim(),
         },
         printOptionB: {
           isEnabled: req.body.printOptionBIsEnabled,
-          name: req.body.printOptionBName,
-          desc: req.body.printOptionBDesc,
+          name: req.body.printOptionBName.trim(),
+          desc: req.body.printOptionBDesc.trim(),
         },
         printOptionC: {
           isEnabled: req.body.printOptionCIsEnabled,
-          name: req.body.printOptionCName,
-          desc: req.body.printOptionCDesc,
+          name: req.body.printOptionCName.trim(),
+          desc: req.body.printOptionCDesc.trim90,
         },
       },
     };
@@ -1788,21 +2296,24 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
               const serviceIncludesF35mmMounted =
                 foundService.filmSize.includedFilmSizes.f35mmMounted;
               const validatePrice = (addOn, addOnName) => {
-                if (!addOn.price && Number(addOn.price) !== 0) {
+                // if there's no price, add error
+                if (!isNumber(addOn.price)) {
                   serviceError.messages[addOnName].push(
                     'Price is required when enabling this cell.'
                   );
-                } else if (Number(addOn.price) > 999.99) {
+                  // if price is above 999.99, add error
+                } else if (addOn.price > 999.99) {
                   serviceError.messages[addOnName].push(
                     'Price must not exceed $999.99.'
                   );
-                } else if (Number(addOn.price < 0)) {
+                  // if price is below 0, add error
+                } else if (addOn.price < 0) {
                   serviceError.messages[addOnName].push(
                     'Price must not be below $0.'
                   );
                 }
               };
-              // if enabling, validate the price
+              // if enabling this service, validate the base price
               if (reqBodyLabServices[0].base.isEnabled) {
                 validatePrice(reqBodyLabServices[0].base, 'base');
               }
