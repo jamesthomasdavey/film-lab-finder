@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-const sortServices = require('../helpers/sortServices');
-const filmType = require('../models/filmType');
-
+// import models
 const Lab = require('../models/lab');
-const service = require('../models/service');
 const Service = require('../models/service');
-const ServiceType = require('../models/serviceType');
 
+// import helper functions
 const isNumber = require('../validation/is-number');
 
 // @route   ***** CHANGE THIS ***** get /api/labs/find
@@ -129,10 +126,47 @@ router.get('/labs/:labId/settings', (req, res) => {
 // @route   get /api/labs/:labId/settings/edit
 // @desc    find the lab and retrieve its name and description settings
 // @access  private
+router.get('/labs/:labId/settings/edit', (req, res) => {
+  // todo: make sure that user is lab owner
+  Lab.findById(req.params.labId).then(foundLab => {
+    return res.json({
+      name: foundLab.name,
+      description: foundLab.description,
+    });
+  });
+});
 
 // @route   put /api/labs/:labId/settings
 // @desc    find the lab and retrieve its name and description settings
 // @access  private
+router.put('/labs/:labId/settings', (req, res) => {
+  // todo: make sure that user is lab owner
+  const errors = {
+    name: [],
+    description: [],
+  };
+  if (!req.body.name.trim()) {
+    errors.name.push('Name is required.');
+  } else if (req.body.name.trim().length > 100) {
+    errors.name.push('Name must not exceed 100 characters.');
+  }
+  if (req.body.description.trim().length > 300) {
+    errors.description.push('Description must not exceed 300 characters.');
+  }
+  if (errors.name.length > 0 || errors.description.length > 0) {
+    return res.status(400).json({ errors: errors });
+  }
+  Lab.findById(req.params.labId).then(foundLab => {
+    if (!foundLab) return res.status(404).json({ error: 'Lab not found.' });
+    foundLab.name = req.body.name;
+    foundLab.description = req.body.description;
+    foundLab.save().then(savedLab => {
+      if (!savedLab)
+        return res.status(400).json({ error: 'Unable to save lab.' });
+      return res.json({ success: true });
+    });
+  });
+});
 
 /////////////////////
 /// SHIP SETTINGS ///
@@ -163,6 +197,31 @@ router.get('/labs/:labId/settings/ship/edit', (req, res) => {
 // @access  private
 router.put('/labs/:labId/settings/ship', (req, res) => {
   // todo: make sure that user is lab owner
+  const errors = {
+    shippingPrice: [],
+  };
+  if (!isNumber(req.body.shippingPrice)) {
+    errors.shippingPrice.push('Shipping price is required.');
+  }
+  if (req.body.shippingPrice < 0 || req.body.shippingPrice > 100) {
+    errors.shippingPrice.push('Shipping price must be between $0 and $100');
+  }
+  if (errors.shippingPrice.length > 0) {
+    return res.status(400).json({ errors: errors });
+  }
+  Lab.findById(req.params.labId).then(foundLab => {
+    if (!foundLab) return res.status(404).json({ error: 'Lab not found.' });
+    foundLab.settings.shipSettings = {
+      allowDropoff: req.body.allowDropoff,
+      allowPickup: req.body.allowPickup,
+      shippingPrice: req.body.shippingPrice,
+    };
+    foundLab.save().then(savedLab => {
+      if (!savedLab)
+        return res.status(404).json({ error: 'Unable to save lab.' });
+      return res.json({ success: true });
+    });
+  });
 });
 
 ////////////////////
