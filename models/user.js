@@ -27,6 +27,11 @@ const userSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
+    lab: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Lab',
+      required: false,
+    },
   },
   { timestamps: true }
 );

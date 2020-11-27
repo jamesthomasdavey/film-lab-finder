@@ -1,6 +1,9 @@
-const User = require('../models/user');
 const jwt = require('jsonwebtoken'); // to generate signed token
 const expressJwt = require('express-jwt'); // for authorization check
+
+// models
+const User = require('../models/user');
+const Lab = require('../models/lab');
 
 // validation
 const validateRegisterInput = require('../validation/register');
@@ -62,30 +65,72 @@ exports.signout = (req, res) => {
 //// MIDDLEWARE
 ///////////////
 
-// makes sure that the user is signed in at all
+// makes sure that the user is signed in at all. sets the "auth" variable
 exports.requireSignin = expressJwt({
   secret: process.env.JWT_SECRET,
   userProperty: 'auth',
 });
 
-// makes sure that the signed in user is the same as the requested user
+// makes sure that the signed in user is the same as the requested user (when :userId is used)
+// i can probably just make this part of the route itself
+// exports.isAuth = (req, res, next) => {
+//   let authorized = req.profile && req.auth && req.profile._id == req.auth._id;
+//   if (!authorized) {
+//     return res.status(403).json({
+//       errors: { general: 'Requested user does not match logged in user' },
+//     });
+//   }
+//   next();
+// };
+
+// rewrite of above function, but doesn't use req.profile
+// makes sure that logged in user is the same as the :userId user, or that the logged in user is an admin
 exports.isAuth = (req, res, next) => {
-  let authorized = req.profile && req.auth && req.profile._id == req.auth._id;
-  if (!authorized) {
-    return res.status(403).json({
-      errors: { general: 'Requested user does not match logged in user' },
+  const signedInUserId = req.auth._id.toString();
+  const requestedUserId = req.params.userId;
+  let isAuthorized = false;
+  User.findById(requestedUserId).then(foundUser => {
+    if (!foundUser) return res.status(404).json({ error: 'User not found.' });
+    if (foundUser._id.toString() === signedInUserId) {
+      isAuthorized = true;
+    }
+    if (isAuthorized) return next();
+    User.findById(signedInUserId).then(foundSignedInUser => {
+      if (!foundSignedInUser)
+        return res.status(404).json({ error: 'User not found.' });
+      if (foundSignedInUser.role === 1) isAuthorized = true;
+      if (isAuthorized) return next();
+      return res.status(403).json({ error: 'Unauthorized.' });
     });
-  }
-  next();
+  });
 };
 
-// makes sure that the requested user is an admin
-// so basically, if there's no requested user, this won't work
+// makes sure that the requested user is an admin, i don't know why
+// i can probably just make this part of the route itself
+// exports.isAdmin = (req, res, next) => {
+//   if (req.profile.role === 0) {
+//     return res.status(403).json({
+//       error: 'Admin resource! Access denied',
+//     });
+//   }
+//   next();
+// };
+
+// rewrite of above function, but doesn't use req.profile
+// makes sure that the logged in user is an admin
 exports.isAdmin = (req, res, next) => {
-  if (req.profile.role === 0) {
-    return res.status(403).json({
-      error: 'Admin resource! Access denied',
-    });
-  }
-  next();
+  let isAdministrator = false;
+  User.findById(req.auth._id.toString()).then(foundUser => {
+    if (!foundUser) return res.status(404).json({ error: 'User not found' });
+    if (foundUser.role === 1) {
+      isAdministrator = true;
+    }
+    if (!isAdministrator) {
+      return res.status(403).json({ error: 'Unauthorized.' });
+    }
+    next();
+  });
 };
+
+// makes sure that the logged in user owns the :labId lab, or that the logged in user is an admin
+exports.isLabOwner = (req, res, next) => {};

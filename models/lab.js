@@ -7,11 +7,13 @@ const labSchema = new mongoose.Schema({
     required: true,
   },
   description: { type: String, default: '' },
-  ownedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
+  ownedBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+  ],
   settings: {
     shipSettings: {
       allowDropoff: { type: Boolean, default: false },

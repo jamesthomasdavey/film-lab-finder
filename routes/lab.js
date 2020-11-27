@@ -4,6 +4,7 @@ const router = express.Router();
 // import models
 const Lab = require('../models/lab');
 const Service = require('../models/service');
+const User = require('../models/user');
 
 // import helper functions
 const isNumber = require('../validation/is-number');
@@ -93,14 +94,29 @@ router.post('/labs/new', (req, res) => {
         });
         const newLab = new Lab({
           name: req.body.name,
-          ownedBy: req.body.ownedBy,
+          ownedBy: [req.body.ownedBy],
           labServices: labServices,
         });
         if (req.body._id) newLab._id = req.body._id;
-        newLab.save().then(savedLab => {
-          if (!savedLab)
-            return res.status(400).json({ error: 'Unabled to save lab.' });
-          return res.json(savedLab);
+        User.findById(req.body.ownedBy).then(foundUser => {
+          if (!foundUser)
+            return res.status(404).json({ error: 'User not found.' });
+          if (foundUser.lab)
+            return res
+              .status(400)
+              .json({ error: 'User is already a lab owner.' });
+          newLab.save().then(savedLab => {
+            if (!savedLab)
+              return res.status(400).json({ error: 'Unable to save lab.' });
+            foundUser.lab = savedLab._id;
+            foundUser.save().then(savedUser => {
+              if (!savedUser)
+                return res
+                  .status(400)
+                  .json({ error: 'Unable to save lab to user.' });
+              return res.json(savedLab);
+            });
+          });
         });
       });
   });
