@@ -91,9 +91,7 @@ exports.isAuth = (req, res, next) => {
   let isAuthorized = false;
   User.findById(requestedUserId).then(foundUser => {
     if (!foundUser) return res.status(404).json({ error: 'User not found.' });
-    if (foundUser._id.toString() === signedInUserId) {
-      isAuthorized = true;
-    }
+    if (foundUser._id.toString() === signedInUserId) isAuthorized = true;
     if (isAuthorized) return next();
     User.findById(signedInUserId).then(foundSignedInUser => {
       if (!foundSignedInUser)
@@ -133,4 +131,22 @@ exports.isAdmin = (req, res, next) => {
 };
 
 // makes sure that the logged in user owns the :labId lab, or that the logged in user is an admin
-exports.isLabOwner = (req, res, next) => {};
+exports.isLabOwner = (req, res, next) => {
+  const signedInUserId = req.auth._id.toString();
+  const labId = req.params.labId;
+  let isAuthorized = false;
+  Lab.findById(labId).then(foundLab => {
+    if (!foundLab) return res.status(404).json({ error: 'Lab not found.' });
+    foundLab.ownedBy.forEach(labOwnerId => {
+      if (labOwnerId.toString() === signedInUserId) isAuthorized = true;
+      if (isAuthorized) return next();
+      User.findById(signedInUserId).then(foundSignedInUser => {
+        if (!foundSignedInUser)
+          return res.status(404).json({ error: 'User not found.' });
+        if (foundSignedInUser.role === 1) isAuthorized = true;
+        if (isAuthorized) return next();
+        return res.status(403).json({ error: 'Unauthorized.' });
+      });
+    });
+  });
+};
