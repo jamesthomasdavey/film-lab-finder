@@ -10,13 +10,27 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const serviceTypeRoutes = require('./routes/serviceType');
 const serviceRoutes = require('./routes/service');
-const labRoutes = require('./routes/lab')
+const labRoutes = require('./routes/lab');
 
 // import seed
 const seedFunctions = require('./seedFunctions');
 
 // app
 const app = express();
+
+// prevent cors error
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  if (req.method === 'OPTIONS') {
+    req.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
+    return res.status(200).json({});
+  }
+  next();
+});
 
 // db
 mongoose

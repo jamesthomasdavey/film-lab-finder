@@ -122,9 +122,9 @@ router.post('/labs/new', (req, res) => {
   });
 });
 
-/////////////////////
-/// MAIN SETTINGS ///
-/////////////////////
+///////////////////
+// MAIN SETTINGS //
+///////////////////
 
 // @route   get /api/labs/:labId/settings
 // @desc    find the lab and retrieve its name and description settings
@@ -184,9 +184,9 @@ router.put('/labs/:labId/settings', (req, res) => {
   });
 });
 
-/////////////////////
-/// SHIP SETTINGS ///
-/////////////////////
+///////////////////
+// SHIP SETTINGS //
+///////////////////
 
 // @route   get /api/labs/:labId/settings/ship
 // @desc    find the lab and retrieve its ship settings

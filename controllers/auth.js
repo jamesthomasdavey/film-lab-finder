@@ -39,7 +39,7 @@ exports.signin = (req, res) => {
     if (!foundUser || !foundUser.authenticate(req.body.password))
       return res
         .status(401)
-        .json({ errors: { password: 'Email and password do not match' } });
+        .json({ errors: { password: 'Email and password do not match.' } });
     const token = jwt.sign({ _id: foundUser._id }, process.env.JWT_SECRET);
     // persist the token with expiry date
     res.cookie(cookieName, token, { expire: new Date() + 604800 });

@@ -9,14 +9,14 @@ module.exports = reqBody => {
 
   // email
   if (Validator.isEmpty(reqBody.email)) {
-    errors.email = 'Email field is required';
+    errors.email = 'Email field is required.';
   } else if (!Validator.isEmail(reqBody.email)) {
     errors.email = 'Invalid email address';
   }
 
   // password
   if (Validator.isEmpty(reqBody.password)) {
-    errors.password = 'Password field is required';
+    errors.password = 'Password field is required.';
   }
 
   return errors;
