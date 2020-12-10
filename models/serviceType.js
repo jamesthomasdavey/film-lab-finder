@@ -22,7 +22,6 @@ const serviceTypeSchema = new mongoose.Schema({
   includedServiceTypes: {
     dev: Boolean,
     scan: Boolean,
-    print: Boolean,
   },
 });
 

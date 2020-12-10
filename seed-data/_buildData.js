@@ -1,6 +1,10 @@
 // data that is used to build serviceTypes, filmTypes, filmSizes, and services
 // hopefully you don't ever need this
 
+// 5f8f58c2062b1b2a4900e994
+// 5f8f58c2062b1b2a4900e99a
+// 5f8f58c2062b1b2a4900e997
+
 const identifiers = {
   serviceTypes: {
     dev: {
@@ -11,17 +15,9 @@ const identifiers = {
       name: 'Develop and scan',
       _id: '5f8f58c2062b1b2a4900e992',
     },
-    devScanPrint: {
-      name: 'Develop, scan, and print',
-      _id: '5f8f58c2062b1b2a4900e994',
-    },
     scan: {
       name: 'Scan',
       _id: '5f8f58c2062b1b2a4900e998',
-    },
-    scanPrint: {
-      name: 'Scan and print',
-      _id: '5f8f58c2062b1b2a4900e99a',
     },
   },
   filmTypes: {
@@ -50,10 +46,6 @@ const identifiers = {
     f35mmPano: {
       name: '35mm Panoramic',
       _id: '5f8f58c2062b1b2a4900e995',
-    },
-    f35mmMounted: {
-      name: '35mm Mounted',
-      _id: '5f8f58c2062b1b2a4900e997',
     },
     f120: {
       name: '120',
@@ -124,31 +116,6 @@ const serviceTypes = [
     },
   },
   {
-    name: identifiers.serviceTypes.devScanPrint.name,
-    _id: identifiers.serviceTypes.devScanPrint._id,
-    compatibilities: {
-      filmTypes: [
-        identifiers.filmTypes.c41._id,
-        identifiers.filmTypes.bw._id,
-        identifiers.filmTypes.e6._id,
-        identifiers.filmTypes.ecn2._id,
-      ],
-      filmSizes: [
-        identifiers.filmSizes.f35mm._id,
-        identifiers.filmSizes.f35mmPano._id,
-        identifiers.filmSizes.f120._id,
-        identifiers.filmSizes.f220._id,
-        identifiers.filmSizes.f4x5._id,
-        identifiers.filmSizes.f8x10._id,
-      ],
-    },
-    includedServiceTypes: [
-      identifiers.serviceTypes.dev,
-      identifiers.serviceTypes.scan,
-      identifiers.serviceTypes.print,
-    ],
-  },
-  {
     name: identifiers.serviceTypes.scan.name,
     _id: identifiers.serviceTypes.scan._id,
     compatibilities: {
@@ -161,7 +128,6 @@ const serviceTypes = [
       filmSizes: [
         identifiers.filmSizes.f35mm._id,
         identifiers.filmSizes.f35mmPano._id,
-        identifiers.filmSizes.f35mmMounted._id,
         identifiers.filmSizes.f120._id,
         identifiers.filmSizes.f220._id,
         identifiers.filmSizes.f4x5._id,
@@ -170,31 +136,6 @@ const serviceTypes = [
     },
     includedServiceTypes: {
       scan: true,
-    },
-  },
-  {
-    name: identifiers.serviceTypes.scanPrint.name,
-    _id: identifiers.serviceTypes.scanPrint._id,
-    compatibilities: {
-      filmTypes: [
-        identifiers.filmTypes.c41._id,
-        identifiers.filmTypes.bw._id,
-        identifiers.filmTypes.e6._id,
-        identifiers.filmTypes.ecn2._id,
-      ],
-      filmSizes: [
-        identifiers.filmSizes.f35mm._id,
-        identifiers.filmSizes.f35mmPano._id,
-        identifiers.filmSizes.f35mmMounted._id,
-        identifiers.filmSizes.f120._id,
-        identifiers.filmSizes.f220._id,
-        identifiers.filmSizes.f4x5._id,
-        identifiers.filmSizes.f8x10._id,
-      ],
-    },
-    includedServiceTypes: {
-      scan: true,
-      print: true,
     },
   },
 ];
@@ -238,7 +179,6 @@ const filmTypes = [
       filmSizes: [
         identifiers.filmSizes.f35mm._id,
         identifiers.filmSizes.f35mmPano._id,
-        identifiers.filmSizes.f35mmMounted._id,
         identifiers.filmSizes.f120._id,
         identifiers.filmSizes.f220._id,
         identifiers.filmSizes.f4x5._id,
@@ -277,17 +217,6 @@ const filmSizes = [
     compatibilities: {
       serviceTypes: [],
       filmTypes: [],
-    },
-  },
-  {
-    name: identifiers.filmSizes.f35mmMounted.name,
-    _id: identifiers.filmSizes.f35mmMounted._id,
-    compatibilities: {
-      serviceTypes: [],
-      filmTypes: [],
-    },
-    includedFilmSizes: {
-      f35mmMounted: true,
     },
   },
   {

@@ -64,31 +64,46 @@ router.post('/labs/new', (req, res) => {
         const labServices = foundServices.map(foundService => {
           const labService = {
             addOns: {
-              ship: { returnMounted: {}, returnSleeved: {} },
-              dev: {},
-              scan: {},
-              print: {},
+              hasScanAndSansDev: {},
+              hasE6AndHasScanAndSansDev: {},
+              hasScanOrHasDev: {},
+              hasE6: {},
+              hasDev: {},
+              hasScan: {},
             },
           };
           labService.service = foundService._id;
-          // set the allowed and dissallowed addons
-          if (!foundService.filmSize.includedFilmSizes.f35mmMounted) {
-            labService.addOns.ship.returnSleeved.isAllowed = true;
-          }
-          if (
-            foundService.filmType.includedFilmTypes.e6 &&
-            !foundService.filmSize.includedFilmSizes.f35mmMounted
-          ) {
-            labService.addOns.ship.returnMounted.isAllowed = true;
-          }
-          if (foundService.serviceType.includedServiceTypes.dev) {
-            labService.addOns.dev.isAllowed = true;
-          }
-          if (foundService.serviceType.includedServiceTypes.scan) {
-            labService.addOns.scan.isAllowed = true;
-          }
-          if (foundService.serviceType.includedServiceTypes.print) {
-            labService.addOns.print.isAllowed = true;
+          // set the allowed and dissallowed addon
+          {
+            if (
+              foundService.serviceType.includedServiceTypes.scan &&
+              !foundService.serviceType.includedServiceTypes.dev
+            ) {
+              labService.addOns.hasScanAndSansDev.isAllowed = true;
+            }
+            if (
+              foundService.filmType.includedFilmTypes.e6 &&
+              foundService.serviceType.includedServiceTypes.scan &&
+              !foundService.serviceType.includedServiceTypes.dev
+            ) {
+              labService.addOns.hasE6AndHasScanAndSansDev.isAllowed = true;
+            }
+            if (
+              foundService.serviceType.includedServiceTypes.dev ||
+              foundService.serviceType.includedServiceTypes.scan
+            ) {
+              labService.addOns.hasScanOrHasDev.isAllowed = true;
+            }
+            if (foundService.filmType.includedFilmTypes.e6) {
+              labService.addOns.hasE6.isAllowed = true;
+            }
+
+            if (foundService.serviceType.includedServiceTypes.dev) {
+              labService.addOns.hasDev.isAllowed = true;
+            }
+            if (foundService.serviceType.includedServiceTypes.scan) {
+              labService.addOns.hasScan.isAllowed = true;
+            }
           }
           return labService;
         });
@@ -316,8 +331,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
     scannerBDesc: [],
     scannerCName: [],
     scannerCDesc: [],
-    scannerDName: [],
-    scannerDDesc: [],
     defaultScanResName: [],
     defaultScanResSfShortEdge: [],
     defaultScanResMfShortEdge: [],
@@ -431,13 +444,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
       //// throw error if scannercname is not defined
       if (!req.body.scannerCName.trim()) {
         errors.scannerCName.push('Scanner C must have a name if enabled.');
-      }
-    }
-    // if scannerd is enabled,
-    if (req.body.scannerDIsEnabled) {
-      //// throw error if scannerdname is not defined
-      if (!req.body.scannerDName.trim()) {
-        errors.scannerDName.push('Scanner D must have a name if enabled.');
       }
     }
     // if scanresb is enabled,
@@ -565,20 +571,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
       if (req.body.scannerCDesc.trim()) {
         if (req.body.scannerCDesc.trim().length > 150) {
           errors.scannerCDesc.push(
-            'Scanner description must not exceed 150 characters.'
-          );
-        }
-      }
-      if (req.body.scannerDName.trim()) {
-        if (req.body.scannerDName.trim().length > 50) {
-          errors.scannerDName.push(
-            'Scanner name must not exceed 50 characters.'
-          );
-        }
-      }
-      if (req.body.scannerDDesc.trim()) {
-        if (req.body.scannerDDesc.trim().length > 150) {
-          errors.scannerDDesc.push(
             'Scanner description must not exceed 150 characters.'
           );
         }
@@ -830,11 +822,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           name: req.body.scannerCName.trim(),
           desc: req.body.scannerCDesc.trim(),
         },
-        scannderD: {
-          isEnabled: req.body.scannerDIsEnabled,
-          name: req.body.scannerDName.trim(),
-          desc: req.body.scannerDDesc.trim(),
-        },
       },
       scanResolutions: {
         defaultScanRes: {
@@ -887,467 +874,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
   });
 });
 
-//////////////////////
-/// PRINT SETTINGS ///
-//////////////////////
-
-// @route   get /api/labs/:labId/settings/print
-// @desc    find the lab and retrieve its print settings
-// @access  private
-router.get('/labs/:labId/settings/print', (req, res) => {
-  // todo: make sure that user is lab owner
-  Lab.findById(req.params.labId).then(foundLab => {
-    return res.json(foundLab.settings.printSettings);
-  });
-});
-
-// @route   get /api/labs/:labId/settings/print/edit
-// @desc    find the lab and retrieve its full print settings
-// @access  private
-router.get('/labs/:labId/settings/print/edit', (req, res) => {
-  // todo: make sure that user is lab owner
-  Lab.findById(req.params.labId).then(foundLab => {
-    return res.json(foundLab.settings.printSettings);
-  });
-});
-
-// @route   put /api/labs/:labId/settings/print
-// @desc    find the lab and update its print settings
-// @access  private
-router.put('/labs/:labId/settings/print', (req, res) => {
-  // todo: make sure that user is lab owner
-  const errors = {
-    defaultPrintSizeName: [],
-    defaultPrintSizeSfShortEdge: [],
-    defaultPrintSizeMfShortEdge: [],
-    defaultPrintSizeF4x5ShortEdge: [],
-    defaultPrintSizeF8x10ShortEdge: [],
-    printSizeBName: [],
-    printSizeBSfShortEdge: [],
-    printSizeBMfShortEdge: [],
-    printSizeBF4x5ShortEdge: [],
-    printSizeBF8x10ShortEdge: [],
-    printSizeCName: [],
-    printSizeCSfShortEdge: [],
-    printSizeCMfShortEdge: [],
-    printSizeCF4x5ShortEdge: [],
-    printSizeCF8x10ShortEdge: [],
-    defaultPrintOptionName: [],
-    defaultPrintOptionDesc: [],
-    printOptionBName: [],
-    printOptionBDesc: [],
-    printOptionCName: [],
-    printOptionCDesc: [],
-  };
-  // handle all possible errors
-  {
-    // if printing is enabled,
-    if (req.body.printIsEnabled) {
-      //// if default print size is not enabled, throw an error
-      {
-        if (!req.body.defaultPrintSizeName.trim()) {
-          errors.defaultPrintSizeName.push(
-            'Default print size must have a name if printing is enabled.'
-          );
-        }
-      }
-      //// if default sfShortEdge is not a number, throw an error
-      {
-        if (!isNumber(req.body.defaultPrintSizeSfShortEdge)) {
-          errors.defaultPrintSizeSfShortEdge.push(
-            'Small format print size must be defined if printing is enabled.'
-          );
-        }
-      }
-      //// if default mfShortEdge is not a number, throw an error
-      {
-        if (!isNumber(req.body.defaultPrintSizeMfShortEdge)) {
-          errors.defaultPrintSizeMfShortEdge.push(
-            'Medium format print size must be defined if printing is enabled.'
-          );
-        }
-      }
-      //// if default f4x5ShortEdge is not a number, throw an error
-      {
-        if (!isNumber(req.body.defaultPrintSizeF4x5ShortEdge)) {
-          errors.defaultPrintSizeF4x5ShortEdge.push(
-            '4x5 large format print size must be defined if printing is enabled.'
-          );
-        }
-      }
-      //// if default f8x10ShortEdge is not a bynberm throw an error
-      {
-        if (!isNumber(req.body.defaultPrintSizeF8x10ShortEdge)) {
-          errors.defaultPrintSizeF8x10ShortEdge.push(
-            '8x10 large format print size must be defined if printing is enabled.'
-          );
-        }
-      }
-      //// throw error if default print option name is not defined
-      {
-        if (!req.body.defaultPrintOptionName.trim()) {
-          errors.defaultPrintOptionName.push(
-            'Default print option must have a name if printing is enabled.'
-          );
-        }
-      }
-    }
-    // if print size b is enabled,
-    if (req.body.printSizeBIsEnabled) {
-      //// throw error if print size b name is not defined
-      {
-        if (!req.body.printSizeBName.trim()) {
-          errors.printSizeBName.push('Print size must have a name if enabled.');
-        }
-      }
-      //// throw error if sfShortEdge is not defined
-      {
-        if (!isNumber(req.body.printSizeBSfShortEdge)) {
-          errors.printSizeBSfShortEdge.push(
-            'Small format print size must be defined if print size is enabled.'
-          );
-        }
-      }
-      //// throw error if mfShortEdge is not defined
-      {
-        if (!isNumber(req.body.printSizeBMfShortEdge)) {
-          errors.printSizeBMfShortEdge.push(
-            'Medium format print size must be defined if print size is enabled.'
-          );
-        }
-      }
-      //// throw error if f4x5ShortEdge is not defined
-      {
-        if (!isNumber(req.body.printSizeBF4x5ShortEdge)) {
-          errors.printSizeBF4x5ShortEdge.push(
-            '4x5 large format print size must be defined if print size is enabled.'
-          );
-        }
-      }
-      //// throw error if f8x10ShortEdge is not defined
-      {
-        if (!isNumber(req.body.printSizeBF8x10ShortEdge)) {
-          errors.printSizeBF8x10ShortEdge.push(
-            '8x10 large format print size must be defined if print size is enabled.'
-          );
-        }
-      }
-    }
-    // if print size b is enabled,
-    if (req.body.printSizeCIsEnabled) {
-      //// throw error if print size c name is not defined
-      {
-        if (!req.body.printSizeCName.trim()) {
-          errors.printSizeCName.push('Print size must have a name if enabled.');
-        }
-      }
-      //// throw error if sfShortEdge is not defined
-      {
-        if (!isNumber(req.body.printSizeCSfShortEdge)) {
-          errors.printSizeCSfShortEdge.push(
-            'Small format print size must be defined if print size is enabled.'
-          );
-        }
-      }
-      //// throw error if mfShortEdge is not defined
-      {
-        if (!isNumber(req.body.printSizeCMfShortEdge)) {
-          errors.printSizeCMfShortEdge.push(
-            'Medium format print size must be defined if print size is enabled.'
-          );
-        }
-      }
-      //// throw error if f4x5ShortEdge is not defined
-      {
-        if (!isNumber(req.body.printSizeCF4x5ShortEdge)) {
-          errors.printSizeCF4x5ShortEdge.push(
-            '4x5 large format print size must be defined if print size is enabled.'
-          );
-        }
-      }
-      //// throw error if f8x10ShortEdge is not defined
-      {
-        if (!isNumber(req.body.printSizeCF8x10ShortEdge)) {
-          errors.printSizeCF8x10ShortEdge.push(
-            '8x10 large format print size must be defined if print size is enabled.'
-          );
-        }
-      }
-    }
-    // if print option b is enabled,
-    if (req.body.printOptionBIsEnabled) {
-      //// throw error if print option b name is not defined
-      {
-        if (!req.body.printOptionBName.trim()) {
-          errors.printOptionBName.push(
-            'Custom print option must have a name if enabled.'
-          );
-        }
-      }
-    }
-    // if print option c is enabled,
-    if (req.body.printOptionCIsEnabled) {
-      //// throw error if print option c name is not defined
-      {
-        if (!req.body.printOptionCIsEnabled.trim()) {
-          errors.printOptionCIsEnabled.push(
-            'Custom print option must have a name if enabled.'
-          );
-        }
-      }
-    }
-    // throw errors for any names and descriptions that are too long (if they are present at all)
-    {
-      if (req.body.defaultPrintSizeName.trim()) {
-        if (req.body.defaultPrintSizeName.trim().length > 50) {
-          errors.defaultPrintSizeName.name.push(
-            'Print size name must not exceed 50 characters.'
-          );
-        }
-      }
-      if (req.body.printSizeBName.trim()) {
-        if (req.body.printSizeBName.trim().length > 50) {
-          errors.printSizeBName.push(
-            'Print size name must not exceed 50 characters.'
-          );
-        }
-      }
-      if (req.body.printSizeCName.trim()) {
-        if (req.body.printSizeCName.trim().length > 50) {
-          errors.printSizeCName.push(
-            'Print size name must not exceed 50 characters.'
-          );
-        }
-      }
-      if (req.body.defaultPrintOptionName.trim()) {
-        if (req.body.defaultPrintOptionName.trim().length > 50) {
-          errors.defaultPrintOptionName.push(
-            'Default print option name must not exceed 50 characters.'
-          );
-        }
-      }
-      if (req.body.defaultPrintOptionDesc.trim()) {
-        if (req.body.defaultPrintOptionDesc.trim().length > 150) {
-          errors.defaultPrintOptionDesc.push(
-            'Default print option description must not exceed 150 characters.'
-          );
-        }
-      }
-      if (req.body.printOptionBName.trim()) {
-        if (req.body.printOptionBName.trim().length > 50) {
-          errors.printOptionBName.push(
-            'Custom print option name must not exceed 50 characters.'
-          );
-        }
-      }
-      if (req.body.printOptionBDesc.trim()) {
-        if (req.body.printOptionBDesc.trim().length > 150) {
-          errors.printOptionBDesc.push(
-            'Custom print option description must not exceed 150 characters.'
-          );
-        }
-      }
-      if (req.body.printOptionCName.trim()) {
-        if (req.body.printOptionCName.trim().length > 50) {
-          errors.printOptionCName.push(
-            'Custom print option name must not exceed 50 characters.'
-          );
-        }
-      }
-      if (req.body.printOptionCDesc.trim()) {
-        if (req.body.printOptionCDesc.trim().length > 150) {
-          errors.printOptionCDesc.push(
-            'Custom print option description must not exceed 150 characters.'
-          );
-        }
-      }
-    }
-    // throw errors for any numbers that are not within range (if there is a number at all)
-    {
-      // default print size
-      {
-        if (
-          isNumber(req.body.defaultPrintSizeSfShortEdge) &&
-          (req.body.defaultPrintSizeSfShortEdge < 1 ||
-            req.body.defaultPrintSizeSfShortEdge > 24)
-        ) {
-          errors.defaultPrintSizeSfShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-        if (
-          isNumber(req.body.defaultPrintSizeMfShortEdge) &&
-          (req.body.defaultPrintSizeMfShortEdge < 1 ||
-            req.body.defaultPrintSizeMfShortEdge > 24)
-        ) {
-          errors.defaultPrintSizeMfShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-        if (
-          isNumber(req.body.defaultPrintSizeF4x5ShortEdge) &&
-          (req.body.defaultPrintSizeF4x5ShortEdge < 1 ||
-            req.body.defaultPrintSizeF4x5ShortEdge > 24)
-        ) {
-          errors.defaultPrintSizeF4x5ShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-        if (
-          isNumber(req.body.defaultPrintSizeF8x10ShortEdge) &&
-          (req.body.defaultPrintSizeF8x10ShortEdge < 1 ||
-            req.body.defaultPrintSizeF8x10ShortEdge > 24)
-        ) {
-          errors.defaultPrintSizeF8x10ShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-      }
-      // print size b
-      {
-        if (
-          isNumber(req.body.printSizeBSfShortEdge) &&
-          (req.body.printSizeBSfShortEdge < 1 ||
-            req.body.printSizeBSfShortEdge > 24)
-        ) {
-          errors.printSizeBSfShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-        if (
-          isNumber(req.body.printSizeBMfShortEdge) &&
-          (req.body.printSizeBMfShortEdge < 1 ||
-            req.body.printSizeBMfShortEdge > 24)
-        ) {
-          errors.printSizeBMfShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-        if (
-          isNumber(req.body.printSizeBF4x5ShortEdge) &&
-          (req.body.printSizeBF4x5ShortEdge < 1 ||
-            req.body.printSizeBF4x5ShortEdge > 24)
-        ) {
-          errors.printSizeBF4x5ShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-        if (
-          isNumber(req.body.printSizeBF8x10ShortEdge) &&
-          (req.body.printSizeBF8x10ShortEdge < 1 ||
-            req.body.printSizeBF8x10ShortEdge > 24)
-        ) {
-          errors.printSizeBF8x10ShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-      }
-      // print size c
-      {
-        if (
-          isNumber(req.body.printSizeCSfShortEdge) &&
-          (req.body.printSizeCSfShortEdge < 1 ||
-            req.body.printSizeCSfShortEdge > 24)
-        ) {
-          errors.printSizeCSfShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-        if (
-          isNumber(req.body.printSizeCMfShortEdge) &&
-          (req.body.printSizeCMfShortEdge < 1 ||
-            req.body.printSizeCMfShortEdge > 24)
-        ) {
-          errors.printSizeCMfShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-        if (
-          isNumber(req.body.printSizeCF4x5ShortEdge) &&
-          (req.body.printSizeCF4x5ShortEdge < 1 ||
-            req.body.printSizeCF4x5ShortEdge > 24)
-        ) {
-          errors.printSizeCF4x5ShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-        if (
-          isNumber(req.body.printSizeCF8x10ShortEdge) &&
-          (req.body.printSizeCF8x10ShortEdge < 1 ||
-            req.body.printSizeCF8x10ShortEdge > 24)
-        ) {
-          errors.printSizeCF8x10ShortEdge.push(
-            'Short edge dimension be between 1 and 24.'
-          );
-        }
-      }
-    }
-  }
-  // if any of the errors arrays have a length of greater than 0, return the errors object
-  let hasErrors = false;
-  Object.keys(errors).forEach(itemName => {
-    if (errors[itemName].length > 0) {
-      hasErrors = true;
-    }
-  });
-  if (hasErrors) {
-    return res.status(400).json({ errors: errors });
-  }
-  // otherwise, update the lab
-  Lab.findById(req.params.labId).then(foundLab => {
-    if (!foundLab) return res.status(404).json({ error: 'Lab not found' });
-    foundLab.settings.printSettings = {
-      isEnabled: req.body.printIsEnabled,
-      printSizes: {
-        defaultPrintSize: {
-          name: req.body.defaultPrintSizeName.trim(),
-          sfShortEdge: req.body.defaultPrintSizeSfShortEdge,
-          mfShortEdge: req.body.defaultPrintSizeMfShortEdge,
-          f4x5ShortEdge: req.body.defaultPrintSizeF4x5ShortEdge,
-          f8x10ShortEdge: req.body.defaultPrintSizeF8x10ShortEdge,
-        },
-        printSizeB: {
-          isEnabled: req.body.printSizeBIsEnabled,
-          name: req.body.printSizeBName.trim(),
-          sfShortEdge: req.body.printSizeBSfShortEdge,
-          mfShortEdge: req.body.printSizeBMfShortEdge,
-          f4x5ShortEdge: req.body.printSizeBF4x5ShortEdge,
-          f8x10ShortEdge: req.body.printSizeBF8x10ShortEdge,
-        },
-        printSizeC: {
-          isEnabled: req.body.printSizeCIsEnabled,
-          name: req.body.printSizeCName.trim(),
-          sfShortEdge: req.body.printSizeCSfShortEdge,
-          mfShortEdge: req.body.printSizeCMfShortEdge,
-          f4x5ShortEdge: req.body.printSizeCF4x5ShortEdge,
-          f8x10ShortEdge: req.body.printSizeCF8x10ShortEdge,
-        },
-      },
-      customPrintOptions: {
-        defaultPrintOption: {
-          name: req.body.defaultPrintOptionName.trim(),
-          desc: req.body.defaultPrintOptionDesc.trim(),
-        },
-        printOptionB: {
-          isEnabled: req.body.printOptionBIsEnabled,
-          name: req.body.printOptionBName.trim(),
-          desc: req.body.printOptionBDesc.trim(),
-        },
-        printOptionC: {
-          isEnabled: req.body.printOptionCIsEnabled,
-          name: req.body.printOptionCName.trim(),
-          desc: req.body.printOptionCDesc.trim90,
-        },
-      },
-    };
-    foundLab.save().then(savedLab => {
-      if (!savedLab)
-        return res.status(400).json({ error: 'Unable to save lab' });
-      return res.json({ success: true });
-    });
-  });
-});
-
 ////////////////////////////////
 /// SERVICE PRICING SETTINGS ///
 ////////////////////////////////
@@ -1374,15 +900,12 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
       // check what the lab allows
       const labAllowsDev = foundLab.settings.devSettings.isEnabled;
       const labAllowsScan = foundLab.settings.scanSettings.isEnabled;
-      const labAllowsPrint = foundLab.settings.printSettings.isEnabled;
       const labAllowsRawScansByRoll = !foundLab.settings.scanSettings.rawByOrder
         .isEnabled;
       const labAllowsScannerB =
         foundLab.settings.scanSettings.scanners.scannerB.isEnabled;
       const labAllowsScannerC =
         foundLab.settings.scanSettings.scanners.scannerC.isEnabled;
-      const labAllowsScannerD =
-        foundLab.settings.scanSettings.scanners.scannerD.isEnabled;
       const labAllowsScanResB =
         foundLab.settings.scanSettings.scanResolutions.scanResB.isEnabled;
       const labAllowsScanResC =
@@ -1391,16 +914,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
         foundLab.settings.scanSettings.customScanOptions.scanOptionB.isEnabled;
       const labAllowsScanOptionC =
         foundLab.settings.scanSettings.customScanOptions.scanOptionC.isEnabled;
-      const labAllowsPrintSizeB =
-        foundLab.settings.printSettings.printSizes.printSizeB.isEnabled;
-      const labAllowsPrintSizeC =
-        foundLab.settings.printSettings.printSizes.printSizeC.isEnabled;
-      const labAllowsPrintOptionB =
-        foundLab.settings.printSettings.customPrintOptions.printOptionB
-          .isEnabled;
-      const labAllowsPrintOptionC =
-        foundLab.settings.printSettings.customPrintOptions.printOptionC
-          .isEnabled;
       // get names for columns
       const defaultScannerName =
         foundLab.settings.scanSettings.scanners.defaultScanner.name ||
@@ -1409,8 +922,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
         foundLab.settings.scanSettings.scanners.scannerB.name || 'Scanner B';
       const scannerCName =
         foundLab.settings.scanSettings.scanners.scannerC.name || 'Scanner C';
-      const scannerDName =
-        foundLab.settings.scanSettings.scanners.scannerD.name || 'Scanner D';
       const defaultScanResName =
         foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
         'Default Scan Res';
@@ -1429,28 +940,29 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
       const scanOptionCName =
         foundLab.settings.scanSettings.customScanOptions.scanOptionC.name ||
         'Scan Option C';
-      const defaultPrintSizeName =
-        foundLab.settings.printSettings.printSizes.defaultPrintSize.name ||
-        'Default Print Size';
-      const printSizeBName =
-        foundLab.settings.printSettings.printSizes.printSizeB.name ||
-        'Print Size B';
-      const printSizeCName =
-        foundLab.settings.printSettings.printSizes.printSizeC.name ||
-        'Print Size C';
-      const defaultPrintOptionName =
-        foundLab.settings.printSettings.customPrintOptions.defaultPrintOption
-          .name || 'Default Print Option';
-      const printOptionBName =
-        foundLab.settings.printSettings.customPrintOptions.printOptionB.name ||
-        'Print Option B';
-      const printOptionCName =
-        foundLab.settings.printSettings.customPrintOptions.printOptionC.name ||
-        'Print Option C';
       // build out columns; if column is not enabled, it will not appear
       const columns = {
         base: { name: 'Base', isAllowed: true },
-        returnUnsleeved: { name: 'Return Unsleeved', isAllowed: true },
+        receiveUndeveloped: {
+          name: 'Receive Undeveloped',
+          isAllowed: labAllowsDev,
+        },
+        receiveUncut: {
+          name: 'Receive Uncut',
+          isAllowed: labAllowsScan,
+        },
+        receiveSleeved: {
+          name: 'Receive Sleeved',
+          isAllowed: labAllowsScan,
+        },
+        receiveMounted: {
+          name: 'Receive Mounted',
+          isAllowed: labAllowsScan,
+        },
+        returnUncut: {
+          name: 'Return Uncut',
+          isAllowed: true,
+        },
         returnSleeved: { name: 'Return Sleeved', isAllowed: true },
         returnMounted: { name: 'Return Mounted', isAllowed: true },
         noPushPull: { name: 'No Push/Pull', isAllowed: labAllowsDev },
@@ -1474,10 +986,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
           name: scannerCName,
           isAllowed: labAllowsScan && labAllowsScannerC,
         },
-        scannerD: {
-          name: scannerDName,
-          isAllowed: labAllowsScan && labAllowsScannerD,
-        },
         defaultScanRes: { name: defaultScanResName, isAllowed: labAllowsScan },
         scanResB: {
           name: scanResBName,
@@ -1499,61 +1007,38 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
           name: scanOptionCName,
           isAllowed: labAllowsScan && labAllowsScanOptionC,
         },
-        defaultPrintSize: {
-          name: defaultPrintSizeName,
-          isAllowed: labAllowsPrint,
-        },
-        printSizeB: {
-          name: printSizeBName,
-          isAllowed: labAllowsPrint && labAllowsPrintSizeB,
-        },
-        printSizeC: {
-          name: printSizeCName,
-          isAllowed: labAllowsPrint && labAllowsPrintSizeC,
-        },
-        defaultPrintOption: {
-          name: defaultPrintOptionName,
-          isAllowed: labAllowsPrint,
-        },
-        printOptionB: {
-          name: printOptionBName,
-          isAllowed: labAllowsPrint && labAllowsPrintOptionB,
-        },
-        printOptionC: {
-          name: printOptionCName,
-          isAllowed: labAllowsPrint && labAllowsPrintOptionC,
-        },
       };
       // build out rows; if row is not supported by the lab, it won't appear
       const rows = [];
       foundLab.labServices.forEach(foundLabService => {
-        const serviceIncludesDev = foundLabService.addOns.dev.isAllowed;
-        // foundLabService.service.serviceType.includedServiceTypes.dev;
-        const serviceIncludesScan = foundLabService.addOns.scan.isAllowed;
-        // foundLabService.service.serviceType.includedServiceTypes.scan;
-        const serviceIncludesPrint = foundLabService.addOns.print.isAllowed;
-        // foundLabService.service.serviceType.includedServiceTypes.print;
+        const hasScanAndSansDev =
+          foundLabService.addOns.hasScanAndSansDev.isAllowed;
+        const hasE6AndHasScanAndSansDev =
+          foundLabService.addOns.hasE6AndHasScanAndSansDev.isAllowed;
+        const hasScanOrHasDev =
+          foundLabService.addOns.hasScanOrHasDev.isAllowed;
+        const hasE6 = foundLabService.addOns.hasE6.isAllowed;
+        const hasDev = foundLabService.addOns.hasDev.isAllowed;
+        const hasScan = foundLabService.addOns.hasScan.isAllowed;
         let labCanSupport = true;
         // if the service includes dev, make sure that the lab can support that
-        if (serviceIncludesDev) {
+        if (hasDev) {
           if (!labAllowsDev) {
             labCanSupport = false;
           }
         }
         // if the service includes scan, make sure that the lab can support that
-        if (serviceIncludesScan) {
+        if (hasScan) {
           if (!labAllowsScan) {
-            labCanSupport = false;
-          }
-        }
-        // if the service includes print, make sure that the lab can support that
-        if (serviceIncludesPrint) {
-          if (!labAllowsPrint) {
             labCanSupport = false;
           }
         }
         // if the lab can support the row, we'll add the row
         if (labCanSupport && foundLabService.isEnabled) {
+          // isAllowed is based on whether the addon is relevant to the service
+          // it is automatically "true" if it's free, otherwise the row wouldn't be added
+          // isEnabled is based on the lab's actual setting
+          // it is automatically "true" if it's free, otherwise the row wouldn't be added
           rows.push({
             serviceId: foundLabService.service._id,
             serviceType: foundLabService.service.serviceType.name,
@@ -1564,20 +1049,48 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
               isEnabled: true,
               price: foundLabService.price,
             },
-            returnUnsleeved: {
+            receiveUndeveloped: {
+              isAllowed: true,
+              isEnabled: true,
+              price: 0,
+            },
+            receiveUncut: {
+              isAllowed: true,
+              isEnabled: true,
+              price: 0,
+            },
+            receiveSleeved: {
+              isAllowed: hasScanAndSansDev,
+              isEnabled:
+                foundLabService.addOns.hasScanAndSansDev.receiveSleeved
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScanAndSansDev.receiveSleeved.price,
+            },
+            receiveMounted: {
+              isAllowed: hasE6AndHasScanAndSansDev,
+              isEnabled:
+                foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted
+                  .price,
+            },
+            returnUncut: {
               isAllowed: true,
               isEnabled: true,
               price: 0,
             },
             returnSleeved: {
-              isAllowed: foundLabService.addOns.ship.returnSleeved.isAllowed,
-              isEnabled: foundLabService.addOns.ship.returnSleeved.isEnabled,
-              price: foundLabService.addOns.ship.returnSleeved.price,
+              isAllowed: hasScanOrHasDev,
+              isEnabled:
+                foundLabService.addOns.hasScanOrHasDev.returnSleeved.isEnabled,
+              price: foundLabService.addOns.hasScanOrHasDev.returnSleeved.price,
             },
             returnMounted: {
-              isAllowed: foundLabService.addOns.ship.returnMounted.isAllowed,
-              isEnabled: foundLabService.addOns.ship.returnMounted.isEnabled,
-              price: foundLabService.addOns.ship.returnMounted.price,
+              isAllowed: hasE6,
+              isEnabled: foundLabService.addOns.hasE6.returnMounted.isEnabled,
+              price: foundLabService.addOns.hasE6.returnMounted.price,
             },
             noPushPull: {
               isAllowed: serviceIncludesDev && columns.noPushPull.isAllowed,
@@ -1586,33 +1099,33 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
             },
             push1: {
               isAllowed: serviceIncludesDev && columns.push1.isAllowed,
-              isEnabled: foundLabService.addOns.dev.push1.isEnabled,
-              price: foundLabService.addOns.dev.push1.price,
+              isEnabled: foundLabService.addOns.hasDev.push1.isEnabled,
+              price: foundLabService.addOns.hasDev.push1.price,
             },
             push2: {
               isAllowed: serviceIncludesDev && columns.push2.isAllowed,
-              isEnabled: foundLabService.addOns.dev.push2.isEnabled,
-              price: foundLabService.addOns.dev.push2.price,
+              isEnabled: foundLabService.addOns.hasDev.push2.isEnabled,
+              price: foundLabService.addOns.hasDev.push2.price,
             },
             push3: {
               isAllowed: serviceIncludesDev && columns.push3.isAllowed,
-              isEnabled: foundLabService.addOns.dev.push3.isEnabled,
-              price: foundLabService.addOns.dev.push3.price,
+              isEnabled: foundLabService.addOns.hasDev.push3.isEnabled,
+              price: foundLabService.addOns.hasDev.push3.price,
             },
             pull1: {
               isAllowed: serviceIncludesDev && columns.pull1.isAllowed,
-              isEnabled: foundLabService.addOns.dev.pull1.isEnabled,
-              price: foundLabService.addOns.dev.pull1.price,
+              isEnabled: foundLabService.addOns.hasDev.pull1.isEnabled,
+              price: foundLabService.addOns.hasDev.pull1.price,
             },
             pull2: {
               isAllowed: serviceIncludesDev && columns.pull2.isAllowed,
-              isEnabled: foundLabService.addOns.dev.pull2.isEnabled,
-              price: foundLabService.addOns.dev.pull2.price,
+              isEnabled: foundLabService.addOns.hasDev.pull2.isEnabled,
+              price: foundLabService.addOns.hasDev.pull2.price,
             },
             pull3: {
               isAllowed: serviceIncludesDev && columns.pull3.isAllowed,
-              isEnabled: foundLabService.addOns.dev.pull3.isEnabled,
-              price: foundLabService.addOns.dev.pull3.price,
+              isEnabled: foundLabService.addOns.hasDev.pull3.isEnabled,
+              price: foundLabService.addOns.hasDev.pull3.price,
             },
             jpegScans: {
               isAllowed: serviceIncludesScan && columns.jpegScans.isAllowed,
@@ -1621,8 +1134,8 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
             },
             rawScans: {
               isAllowed: serviceIncludesScan && columns.rawScans.isAllowed,
-              isEnabled: foundLabService.addOns.scan.rawScans.isEnabled,
-              price: foundLabService.addOns.scan.rawScans.price,
+              isEnabled: foundLabService.addOns.hasScan.rawScans.isEnabled,
+              price: foundLabService.addOns.hasScan.rawScans.price,
             },
             defaultScanner: {
               isAllowed:
@@ -1632,18 +1145,13 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
             },
             scannerB: {
               isAllowed: serviceIncludesScan && columns.scannerB.isAllowed,
-              isEnabled: foundLabService.addOns.scan.scannerB.isEnabled,
-              price: foundLabService.addOns.scan.scannerB.price,
+              isEnabled: foundLabService.addOns.hasScan.scannerB.isEnabled,
+              price: foundLabService.addOns.hasScan.scannerB.price,
             },
             scannerC: {
               isAllowed: serviceIncludesScan && columns.scannerC.isAllowed,
-              isEnabled: foundLabService.addOns.scan.scannerC.isEnabled,
-              price: foundLabService.addOns.scan.scannerC.price,
-            },
-            scannerD: {
-              isAllowed: serviceIncludesScan && columns.scannerD.isAllowed,
-              isEnabled: foundLabService.addOns.scan.scannerD.isEnabled,
-              price: foundLabService.addOns.scan.scannerD.price,
+              isEnabled: foundLabService.addOns.hasScan.scannerC.isEnabled,
+              price: foundLabService.addOns.hasScan.scannerC.price,
             },
             defaultScanRes: {
               isAllowed:
@@ -1653,13 +1161,13 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
             },
             scanResB: {
               isAllowed: serviceIncludesScan && columns.scanResB.isAllowed,
-              isEnabled: foundLabService.addOns.scan.scanResB.isEnabled,
-              price: foundLabService.addOns.scan.scanResB.price,
+              isEnabled: foundLabService.addOns.hasScan.scanResB.isEnabled,
+              price: foundLabService.addOns.hasScan.scanResB.price,
             },
             scanResC: {
               isAllowed: serviceIncludesScan && columns.scanResC.isAllowed,
-              isEnabled: foundLabService.addOns.scan.scanResC.isEnabled,
-              price: foundLabService.addOns.scan.scanResC.price,
+              isEnabled: foundLabService.addOns.hasScan.scanResC.isEnabled,
+              price: foundLabService.addOns.hasScan.scanResC.price,
             },
             defaultScanOption: {
               isAllowed:
@@ -1669,45 +1177,13 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
             },
             scanOptionB: {
               isAllowed: serviceIncludesScan && columns.scanOptionB.isAllowed,
-              isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
-              price: foundLabService.addOns.scan.scanOptionB.price,
+              isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
+              price: foundLabService.addOns.hasScan.scanOptionB.price,
             },
             scanOptionC: {
               isAllowed: serviceIncludesScan && columns.scanOptionB.isAllowed,
-              isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
-              price: foundLabService.addOns.scan.scanOptionB.price,
-            },
-            defaultPrintSize: {
-              isAllowed:
-                serviceIncludesPrint && columns.defaultPrintSize.isAllowed,
-              isEnabled: true,
-              price: 0,
-            },
-            printSizeB: {
-              isAllowed: serviceIncludesPrint && columns.printSizeB.isAllowed,
-              isEnabled: foundLabService.addOns.print.printSizeB.isEnabled,
-              price: foundLabService.addOns.print.printSizeB.price,
-            },
-            printSizeC: {
-              isAllowed: serviceIncludesPrint && columns.printSizeC.isAllowed,
-              isEnabled: foundLabService.addOns.print.printSizeC.isEnabled,
-              price: foundLabService.addOns.print.printSizeC.price,
-            },
-            defaultPrintOption: {
-              isAllowed:
-                serviceIncludesPrint && columns.defaultPrintOption.isAllowed,
-              isEnabled: true,
-              price: 0,
-            },
-            printOptionB: {
-              isAllowed: serviceIncludesPrint && columns.printOptionB.isAllowed,
-              isEnabled: foundLabService.addOns.print.printOptionB.isEnabled,
-              price: foundLabService.addOns.print.printOptionB.price,
-            },
-            printOptionC: {
-              isAllowed: serviceIncludesPrint && columns.printOptionC.isAllowed,
-              isEnabled: foundLabService.addOns.print.printOptionC.isEnabled,
-              price: foundLabService.addOns.print.printOptionC.price,
+              isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
+              price: foundLabService.addOns.hasScan.scanOptionB.price,
             },
           });
         }
@@ -1737,15 +1213,12 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       // get the things that the lab allows
       const labAllowsDev = foundLab.settings.devSettings.isEnabled;
       const labAllowsScan = foundLab.settings.scanSettings.isEnabled;
-      const labAllowsPrint = foundLab.settings.printSettings.isEnabled;
       const labAllowsRawScansByRoll = !foundLab.settings.scanSettings.rawByOrder
         .isEnabled;
       const labAllowsScannerB =
         foundLab.settings.scanSettings.scanners.scannerB.isEnabled;
       const labAllowsScannerC =
         foundLab.settings.scanSettings.scanners.scannerC.isEnabled;
-      const labAllowsScannerD =
-        foundLab.settings.scanSettings.scanners.scannerD.isEnabled;
       const labAllowsScanResB =
         foundLab.settings.scanSettings.scanResolutions.scanResB.isEnabled;
       const labAllowsScanResC =
@@ -1754,16 +1227,6 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         foundLab.settings.scanSettings.customScanOptions.scanOptionB.isEnabled;
       const labAllowsScanOptionC =
         foundLab.settings.scanSettings.customScanOptions.scanOptionC.isEnabled;
-      const labAllowsPrintSizeB =
-        foundLab.settings.printSettings.printSizes.printSizeB.isEnabled;
-      const labAllowsPrintSizeC =
-        foundLab.settings.printSettings.printSizes.printSizeC.isEnabled;
-      const labAllowsPrintOptionB =
-        foundLab.settings.printSettings.customPrintOptions.printOptionB
-          .isEnabled;
-      const labAllowsPrintOptionC =
-        foundLab.settings.printSettings.customPrintOptions.printOptionC
-          .isEnabled;
       // get names for the custom defined columns
       const defaultScannerName =
         foundLab.settings.scanSettings.scanners.defaultScanner.name ||
@@ -1772,8 +1235,6 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         foundLab.settings.scanSettings.scanners.scannerB.name || 'Scanner B';
       const scannerCName =
         foundLab.settings.scanSettings.scanners.scannerC.name || 'Scanner C';
-      const scannerDName =
-        foundLab.settings.scanSettings.scanners.scannerD.name || 'Scanner D';
       const defaultScanResName =
         foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
         'Default Scan Res';
@@ -1792,28 +1253,14 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       const scanOptionCName =
         foundLab.settings.scanSettings.customScanOptions.scanOptionC.name ||
         'Scan Option C';
-      const defaultPrintSizeName =
-        foundLab.settings.printSettings.printSizes.defaultPrintSize.name ||
-        'Default Print Size';
-      const printSizeBName =
-        foundLab.settings.printSettings.printSizes.printSizeB.name ||
-        'Print Size B';
-      const printSizeCName =
-        foundLab.settings.printSettings.printSizes.printSizeC.name ||
-        'Print Size C';
-      const defaultPrintOptionName =
-        foundLab.settings.printSettings.customPrintOptions.defaultPrintOption
-          .name || 'Default Print Option';
-      const printOptionBName =
-        foundLab.settings.printSettings.customPrintOptions.printOptionB.name ||
-        'Print Option B';
-      const printOptionCName =
-        foundLab.settings.printSettings.customPrintOptions.printOptionC.name ||
-        'Print Option C';
       // create an object of warnings that will be added to the columns
       const warnings = {
         base: [],
-        returnUnsleeved: [],
+        receiveUndeveloped: [],
+        receiveUncut: [],
+        receiveSleeved: [],
+        receiveMounted: [],
+        returnUncut: [],
         returnSleeved: [],
         returnMounted: [],
         noPushPull: [],
@@ -1828,19 +1275,12 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         defaultScanner: [],
         scannerB: [],
         scannerC: [],
-        scannerD: [],
         defaultScanRes: [],
         scanResB: [],
         scanResC: [],
         defaultScanOption: [],
         scanOptionB: [],
         scanOptionC: [],
-        defaultPrintSize: [],
-        printSizeB: [],
-        printSizeC: [],
-        defaultPrintOption: [],
-        printOptionB: [],
-        printOptionC: [],
       };
       // modify the warnings object where warnings apply
       {
@@ -1855,27 +1295,19 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         }
         if (!labAllowsScan) {
           const message = 'You must enable scanning to offer this add-on.';
+          warnings.receiveSleeved.push(message);
+          warnings.receiveMounted.push(message);
           warnings.jpegScans.push(message);
           warnings.rawScans.push(message);
           warnings.defaultScanner.push(message);
           warnings.scannerB.push(message);
           warnings.scannerC.push(message);
-          warnings.scannerD.push(message);
           warnings.defaultScanRes.push(message);
           warnings.scanResB.push(message);
           warnings.scanResC.push(message);
           warnings.defaultScanOption.push(message);
           warnings.scanOptionB.push(message);
           warnings.scanOptionC.push(message);
-        }
-        if (!labAllowsPrint) {
-          const message = 'You must enable printing to offer this add-on.';
-          warnings.defaultPrintSize.push(message);
-          warnings.printSizeB.push(message);
-          warnings.printSizeC.push(message);
-          warnings.defaultPrintOption.push(message);
-          warnings.printOptionB.push(message);
-          warnings.printOptionC.push(message);
         }
         if (!labAllowsRawScansByRoll) {
           warnings.rawScans.push(
@@ -1890,11 +1322,6 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         if (!labAllowsScannerC) {
           warnings.scannerC.push(
             `You must enable the scanner "${scannerCName}" to offer this add-on.`
-          );
-        }
-        if (!labAllowsScannerD) {
-          warnings.scannerD.push(
-            `You must enable the scanner "${scannerDName}" to offer this add-on.`
           );
         }
         if (!labAllowsScanResB) {
@@ -1917,26 +1344,6 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             `You must enable the scan option "${scanOptionCName}" to offer this add-on.`
           );
         }
-        if (!labAllowsPrintSizeB) {
-          warnings.printSizeB.push(
-            `You must enable the print size "${printSizeBName}" to offer this add-on.`
-          );
-        }
-        if (!labAllowsPrintSizeC) {
-          warnings.printSizeC.push(
-            `You must enable the print size "${printSizeCName}" to offer this add-on.`
-          );
-        }
-        if (!labAllowsPrintOptionB) {
-          warnings.printOptionB.push(
-            `You must enable the print option "${printOptionBName}" to offer this add-on.`
-          );
-        }
-        if (!labAllowsPrintOptionC) {
-          warnings.printOptionC.push(
-            `You must enable the print option "${printOptionCName}" to offer this add-on.`
-          );
-        }
       }
       // build columns
       const columns = {
@@ -1947,8 +1354,36 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             messages: warnings.base,
           },
         },
-        returnUnsleeved: {
-          name: 'Return Unsleeved',
+        receiveUndeveloped: {
+          name: 'Receive Undeveloped',
+          warning: {
+            isPresent: warnings.receiveUndeveloped.length > 0,
+            messages: warnings.receiveUndeveloped,
+          },
+        },
+        receiveUncut: {
+          name: 'Receive Uncut',
+          warning: {
+            isPresent: warnings.receiveUncut.length > 0,
+            messages: warnings.receiveUncut,
+          },
+        },
+        receiveSleeved: {
+          name: 'Receive Sleeved',
+          warning: {
+            isPresent: warnings.receiveSleeved.length > 0,
+            messages: warnings.receiveSleeved,
+          },
+        },
+        receiveMounted: {
+          name: 'Receive Mounted',
+          warning: {
+            isPresent: warnings.receiveMounted.length > 0,
+            messages: warnings.receiveMounted,
+          },
+        },
+        returnUncut: {
+          name: 'Return Uncut',
           warning: {
             isPresent: warnings.returnUnsleeved.length > 0,
             messages: warnings.returnUnsleeved,
@@ -2052,13 +1487,6 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             messages: warnings.scannerC,
           },
         },
-        scannerD: {
-          name: scannerDName,
-          warning: {
-            isPresent: warnings.scannerD.length > 0,
-            messages: warnings.scannerD,
-          },
-        },
         defaultScanRes: {
           name: defaultScanResName,
           warning: {
@@ -2101,66 +1529,24 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             messages: warnings.scanOptionC,
           },
         },
-        defaultPrintSize: {
-          name: defaultPrintSizeName,
-          warning: {
-            isPresent: warnings.defaultPrintSize.length > 0,
-            messages: warnings.defaultPrintSize,
-          },
-        },
-        printSizeB: {
-          name: printSizeBName,
-          warning: {
-            isPresent: warnings.printSizeB.length > 0,
-            messages: warnings.printSizeB,
-          },
-        },
-        printSizeC: {
-          name: printSizeCName,
-          warning: {
-            isPresent: warnings.printSizeC.length > 0,
-            messages: warnings.printSizeC,
-          },
-        },
-        defaultPrintOption: {
-          name: defaultPrintOptionName,
-          warning: {
-            isPresent: warnings.defaultPrintOption.length > 0,
-            messages: warnings.defaultPrintOption,
-          },
-        },
-        printOptionB: {
-          name: printOptionBName,
-          warning: {
-            isPresent: warnings.printOptionB.length > 0,
-            messages: warnings.printOptionB,
-          },
-        },
-        printOptionC: {
-          name: printOptionCName,
-          warning: {
-            isPresent: warnings.printOptionC.length > 0,
-            messages: warnings.printOptionC,
-          },
-        },
       };
       // build rows
       const rows = foundLab.labServices.map(foundLabService => {
-        const serviceIncludesDev = foundLabService.addOns.dev.isAllowed;
-        // foundLabService.service.serviceType.includedServiceTypes.dev;
-        const serviceIncludesScan = foundLabService.addOns.scan.isAllowed;
-        // foundLabService.service.serviceType.includedServiceTypes.scan;
-        const serviceIncludesPrint = foundLabService.addOns.print.isAllowed;
-        // foundLabService.service.serviceType.includedServiceTypes.print;
+        const hasScanAndSansDev =
+          foundLabService.addOns.hasScanAndSansDev.isAllowed;
+        const hasE6AndHasScanAndSansDev =
+          foundLabService.addOns.hasE6AndHasScanAndSansDev.isAllowed;
+        const hasScanOrHasDev =
+          foundLabService.addOns.hasScanOrHasDev.isAllowed;
+        const hasE6 = foundLabService.addOns.hasE6.isAllowed;
+        const hasDev = foundLabService.addOns.hasDev.isAllowed;
+        const hasScan = foundLabService.addOns.hasScan.isAllowed;
         const unsupportedServiceTypes = [];
-        if (serviceIncludesDev && !labAllowsDev) {
+        if (hasDev && !labAllowsDev) {
           unsupportedServiceTypes.push('Developing');
         }
-        if (serviceIncludesScan && !labAllowsScan) {
+        if (hasScan && !labAllowsScan) {
           unsupportedServiceTypes.push('Scanning');
-        }
-        if (serviceIncludesPrint && !labAllowsPrint) {
-          unsupportedServiceTypes.push('Printing');
         }
         return {
           serviceId: foundLabService.service._id,
@@ -2176,57 +1562,86 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             isEnabled: foundLabService.isEnabled,
             price: foundLabService.price,
           },
-          returnUnsleeved: {
+          receiveUndeveloped: {
+            isAllowed: hasDev,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          receiveUncut: {
+            isAllowed: hasScanAndSansDev,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          receiveSleeved: {
+            isAllowed: hasScanAndSansDev,
+            isEnabled:
+              foundLabService.addOns.hasScanAndSansDev.receiveSleeved.isEnabled,
+            price:
+              foundLabService.addOns.hasScanAndSansDev.receiveSleeved.price,
+          },
+          receiveMounted: {
+            isAllowed: hasE6AndHasScanAndSansDev,
+            isEnabled:
+              foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted
+                .price,
+          },
+          returnUncut: {
             isAllowed: true,
             isEnabled: true,
             price: 0,
             readOnly: true,
           },
           returnSleeved: {
-            isAllowed: foundLabService.addOns.ship.returnSleeved.isAllowed,
-            isEnabled: foundLabService.addOns.ship.returnSleeved.isEnabled,
-            price: foundLabService.addOns.ship.returnSleeved.price,
+            isAllowed: hasScanOrHasDev,
+            isEnabled:
+              foundLabService.addOns.hasScanOrHasDev.returnSleeved.isEnabled,
+            price: foundLabService.addOns.hasScanOrHasDev.returnSleeved.price,
           },
           returnMounted: {
-            isAllowed: foundLabService.addOns.ship.returnMounted.isAllowed,
-            isEnabled: foundLabService.addOns.ship.returnMounted.isEnabled,
-            price: foundLabService.addOns.ship.returnMounted.price,
+            isAllowed: hasE6,
+            isEnabled: foundLabService.addOns.hasE6.returnMounted.isEnabled,
+            price: foundLabService.addOns.hasE6.returnMounted.price,
           },
           noPushPull: {
-            isAllowed: serviceIncludesDev,
+            isAllowed: hasDev,
             isEnabled: true,
             price: 0,
             readOnly: true,
           },
           push1: {
             isAllowed: serviceIncludesDev,
-            isEnabled: foundLabService.addOns.dev.push1.isEnabled,
-            price: foundLabService.addOns.dev.push1.price,
+            isEnabled: foundLabService.addOns.hasDev.push1.isEnabled,
+            price: foundLabService.addOns.hasDev.push1.price,
           },
           push2: {
             isAllowed: serviceIncludesDev,
-            isEnabled: foundLabService.addOns.dev.push2.isEnabled,
-            price: foundLabService.addOns.dev.push2.price,
+            isEnabled: foundLabService.addOns.hasDev.push2.isEnabled,
+            price: foundLabService.addOns.hasDev.push2.price,
           },
           push3: {
             isAllowed: serviceIncludesDev,
-            isEnabled: foundLabService.addOns.dev.push3.isEnabled,
-            price: foundLabService.addOns.dev.push3.price,
+            isEnabled: foundLabService.addOns.hasDev.push3.isEnabled,
+            price: foundLabService.addOns.hasDev.push3.price,
           },
           pull1: {
             isAllowed: serviceIncludesDev,
-            isEnabled: foundLabService.addOns.dev.pull1.isEnabled,
-            price: foundLabService.addOns.dev.pull1.price,
+            isEnabled: foundLabService.addOns.hasDev.pull1.isEnabled,
+            price: foundLabService.addOns.hasDev.pull1.price,
           },
           pull2: {
             isAllowed: serviceIncludesDev,
-            isEnabled: foundLabService.addOns.dev.pull2.isEnabled,
-            price: foundLabService.addOns.dev.pull2.price,
+            isEnabled: foundLabService.addOns.hasDev.pull2.isEnabled,
+            price: foundLabService.addOns.hasDev.pull2.price,
           },
           pull3: {
             isAllowed: serviceIncludesDev,
-            isEnabled: foundLabService.addOns.dev.pull3.isEnabled,
-            price: foundLabService.addOns.dev.pull3.price,
+            isEnabled: foundLabService.addOns.hasDev.pull3.isEnabled,
+            price: foundLabService.addOns.hasDev.pull3.price,
           },
           jpegScans: {
             isAllowed: serviceIncludesScan,
@@ -2236,8 +1651,8 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
           },
           rawScans: {
             isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.scan.rawScans.isEnabled,
-            price: foundLabService.addOns.scan.rawScans.price,
+            isEnabled: foundLabService.addOns.hasScan.rawScans.isEnabled,
+            price: foundLabService.addOns.hasScan.rawScans.price,
           },
           defaultScanner: {
             isAllowed: serviceIncludesScan,
@@ -2247,18 +1662,13 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
           },
           scannerB: {
             isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.scan.scannerB.isEnabled,
-            price: foundLabService.addOns.scan.scannerB.price,
+            isEnabled: foundLabService.addOns.hasScan.scannerB.isEnabled,
+            price: foundLabService.addOns.hasScan.scannerB.price,
           },
           scannerC: {
             isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.scan.scannerC.isEnabled,
-            price: foundLabService.addOns.scan.scannerC.price,
-          },
-          scannerD: {
-            isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.scan.scannerD.isEnabled,
-            price: foundLabService.addOns.scan.scannerD.price,
+            isEnabled: foundLabService.addOns.hasScan.scannerC.isEnabled,
+            price: foundLabService.addOns.hasScan.scannerC.price,
           },
           defaultScanRes: {
             isAllowed: serviceIncludesScan,
@@ -2268,13 +1678,13 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
           },
           scanResB: {
             isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.scan.scanResB.isEnabled,
-            price: foundLabService.addOns.scan.scanResB.price,
+            isEnabled: foundLabService.addOns.hasScan.scanResB.isEnabled,
+            price: foundLabService.addOns.hasScan.scanResB.price,
           },
           scanResC: {
             isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.scan.scanResC.isEnabled,
-            price: foundLabService.addOns.scan.scanResC.price,
+            isEnabled: foundLabService.addOns.hasScan.scanResC.isEnabled,
+            price: foundLabService.addOns.hasScan.scanResC.price,
           },
           defaultScanOption: {
             isAllowed: serviceIncludesScan,
@@ -2284,45 +1694,13 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
           },
           scanOptionB: {
             isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
-            price: foundLabService.addOns.scan.scanOptionB.price,
+            isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
+            price: foundLabService.addOns.hasScan.scanOptionB.price,
           },
           scanOptionC: {
             isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.scan.scanOptionB.isEnabled,
-            price: foundLabService.addOns.scan.scanOptionB.price,
-          },
-          defaultPrintSize: {
-            isAllowed: serviceIncludesPrint,
-            isEnabled: true,
-            price: 0,
-            readOnly: true,
-          },
-          printSizeB: {
-            isAllowed: serviceIncludesPrint,
-            isEnabled: foundLabService.addOns.print.printSizeB.isEnabled,
-            price: foundLabService.addOns.print.printSizeB.price,
-          },
-          printSizeC: {
-            isAllowed: serviceIncludesPrint,
-            isEnabled: foundLabService.addOns.print.printSizeC.isEnabled,
-            price: foundLabService.addOns.print.printSizeC.price,
-          },
-          defaultPrintOption: {
-            isAllowed: serviceIncludesPrint,
-            isEnabled: true,
-            price: 0,
-            readOnly: true,
-          },
-          printOptionB: {
-            isAllowed: serviceIncludesPrint,
-            isEnabled: foundLabService.addOns.print.printOptionB.isEnabled,
-            price: foundLabService.addOns.print.printOptionB.price,
-          },
-          printOptionC: {
-            isAllowed: serviceIncludesPrint,
-            isEnabled: foundLabService.addOns.print.printOptionC.isEnabled,
-            price: foundLabService.addOns.print.printOptionC.price,
+            isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
+            price: foundLabService.addOns.hasScan.scanOptionB.price,
           },
         };
       });
@@ -2361,6 +1739,8 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
               serviceId: reqBodyLabServices[0].serviceId.toString(),
               messages: {
                 base: [],
+                receiveSleeved: [],
+                receiveMounted: [],
                 returnSleeved: [],
                 returnMounted: [],
                 push1: [],
@@ -2372,15 +1752,10 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                 rawScans: [],
                 scannerB: [],
                 scannerC: [],
-                scannerD: [],
                 scanResB: [],
                 scanResC: [],
                 scanOptionB: [],
                 scanOptionC: [],
-                printSizeB: [],
-                printSizeC: [],
-                printOptionB: [],
-                printOptionC: [],
               },
             };
             // add necessary errors
@@ -2390,12 +1765,8 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                 foundService.serviceType.includedServiceTypes.dev;
               const serviceIncludesScan =
                 foundService.serviceType.includedServiceTypes.scan;
-              const serviceIncludesPrint =
-                foundService.serviceType.includedServiceTypes.print;
               const serviceIncludesE6 =
                 foundService.filmType.includedFilmTypes.e6;
-              const serviceIncludesF35mmMounted =
-                foundService.filmSize.includedFilmSizes.f35mmMounted;
               const validatePrice = (addOn, addOnName) => {
                 // if there's no price, add error
                 if (!isNumber(addOn.price)) {
@@ -2418,36 +1789,56 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
               if (reqBodyLabServices[0].base.isEnabled) {
                 validatePrice(reqBodyLabServices[0].base, 'base');
               }
-              // if enabling return sleeved and the referenced service is for mounted film, add an error
-              if (reqBodyLabServices[0].returnSleeved.isEnabled) {
-                if (serviceIncludesF35mmMounted) {
-                  serviceError.messages.returnSleeved.push(
-                    'Mounted film cannot be sleeved.'
-                  );
+              // if enabling receive sleeved and the referenced service includes developing, add an error
+              if (reqBodyLabServices[0].receiveSleeved.isEnabled) {
+                serviceError.messages.receiveSleeved.push(
+                  'Sleeved film cannot be developed.'
+                );
+              } else {
+                validatePrice(
+                  reqBodyLabServices[0].receiveSleeved,
+                  'receiveSleeved'
+                );
+              }
+              // if enabling receive mounted and the referenced service includes developing or not e6, add an error
+              if (reqBodyLabServices[0].receiveMounted.isEnabled) {
+                if (!serviceIncludesE6 || serviceIncludesDev) {
+                  if (!serviceIncludesE6) {
+                    serviceError.messages.receiveMounted.push(
+                      'Only E6 film may be mounted.'
+                    );
+                  }
+                  if (!serviceIncludesDev) {
+                    serviceError.messages.receiveMounted.push(
+                      'Mounted film cannot be developed.'
+                    );
+                  }
                 } else {
                   validatePrice(
-                    reqBodyLabServices[0].returnSleeved,
-                    'returnSleeved'
+                    reqBodyLabServices[0].receiveMounted,
+                    'receiveMounted'
                   );
                 }
               }
+              // if enabling return sleeved, validate the price
+              if (reqBodyLabServices[0].returnSleeved.isEnabled) {
+                validatePrice(
+                  reqBodyLabServices[0].returnSleeved,
+                  'returnSleeved'
+                );
+              }
               // possible errors for returning mounted
               if (reqBodyLabServices[0].returnMounted.isEnabled) {
-                if (serviceIncludesF35mmMounted) {
-                  serviceError.messages.returnMounted.push(
-                    'Mounted film cannot be re-mounted.'
-                  );
-                }
                 if (!serviceIncludesE6) {
                   serviceError.messages.returnMounted.push(
                     'Only slide film may be mounted.'
                   );
-                }
-                if (!serviceIncludesF35mmMounted && serviceIncludesE6)
+                } else {
                   validatePrice(
                     reqBodyLabServices[0].returnMounted,
                     'returnMounted'
                   );
+                }
               }
               // possible errors for push1
               if (reqBodyLabServices[0].push1.isEnabled) {
@@ -2556,17 +1947,6 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   validatePrice(reqBodyLabServices[0].scannerC, 'scannerC');
                 }
               }
-              // possible error for scannerd
-              if (reqBodyLabServices[0].scannerD.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerD.push(
-                    'Service type does not include scanning.'
-                  );
-                } else {
-                  validatePrice(reqBodyLabServices[0].scannerD, 'scannerD');
-                }
-              }
               // possible error for scanresb
               if (reqBodyLabServices[0].scanResB.isEnabled) {
                 // add error if service doesn't include scanning
@@ -2621,60 +2001,6 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   );
                 }
               }
-              // possible error for printsizeb
-              if (reqBodyLabServices[0].printSizeB.isEnabled) {
-                // add error if service doesn't include printing
-                if (!serviceIncludesPrint) {
-                  serviceError.messages.printSizeB.push(
-                    'Service type does not include printing.'
-                  );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].printSizeB, 'printSizeB');
-                }
-              }
-              // possible error for printsizec
-              if (reqBodyLabServices[0].printSizeC.isEnabled) {
-                // add error if service doesn't include printing
-                if (!serviceIncludesPrint) {
-                  serviceError.messages.printSizeC.push(
-                    'Service type does not include printing.'
-                  );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].printSizeC, 'printSizeC');
-                }
-              }
-              // possible error for printoptionb
-              if (reqBodyLabServices[0].printOptionB.isEnabled) {
-                // add error if service doesn't include printing
-                if (!serviceIncludesPrint) {
-                  serviceError.messages.printOptionB.push(
-                    'Service type does not include printing.'
-                  );
-                } else {
-                  // validate the price
-                  validatePrice(
-                    reqBodyLabServices[0].printOptionB,
-                    'printOptionB'
-                  );
-                }
-              }
-              // possible error for printoptionc
-              if (reqBodyLabServices[0].printOptionC.isEnabled) {
-                // add error if service doesn't include printing
-                if (!serviceIncludesPrint) {
-                  serviceError.messages.printOptionC.push(
-                    'Service type does not include printing.'
-                  );
-                } else {
-                  // validate the price
-                  validatePrice(
-                    reqBodyLabServices[0].printOptionC,
-                    'printOptionC'
-                  );
-                }
-              }
             }
             // create a "has error messages" variable to decide if we should push the serviceerror object
             let hasErrorMessages = false;
@@ -2697,134 +2023,149 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                 ) {
                   // update all the stuff
                   {
+                    // service itself
                     foundLab.labServices[index].isEnabled =
                       reqBodyLabServices[0].base.isEnabled;
                     foundLab.labServices[index].price =
                       reqBodyLabServices[0].base.price;
 
+                    // receive sleeved
                     foundLab.labServices[
                       index
-                    ].addOns.ship.returnSleeved.isEnabled =
+                    ].addOns.hasScanAndSansDev.receiveSleeved.isEnabled =
+                      reqBodyLabServices[0].receiveSleeved.isEnabled;
+
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScanAndSansDev.receiveSleeved.price =
+                      reqBodyLabServices[0].receiveSleeved.price;
+
+                    // receive mounted
+                    foundLab.labServces[
+                      index
+                    ].addOns.hasE6AndHasScanAndSansDev.receiveMounted.isEnabled =
+                      reqBodyLabServices[0].receiveMounted.isEnabled;
+
+                    foundLab.labServces[
+                      index
+                    ].addOns.hasE6AndHasScanAndSansDev.receiveMounted.price =
+                      reqBodyLabServices[0].receiveMounted.price;
+
+                    // return sleeved
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScanOrHasDev.returnSleeved.isEnabled =
                       reqBodyLabServices[0].returnSleeved.isEnabled;
                     foundLab.labServices[
                       index
-                    ].addOns.ship.returnSleeved.price =
+                    ].addOns.hasScanOrHasDev.returnSleeved.price =
                       reqBodyLabServices[0].returnSleeved.price;
 
+                    // return mounted
                     foundLab.labServices[
                       index
-                    ].addOns.ship.returnMounted.isEnabled =
+                    ].addOns.hasE6.returnMounted.isEnabled =
                       reqBodyLabServices[0].returnMounted.isEnabled;
                     foundLab.labServices[
                       index
-                    ].addOns.ship.returnMounted.price =
+                    ].addOns.hasE6.returnMounted.price =
                       reqBodyLabServices[0].returnMounted.price;
 
-                    foundLab.labServices[index].addOns.dev.push1.isEnabled =
+                    // push 1
+                    foundLab.labServices[index].addOns.hasDev.push1.isEnabled =
                       reqBodyLabServices[0].push1.isEnabled;
-                    foundLab.labServices[index].addOns.dev.push1.price =
+                    foundLab.labServices[index].addOns.hasDev.push1.price =
                       reqBodyLabServices[0].push1.price;
 
-                    foundLab.labServices[index].addOns.dev.push2.isEnabled =
+                    // push 2
+                    foundLab.labServices[index].addOns.hasDev.push2.isEnabled =
                       reqBodyLabServices[0].push2.isEnabled;
-                    foundLab.labServices[index].addOns.dev.push2.price =
+                    foundLab.labServices[index].addOns.hasDev.push2.price =
                       reqBodyLabServices[0].push2.price;
 
-                    foundLab.labServices[index].addOns.dev.push3.isEnabled =
+                    // push 3
+                    foundLab.labServices[index].addOns.hasDev.push3.isEnabled =
                       reqBodyLabServices[0].push3.isEnabled;
-                    foundLab.labServices[index].addOns.dev.push3.price =
+                    foundLab.labServices[index].addOns.hasDev.push3.price =
                       reqBodyLabServices[0].push3.price;
 
-                    foundLab.labServices[index].addOns.dev.pull1.isEnabled =
+                    // pull 1
+                    foundLab.labServices[index].addOns.hasDev.pull1.isEnabled =
                       reqBodyLabServices[0].pull1.isEnabled;
-                    foundLab.labServices[index].addOns.dev.pull1.price =
+                    foundLab.labServices[index].addOns.hasDev.pull1.price =
                       reqBodyLabServices[0].pull1.price;
 
-                    foundLab.labServices[index].addOns.dev.pull2.isEnabled =
+                    // pull 2
+                    foundLab.labServices[index].addOns.hasDev.pull2.isEnabled =
                       reqBodyLabServices[0].pull2.isEnabled;
-                    foundLab.labServices[index].addOns.dev.pull2.price =
+                    foundLab.labServices[index].addOns.hasDev.pull2.price =
                       reqBodyLabServices[0].pull2.price;
 
-                    foundLab.labServices[index].addOns.dev.pull3.isEnabled =
+                    // pull 3
+                    foundLab.labServices[index].addOns.hasDev.pull3.isEnabled =
                       reqBodyLabServices[0].pull3.isEnabled;
-                    foundLab.labServices[index].addOns.dev.pull3.price =
+                    foundLab.labServices[index].addOns.hasDev.pull3.price =
                       reqBodyLabServices[0].pull3.price;
 
-                    foundLab.labServices[index].addOns.scan.rawScans.isEnabled =
+                    // raw scans
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.rawScans.isEnabled =
                       reqBodyLabServices[0].rawScans.isEnabled;
-                    foundLab.labServices[index].addOns.scan.rawScans.price =
+                    foundLab.labServices[index].addOns.hasScan.rawScans.price =
                       reqBodyLabServices[0].rawScans.price;
 
-                    foundLab.labServices[index].addOns.scan.scannerB.isEnabled =
+                    // scanner b
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.isEnabled =
                       reqBodyLabServices[0].scannerB.isEnabled;
-                    foundLab.labServices[index].addOns.scan.scannerB.price =
+                    foundLab.labServices[index].addOns.hasScan.scannerB.price =
                       reqBodyLabServices[0].scannerB.price;
 
-                    foundLab.labServices[index].addOns.scan.scannerC.isEnabled =
+                    // scanner c
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerC.isEnabled =
                       reqBodyLabServices[0].scannerC.isEnabled;
-                    foundLab.labServices[index].addOns.scan.scannerC.price =
+                    foundLab.labServices[index].addOns.hasScan.scannerC.price =
                       reqBodyLabServices[0].scannerC.price;
 
-                    foundLab.labServices[index].addOns.scan.scannerD.isEnabled =
-                      reqBodyLabServices[0].scannerD.isEnabled;
-                    foundLab.labServices[index].addOns.scan.scannerD.price =
-                      reqBodyLabServices[0].scannerD.price;
-
-                    foundLab.labServices[index].addOns.scan.scanResB.isEnabled =
+                    // scan res b
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scanResB.isEnabled =
                       reqBodyLabServices[0].scanResB.isEnabled;
-                    foundLab.labServices[index].addOns.scan.scanResB.price =
+                    foundLab.labServices[index].addOns.hasScan.scanResB.price =
                       reqBodyLabServices[0].scanResB.price;
 
-                    foundLab.labServices[index].addOns.scan.scanResC.isEnabled =
+                    // scan res c
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scanResC.isEnabled =
                       reqBodyLabServices[0].scanResC.isEnabled;
-                    foundLab.labServices[index].addOns.scan.scanResC.price =
+                    foundLab.labServices[index].addOns.hasScan.scanResC.price =
                       reqBodyLabServices[0].scanResC.price;
 
+                    // scan option b
                     foundLab.labServices[
                       index
-                    ].addOns.scan.scanOptionB.isEnabled =
+                    ].addOns.hasScan.scanOptionB.isEnabled =
                       reqBodyLabServices[0].scanOptionB.isEnabled;
-                    foundLab.labServices[index].addOns.scan.scanOptionB.price =
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scanOptionB.price =
                       reqBodyLabServices[0].scanOptionB.price;
 
+                    // scan option c
                     foundLab.labServices[
                       index
-                    ].addOns.scan.scanOptionC.isEnabled =
+                    ].addOns.hasScan.scanOptionC.isEnabled =
                       reqBodyLabServices[0].scanOptionC.isEnabled;
-                    foundLab.labServices[index].addOns.scan.scanOptionC.price =
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scanOptionC.price =
                       reqBodyLabServices[0].scanOptionC.price;
-
-                    foundLab.labServices[
-                      index
-                    ].addOns.print.printSizeB.isEnabled =
-                      reqBodyLabServices[0].printSizeB.isEnabled;
-                    foundLab.labServices[index].addOns.print.printSizeB.price =
-                      reqBodyLabServices[0].printSizeB.price;
-
-                    foundLab.labServices[
-                      index
-                    ].addOns.print.printSizeC.isEnabled =
-                      reqBodyLabServices[0].printSizeC.isEnabled;
-                    foundLab.labServices[index].addOns.print.printSizeC.price =
-                      reqBodyLabServices[0].printSizeC.price;
-
-                    foundLab.labServices[
-                      index
-                    ].addOns.print.printOptionB.isEnabled =
-                      reqBodyLabServices[0].printOptionB.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.print.printOptionB.price =
-                      reqBodyLabServices[0].printOptionB.price;
-
-                    foundLab.labServices[
-                      index
-                    ].addOns.print.printOptionC.isEnabled =
-                      reqBodyLabServices[0].printOptionC.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.print.printOptionC.price =
-                      reqBodyLabServices[0].printOptionC.price;
                   }
                 }
               });

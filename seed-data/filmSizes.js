@@ -44,7 +44,6 @@ exports.filmSizes = [
       serviceTypes: ['5f8f58c2062b1b2a4900e998', '5f8f58c2062b1b2a4900e99a'],
       filmTypes: ['5f8f58c2062b1b2a4900e996'],
     },
-    includedFilmSizes: { f35mmMounted: true },
   },
   {
     name: '120',

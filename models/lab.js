@@ -45,11 +45,6 @@ const labSchema = new mongoose.Schema({
           name: { type: String, default: '' },
           desc: { type: String, default: '' },
         },
-        scannerD: {
-          isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: '' },
-          desc: { type: String, default: '' },
-        },
       },
       scanResolutions: {
         defaultScanRes: {
@@ -96,52 +91,6 @@ const labSchema = new mongoose.Schema({
         },
       },
     },
-    printSettings: {
-      isEnabled: { type: Boolean, default: false },
-      printSizes: {
-        defaultPrintSize: {
-          // make sure this is required if printing is enabled
-          name: { type: String, default: 'Medium Prints' },
-          sfShortEdge: { type: Number, default: 4 },
-          mfShortEdge: { type: Number, default: 4 },
-          f4x5ShortEdge: { type: Number, default: 4 },
-          f8x10ShortEdge: { type: Number, default: 4 },
-        },
-        printSizeB: {
-          isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: 'Large Prints' },
-          sfShortEdge: { type: Number, default: 5 },
-          mfShortEdge: { type: Number, default: 5 },
-          f4x5ShortEdge: { type: Number, default: 5 },
-          f8x10ShortEdge: { type: Number, default: 5 },
-        },
-        printSizeC: {
-          isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: 'X-Large Prints' },
-          sfShortEdge: { type: Number, default: 8 },
-          mfShortEdge: { type: Number, default: 8 },
-          f4x5ShortEdge: { type: Number, default: 8 },
-          f8x10ShortEdge: { type: Number, default: 8 },
-        },
-      },
-      customPrintOptions: {
-        defaultPrintOption: {
-          // make sure this is required if printing is enabled
-          name: { type: String, default: 'Glossy' },
-          desc: { type: String, default: '' },
-        },
-        printOptionB: {
-          isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: 'Matte' },
-          desc: { type: String, default: '' },
-        },
-        printOptionC: {
-          isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: '' },
-          desc: { type: String, default: '' },
-        },
-      },
-    },
   },
   labServices: [
     // one of these will apply to every single lab service
@@ -155,20 +104,35 @@ const labSchema = new mongoose.Schema({
       isEnabled: { type: Boolean, default: false },
       price: { type: Number, default: 0 },
       addOns: {
-        ship: {
-          // isAllowed: { type: Boolean, default: true },
-          returnSleeved: {
-            isAllowed: { type: Boolean, default: false },
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
-          },
-          returnMounted: {
-            isAllowed: { type: Boolean, default: false },
+        hasScanAndSansDev: {
+          isAllowed: { type: Boolean, default: false },
+          receiveSleeved: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
         },
-        dev: {
+        hasE6AndHasScanAndSansDev: {
+          isAllowed: { type: Boolean, default: false },
+          receiveMounted: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+        },
+        hasScanOrHasDev: {
+          isAllowed: { type: Boolean, default: false },
+          returnSleeved: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+        },
+        hasE6: {
+          isAllowed: { type: Boolean, default: false },
+          returnMounted: {
+            isEnabled: { type: Boolean, default: false },
+            price: { type: Number, default: 0 },
+          },
+        },
+        hasDev: {
           isAllowed: { type: Boolean, default: false },
           push1: {
             isEnabled: { type: Boolean, default: false },
@@ -195,7 +159,7 @@ const labSchema = new mongoose.Schema({
             price: { type: Number, default: 0 },
           },
         },
-        scan: {
+        hasScan: {
           isAllowed: { type: Boolean, default: false },
           rawScans: {
             isEnabled: { type: Boolean, default: false },
@@ -206,10 +170,6 @@ const labSchema = new mongoose.Schema({
             price: { type: Number, default: 0 },
           },
           scannerC: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
-          },
-          scannerD: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },
@@ -226,25 +186,6 @@ const labSchema = new mongoose.Schema({
             price: { type: Number, default: 0 },
           },
           scanOptionC: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
-          },
-        },
-        print: {
-          isAllowed: { type: Boolean, default: false },
-          printSizeB: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
-          },
-          printSizeC: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
-          },
-          printOptionB: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
-          },
-          printOptionC: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
           },

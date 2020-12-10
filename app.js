@@ -4,6 +4,8 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
+const compression = require('compression');
+const cors = require('cors');
 
 // import routes
 const authRoutes = require('./routes/auth');
@@ -19,18 +21,9 @@ const seedFunctions = require('./seedFunctions');
 const app = express();
 
 // prevent cors error
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  );
-  if (req.method === 'OPTIONS') {
-    req.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-    return res.status(200).json({});
-  }
-  next();
-});
+app.use(compression());
+cors({ credentials: true, origin: true });
+app.use(cors());
 
 // db
 mongoose
