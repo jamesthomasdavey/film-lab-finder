@@ -49,27 +49,33 @@ const labSchema = new mongoose.Schema({
       scanResolutions: {
         defaultScanRes: {
           // make sure this is required if scanning is enabled
-          name: { type: String, default: 'Medium Scans' },
-          sfShortEdge: { type: Number, default: 1002 },
-          mfShortEdge: { type: Number, default: 1002 },
-          f4x5ShortEdge: { type: Number, default: 1002 },
-          f8x10ShortEdge: { type: Number, default: 1002 },
+          name: { type: String, default: 'Large Scans' },
+          desc: { type: String, default: '' },
         },
         scanResB: {
           isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: 'Large Scans' },
-          sfShortEdge: { type: Number, default: 2000 },
-          mfShortEdge: { type: Number, default: 2000 },
-          f4x5ShortEdge: { type: Number, default: 2000 },
-          f8x10ShortEdge: { type: Number, default: 2000 },
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
         },
         scanResC: {
           isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: 'X-Large Scans' },
-          sfShortEdge: { type: Number, default: 4000 },
-          mfShortEdge: { type: Number, default: 4000 },
-          f4x5ShortEdge: { type: Number, default: 4000 },
-          f8x10ShortEdge: { type: Number, default: 4000 },
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
+        },
+        scanResD: {
+          isEnabled: { type: Boolean, default: false },
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
+        },
+        scanResE: {
+          isEnabled: { type: Boolean, default: false },
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
+        },
+        scanResF: {
+          isEnabled: { type: Boolean, default: false },
+          name: { type: String, default: '' },
+          desc: { type: String, default: '' },
         },
       },
       customScanOptions: {
@@ -161,25 +167,81 @@ const labSchema = new mongoose.Schema({
         },
         hasScan: {
           isAllowed: { type: Boolean, default: false },
-          rawScans: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
+          defaultScanner: {
+            scanResolutions: {
+              scanResB: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResC: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResD: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResE: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResF: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+            },
           },
           scannerB: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
+            scanResolutions: {
+              scanResB: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResC: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResD: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResE: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResF: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+            },
           },
           scannerC: {
             isEnabled: { type: Boolean, default: false },
             price: { type: Number, default: 0 },
-          },
-          scanResB: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
-          },
-          scanResC: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
+            scanResolutions: {
+              scanResB: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResC: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResD: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResE: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+              scanResF: {
+                isEnabled: { type: Boolean, default: false },
+                price: { type: Number, default: 0 },
+              },
+            },
           },
           scanOptionB: {
             isEnabled: { type: Boolean, default: false },

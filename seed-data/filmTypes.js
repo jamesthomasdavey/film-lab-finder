@@ -6,9 +6,7 @@ exports.filmTypes = [
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmSizes: [
         '5f8f58c1062b1b2a4900e991',
@@ -27,9 +25,7 @@ exports.filmTypes = [
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmSizes: [
         '5f8f58c1062b1b2a4900e991',
@@ -48,14 +44,11 @@ exports.filmTypes = [
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmSizes: [
         '5f8f58c1062b1b2a4900e991',
         '5f8f58c2062b1b2a4900e995',
-        '5f8f58c2062b1b2a4900e997',
         '5f8f58c2062b1b2a4900e99b',
         '5f8f58c2062b1b2a4900e99c',
         '5f8f58c2062b1b2a4900e99d',
@@ -71,9 +64,7 @@ exports.filmTypes = [
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmSizes: [
         '5f8f58c1062b1b2a4900e991',

@@ -112,6 +112,7 @@ router.post('/labs/new', (req, res) => {
           ownedBy: [req.body.ownedBy],
           labServices: labServices,
         });
+        // add an _id if it's defined
         if (req.body._id) newLab._id = req.body._id;
         User.findById(req.body.ownedBy).then(foundUser => {
           if (!foundUser)
@@ -332,20 +333,17 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
     scannerCName: [],
     scannerCDesc: [],
     defaultScanResName: [],
-    defaultScanResSfShortEdge: [],
-    defaultScanResMfShortEdge: [],
-    defaultScanResF4x5ShortEdge: [],
-    defaultScanResF8x10ShortEdge: [],
+    defaultScanResDesc: [],
     scanResBName: [],
-    scanResBSfShortEdge: [],
-    scanResBMfShortEdge: [],
-    scanResBF4x5ShortEdge: [],
-    scanResBF8x10ShortEdge: [],
+    scanResBDesc: [],
     scanResCName: [],
-    scanResCSfShortEdge: [],
-    scanResCMfShortEdge: [],
-    scanResCF4x5ShortEdge: [],
-    scanResCF8x10ShortEdge: [],
+    scanResCDesc: [],
+    scanResDName: [],
+    scanResDDesc: [],
+    scanResEName: [],
+    scanResEDesc: [],
+    scanResFName: [],
+    scanResFDesc: [],
     customScanOptionsName: [],
     defaultScanOptionName: [],
     defaultScanOptionDesc: [],
@@ -354,7 +352,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
     scanOptionCName: [],
     scanOptionCDesc: [],
   };
-  // todo: handle all possible errors
+  // handle all possible errors
   {
     // if scanning is enabled,
     if (req.body.scanIsEnabled) {
@@ -371,38 +369,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
         if (!req.body.defaultScanResName.trim()) {
           errors.defaultScanResName.push(
             'Default scan resolution must have a name if scanning is enabled.'
-          );
-        }
-      }
-      //// throw error if defaultscanressfshortedge is not defined
-      {
-        if (!isNumber(req.body.defaultScanResSfShortEdge)) {
-          errors.defaultScanResSfShortEdge.push(
-            'Small format scan resolution must be defined if scanning is enabled.'
-          );
-        }
-      }
-      //// throw error if defaultscanresmfshortedge is not defined
-      {
-        if (!isNumber(req.body.defaultScanResMfShortEdge)) {
-          errors.defaultScanResMfShortEdge.push(
-            'Medium format scan resolution must be defined if scanning is enabled.'
-          );
-        }
-      }
-      //// throw error if defaultscanresf4x5shortedge is not defined
-      {
-        if (!isNumber(req.body.defaultScanResF4x5ShortEdge)) {
-          errors.defaultScanResF4x5ShortEdge.push(
-            '4x5 large format scan resolution must be defined if scanning is enabled.'
-          );
-        }
-      }
-      //// throw error if defaultscanresf8x10shortedge is not defined
-      {
-        if (!isNumber(req.body.defaultScanResF8x10ShortEdge)) {
-          errors.defaultScanResF8x10ShortEdge.push(
-            '8x10 large format scan resolution must be defined if scanning is enabled.'
           );
         }
       }
@@ -454,30 +420,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           'Scan resolution B must have a name if enabled.'
         );
       }
-      //// throw error if scanresbsfshortedge is not defined
-      if (!isNumber(req.body.scanResBSfShortEdge)) {
-        errors.scanResBSfShortEdge.push(
-          'Small format scan resolution must be defined if enabled.'
-        );
-      }
-      //// throw error if scanresbmfshortedge is not defined
-      if (!isNumber(req.body.scanResBMfShortEdge)) {
-        errors.scanResBMfShortEdge.push(
-          'Medium format scan resolution must be defined if enabled.'
-        );
-      }
-      //// throw error if scanresbf4x5shortedge is not defined
-      if (!isNumber(req.body.scanResBF4x5ShortEdge)) {
-        errors.scanResBF4x5ShortEdge.push(
-          '4x5 large format scan resolution must be defined if enabled.'
-        );
-      }
-      //// throw error if scanresbf8x10shortedge is not defined
-      if (!isNumber(req.body.scanResBF8x10ShortEdge)) {
-        errors.scanResBF8x10ShortEdge.push(
-          '8x10 large format scan resolution must be defined if enabled.'
-        );
-      }
     }
     // if scanresc is enabled,
     if (req.body.scanResCIsEnabled) {
@@ -487,28 +429,31 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           'Scan resolution C must have a name if enabled.'
         );
       }
-      //// throw error if scanrescsfshortedge is not defined
-      if (!isNumber(req.body.scanResCSfShortEdge)) {
-        errors.scanResCSfShortEdge.push(
-          'Small format scan resolution must be defined if enabled.'
+    }
+    // if scanresd is enabled,
+    if (req.body.scanResDIsEnabled) {
+      //// throw error if scanresdname is not defined
+      if (!req.body.scanResDName.trim()) {
+        errors.scanResDName.push(
+          'Scan resolution D must have a name if enabled.'
         );
       }
-      //// throw error if scanrescmfshortedge is not defined
-      if (!isNumber(req.body.scanResCMfShortEdge)) {
-        errors.scanResCMfShortEdge.push(
-          'Medium format scan resolution must be defined if enabled.'
+    }
+    // if scanrese is enabled,
+    if (req.body.scanResEIsEnabled) {
+      //// throw error if scanresename is not defined
+      if (!req.body.scanResEName.trim()) {
+        errors.scanResEName.push(
+          'Scan resolution E must have a name if enabled.'
         );
       }
-      //// throw error if scanrescf4x5shortedge is not defined
-      if (!isNumber(req.body.scanResCF4x5ShortEdge)) {
-        errors.scanResCF4x5ShortEdge.push(
-          '4x5 large format scan resolution must be defined if enabled.'
-        );
-      }
-      //// throw error if scanrescf8x10shortedge is not defined
-      if (!isNumber(req.body.scanResCF8x10ShortEdge)) {
-        errors.scanResCF8x10ShortEdge.push(
-          '8x10 large format scan resolution must be defined if enabled.'
+    }
+    // if scanresf is enabled,
+    if (req.body.scanResFIsEnabled) {
+      //// throw error if scanresfname is not defined
+      if (!req.body.scanResFName.trim()) {
+        errors.scanResFName.push(
+          'Scan resolution F must have a name if enabled.'
         );
       }
     }
@@ -530,9 +475,9 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
         );
       }
     }
-    ///////////////
     // throw errors for any names and descriptions that are too long (if they are present at all)
     {
+      // defaultscanner name
       if (req.body.defaultScannerName.trim()) {
         if (req.body.defaultScannerName.trim().length > 50) {
           errors.defaultScannerName.push(
@@ -540,6 +485,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
+      // defaultscanner desc
       if (req.body.defaultScannerDesc.trim()) {
         if (req.body.defaultScannerDesc.trim().length > 150) {
           errors.defaultScannerDesc.push(
@@ -547,6 +493,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
+      // scannerb name
       if (req.body.scannerBName.trim()) {
         if (req.body.scannerBName.trim().length > 50) {
           errors.scannerBName.push(
@@ -554,6 +501,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
+      // scannerb desc
       if (req.body.scannerBDesc.trim()) {
         if (req.body.scannerBDesc.trim().length > 150) {
           errors.scannerBDesc.push(
@@ -561,6 +509,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
+      // scannerc name
       if (req.body.scannerCName.trim()) {
         if (req.body.scannerCName.trim().length > 50) {
           errors.scannerCName.push(
@@ -568,6 +517,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
+      // scannerc desc
       if (req.body.scannerCDesc.trim()) {
         if (req.body.scannerCDesc.trim().length > 150) {
           errors.scannerCDesc.push(
@@ -575,7 +525,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
-      // defaultScanResName
+      // defaultScanRes name
       if (req.body.defaultScanResName.trim()) {
         if (req.body.defaultScanResName.trim().length > 50) {
           errors.defaultScanResName.push(
@@ -583,7 +533,15 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
-      // scanResBName
+      // defaultScanRes desc
+      if (req.body.defaultScanResDesc.trim()) {
+        if (req.body.defaultScanResDesc.trim().length > 150) {
+          errors.defaultScanResDesc.push(
+            'Scan resolution description must not exceed 150 characters.'
+          );
+        }
+      }
+      // scanResB name
       if (req.body.scanResBName.trim()) {
         if (req.body.scanResBName.trim().length > 50) {
           errors.scanResBName.push(
@@ -591,11 +549,75 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
-      // scanResCName
+      // scanResB desc
+      if (req.body.scanResBDesc.trim()) {
+        if (req.body.scanResBDesc.trim().length > 150) {
+          errors.scanResBDesc.push(
+            'Scan resolution description must not exceed 150 characters.'
+          );
+        }
+      }
+      // scanResC name
       if (req.body.scanResCName.trim()) {
         if (req.body.scanResCName.trim().length > 50) {
           errors.scanResCName.push(
             'Scan resolution name must not exceed 50 characters.'
+          );
+        }
+      }
+      // scanResC desc
+      if (req.body.scanResCDesc.trim()) {
+        if (req.body.scanResCDesc.trim().length > 150) {
+          errors.scanResCDesc.push(
+            'Scan resolution description must not exceed 150 characters.'
+          );
+        }
+      }
+      // scanResD name
+      if (req.body.scanResDName.trim()) {
+        if (req.body.scanResDName.trim().length > 50) {
+          errors.scanResDName.push(
+            'Scan resolution name must not exceed 50 characters.'
+          );
+        }
+      }
+      // scanResD desc
+      if (req.body.scanResDDesc.trim()) {
+        if (req.body.scanResDDesc.trim().length > 150) {
+          errors.scanResDDesc.push(
+            'Scan resolution description must not exceed 150 characters.'
+          );
+        }
+      }
+      // scanResE name
+      if (req.body.scanResEName.trim()) {
+        if (req.body.scanResEName.trim().length > 50) {
+          errors.scanResEName.push(
+            'Scan resolution name must not exceed 50 characters.'
+          );
+        }
+      }
+      // scanResE desc
+      if (req.body.scanResEDesc.trim()) {
+        if (req.body.scanResEDesc.trim().length > 150) {
+          errors.scanResEDesc.push(
+            'Scan resolution description must not exceed 150 characters.'
+          );
+        }
+      }
+      // scanResF name
+      if (req.body.scanResFName.trim()) {
+        if (req.body.scanResFName.trim().length > 50) {
+          errors.scanResFName.push(
+            'Scan resolution name must not exceed 50 characters.'
+          );
+        }
+      }
+      // scanResF desc
+      if (req.body.scanResFDesc.trim()) {
+        if (req.body.scanResFDesc.trim().length > 150) {
+          errors.scanResFDesc.push(
+            'Scan resolution description must not exceed 150 characters.'
           );
         }
       }
@@ -667,126 +689,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           'Raw by order price must be between $0.01 and $999.99.'
         );
       }
-      // defaultScanResSfShortEdge
-      if (
-        isNumber(req.body.defaultScanResSfShortEdge) &&
-        (req.body.defaultScanResSfShortEdge < 100 ||
-          req.body.defaultScanResSfShortEdge > 10000)
-      ) {
-        errors.defaultScanResSfShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // defaultScanResMfShortEdge
-      if (
-        isNumber(req.body.defaultScanResMfShortEdge) &&
-        (req.body.defaultScanResMfShortEdge < 100 ||
-          req.body.defaultScanResMfShortEdge > 10000)
-      ) {
-        errors.defaultScanResMfShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // defaultScanResF4x5ShortEdge
-      if (
-        isNumber(req.body.defaultScanResF4x5ShortEdge) &&
-        (req.body.defaultScanResF4x5ShortEdge < 100 ||
-          req.body.defaultScanResF4x5ShortEdge > 10000)
-      ) {
-        errors.defaultScanResF4x5ShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // defaultScanResF8x10ShortEdge
-      if (
-        isNumber(req.body.defaultScanResF8x10ShortEdge) &&
-        (req.body.defaultScanResF8x10ShortEdge < 100 ||
-          req.body.defaultScanResF8x10ShortEdge > 10000)
-      ) {
-        errors.defaultScanResF8x10ShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // scanResBSfShortEdge
-      if (
-        isNumber(req.body.scanResBSfShortEdge) &&
-        (req.body.scanResBSfShortEdge < 100 ||
-          req.body.scanResBSfShortEdge > 10000)
-      ) {
-        errors.scanResBSfShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // scanResBMfShortEdge
-      if (
-        isNumber(req.body.scanResBMfShortEdge) &&
-        (req.body.scanResBMfShortEdge < 100 ||
-          req.body.scanResBMfShortEdge > 10000)
-      ) {
-        errors.scanResBMfShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // scanResBF4x5ShortEdge
-      if (
-        isNumber(req.body.scanResBF4x5ShortEdge) &&
-        (req.body.scanResBF4x5ShortEdge < 100 ||
-          req.body.scanResBF4x5ShortEdge > 10000)
-      ) {
-        errors.scanResBF4x5ShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // scanResBF8x10ShortEdge
-      if (
-        isNumber(req.body.scanResBF8x10ShortEdge) &&
-        (req.body.scanResBF8x10ShortEdge < 100 ||
-          req.body.scanResBF8x10ShortEdge > 10000)
-      ) {
-        errors.scanResBF8x10ShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // scanResCSfShortEdge
-      if (
-        isNumber(req.body.scanResCSfShortEdge) &&
-        (req.body.scanResCSfShortEdge < 100 ||
-          req.body.scanResCSfShortEdge > 10000)
-      ) {
-        errors.scanResCSfShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // scanResCMfShortEdge
-      if (
-        isNumber(req.body.scanResCMfShortEdge) &&
-        (req.body.scanResCMfShortEdge < 100 ||
-          req.body.scanResCMfShortEdge > 10000)
-      ) {
-        errors.scanResCMfShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // scanResCF4x5ShortEdge
-      if (
-        isNumber(req.body.scanResCF4x5ShortEdge) &&
-        (req.body.scanResCF4x5ShortEdge < 100 ||
-          req.body.scanResCF4x5ShortEdge > 10000)
-      ) {
-        errors.scanResCF4x5ShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
-      // scanResF8x10ShortEdge
-      if (
-        isNumber(req.body.scanResF8x10ShortEdge) &&
-        (req.body.scanResF8x10ShortEdge < 100 ||
-          req.body.scanResF8x10ShortEdge > 10000)
-      ) {
-        errors.scanResF8x10ShortEdge.push(
-          'Scan resolution short edge must be between 100px and 10,000px.'
-        );
-      }
     }
   }
   // if any of the errors arrays have a length of greater than 0, return the errors object
@@ -826,26 +728,32 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
       scanResolutions: {
         defaultScanRes: {
           name: req.body.defaultScanResName.trim(),
-          sfShortEdge: req.body.defaultScanResSfShortEdge,
-          mfShortEdge: req.body.defaultScanResMfShortEdge,
-          f4x5ShortEdge: req.body.defaultScanResF4x5ShortEdge,
-          f8x10ShortEdge: req.body.defaultScanResF8x10ShortEdge,
+          desc: req.body.defaultScanResDesc.trim(),
         },
         scanResB: {
           isEnabled: req.body.scanResBIsEnabled,
           name: req.body.scanResBName.trim(),
-          sfShortEdge: req.body.scanResBSfShortEdge,
-          mfShortEdge: req.body.scanResBMfShortEdge,
-          f4x5ShortEdge: req.body.scanResBF4x5ShortEdge,
-          f8x10ShortEdge: req.body.scanResBF8x10ShortEdge,
+          desc: req.body.scanResBDesc.trim(),
         },
         scanResC: {
           isEnabled: req.body.scanResCIsEnabled,
           name: req.body.scanResCName.trim(),
-          sfShortEdge: req.body.scanResCSfShortEdge,
-          mfShortEdge: req.body.scanResCMfShortEdge,
-          f4x5ShortEdge: req.body.scanResCF4x5ShortEdge,
-          f8x10ShortEdge: req.body.scanResF8x10ShortEdge,
+          desc: req.body.scanResCDesc.trim(),
+        },
+        scanResD: {
+          isEnabled: req.body.scanResDIsEnabled,
+          name: req.body.scanResDName.trim(),
+          desc: req.body.scanResDDesc.trim(),
+        },
+        scanResE: {
+          isEnabled: req.body.scanResEIsEnabled,
+          name: req.body.scanResEName.trim(),
+          desc: req.body.scanResEDesc.trim(),
+        },
+        scanResF: {
+          isEnabled: req.body.scanResFIsEnabled,
+          name: req.body.scanResFName.trim(),
+          desc: req.body.scanResFDesc.trim(),
         },
       },
       customScanOptions: {
@@ -900,8 +808,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
       // check what the lab allows
       const labAllowsDev = foundLab.settings.devSettings.isEnabled;
       const labAllowsScan = foundLab.settings.scanSettings.isEnabled;
-      const labAllowsRawScansByRoll = !foundLab.settings.scanSettings.rawByOrder
-        .isEnabled;
       const labAllowsScannerB =
         foundLab.settings.scanSettings.scanners.scannerB.isEnabled;
       const labAllowsScannerC =
@@ -910,6 +816,12 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
         foundLab.settings.scanSettings.scanResolutions.scanResB.isEnabled;
       const labAllowsScanResC =
         foundLab.settings.scanSettings.scanResolutions.scanResC.isEnabled;
+      const labAllowsScanResD =
+        foundLab.settings.scanSettings.scanResolutions.scanResD.isEnabled;
+      const labAllowsScanResE =
+        foundLab.settings.scanSettings.scanResolutions.scanResE.isEnabled;
+      const labAllowsScanResF =
+        foundLab.settings.scanSettings.scanResolutions.scanResF.isEnabled;
       const labAllowsScanOptionB =
         foundLab.settings.scanSettings.customScanOptions.scanOptionB.isEnabled;
       const labAllowsScanOptionC =
@@ -918,19 +830,82 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
       const defaultScannerName =
         foundLab.settings.scanSettings.scanners.defaultScanner.name ||
         'Default Scanner';
+      const defaultScannerDefaultScanResName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
+        'Default Scan Res'
+      }`;
+      const defaultScannerScanResBName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
+        'Scan Res B'
+      }`;
+      const defaultScannerScanResCName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
+        'Scan Res C'
+      }`;
+      const defaultScannerScanResDName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
+        'Scan Res D'
+      }`;
+      const defaultScannerScanResEName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
+        'Scan Res E'
+      }`;
+      const defaultScannerScanResFName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
+        'Scan Res F'
+      }`;
       const scannerBName =
         foundLab.settings.scanSettings.scanners.scannerB.name || 'Scanner B';
+      const scannerBDefaultScanResName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
+        'Default Scan Res'
+      }`;
+      const scannerBScanResBName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
+        'Scan Res B'
+      }`;
+      const scannerBScanResCName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
+        'Scan Res C'
+      }`;
+      const scannerBScanResDName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
+        'Scan Res D'
+      }`;
+      const scannerBScanResEName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
+        'Scan Res E'
+      }`;
+      const scannerBScanResFName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
+        'Scan Res F'
+      }`;
       const scannerCName =
         foundLab.settings.scanSettings.scanners.scannerC.name || 'Scanner C';
-      const defaultScanResName =
+      const scannerCDefaultScanResName = `${scannerCName}: ${
         foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
-        'Default Scan Res';
-      const scanResBName =
+        'Default Scan Res'
+      }`;
+      const scannerCScanResBName = `${scannerCName}: ${
         foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
-        'Scan Res B';
-      const scanResCName =
+        'Scan Res B'
+      }`;
+      const scannerCScanResCName = `${scannerCName}: ${
         foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
-        'Scan Res C';
+        'Scan Res C'
+      }`;
+      const scannerCScanResDName = `${scannerCName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
+        'Scan Res D'
+      }`;
+      const scannerCScanResEName = `${scannerCName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
+        'Scan Res E'
+      }`;
+      const scannerCScanResFName = `${scannerCName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
+        'Scan Res F'
+      }`;
       const defaultScanOptionName =
         foundLab.settings.scanSettings.customScanOptions.defaultScanOption
           .name || 'Default Scan Option';
@@ -972,28 +947,86 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
         pull1: { name: 'Pull -1', isAllowed: labAllowsDev },
         pull2: { name: 'Pull -2', isAllowed: labAllowsDev },
         pull3: { name: 'Pull -3', isAllowed: labAllowsDev },
-        jpegScans: { name: 'Jpeg Scans', isAllowed: labAllowsScan },
-        rawScans: {
-          name: 'Raw Scans',
-          isAllowed: labAllowsScan && labAllowsRawScansByRoll,
-        },
         defaultScanner: { name: defaultScannerName, isAllowed: labAllowsScan },
+        defaultScannerDefaultScanRes: {
+          name: defaultScannerDefaultScanResName,
+          isAllowed: labAllowsScan,
+        },
+        defaultScannerScanResB: {
+          name: defaultScannerScanResBName,
+          isAllowed: labAllowsScan && labAllowsScanResB,
+        },
+        defaultScannerScanResC: {
+          name: defaultScannerScanResCName,
+          isAllowed: labAllowsScan && labAllowsScanResC,
+        },
+        defaultScannerScanResD: {
+          name: defaultScannerScanResDName,
+          isAllowed: labAllowsScan && labAllowsScanResD,
+        },
+        defaultScannerScanResE: {
+          name: defaultScannerScanResEName,
+          isAllowed: labAllowsScan && labAllowsScanResE,
+        },
+        defaultScannerScanResF: {
+          name: defaultScannerScanResFName,
+          isAllowed: labAllowsScan && labAllowsScanResF,
+        },
         scannerB: {
           name: scannerBName,
           isAllowed: labAllowsScan && labAllowsScannerB,
+        },
+        scannerBDefaultScanRes: {
+          name: scannerBDefaultScanResName,
+          isAllowed: labAllowsScannerB,
+        },
+        scannerBscanResB: {
+          name: scannerBScanResBName,
+          isAllowed: labAllowsScannerB && labAllowsScanResB,
+        },
+        scannerBscanResC: {
+          name: scannerBScanResCName,
+          isAllowed: labAllowsScannerB && labAllowsScanResC,
+        },
+        scannerBscanResD: {
+          name: scannerBScanResDName,
+          isAllowed: labAllowsScannerB && labAllowsScanResD,
+        },
+        scannerBscanResE: {
+          name: scannerBScanResEName,
+          isAllowed: labAllowsScannerB && labAllowsScanResE,
+        },
+        scannerBscanResF: {
+          name: scannerBScanResFName,
+          isAllowed: labAllowsScannerB && labAllowsScanResF,
         },
         scannerC: {
           name: scannerCName,
           isAllowed: labAllowsScan && labAllowsScannerC,
         },
-        defaultScanRes: { name: defaultScanResName, isAllowed: labAllowsScan },
-        scanResB: {
-          name: scanResBName,
-          isAllowed: labAllowsScan && labAllowsScanResB,
+        scannerCDefaultScanRes: {
+          name: scannerCDefaultScanResName,
+          isAllowed: labAllowsScannerC,
         },
-        scanResC: {
-          name: scanResCName,
-          isAllowed: labAllowsScan && labAllowsScanResC,
+        scannerCscanResB: {
+          name: scannerCScanResBName,
+          isAllowed: labAllowsScannerC && labAllowsScanResB,
+        },
+        scannerCscanResC: {
+          name: scannerCScanResCName,
+          isAllowed: labAllowsScannerC && labAllowsScanResC,
+        },
+        scannerCscanResD: {
+          name: scannerCScanResDName,
+          isAllowed: labAllowsScannerC && labAllowsScanResD,
+        },
+        scannerCscanResE: {
+          name: scannerCScanResEName,
+          isAllowed: labAllowsScannerC && labAllowsScanResE,
+        },
+        scannerCscanResF: {
+          name: scannerCScanResFName,
+          isAllowed: labAllowsScannerC && labAllowsScanResF,
         },
         defaultScanOption: {
           name: defaultScanOptionName,
@@ -1093,95 +1126,219 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
               price: foundLabService.addOns.hasE6.returnMounted.price,
             },
             noPushPull: {
-              isAllowed: serviceIncludesDev && columns.noPushPull.isAllowed,
+              isAllowed: hasDev && columns.noPushPull.isAllowed,
               isEnabled: true,
               price: 0,
             },
             push1: {
-              isAllowed: serviceIncludesDev && columns.push1.isAllowed,
+              isAllowed: hasDev && columns.push1.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.push1.isEnabled,
               price: foundLabService.addOns.hasDev.push1.price,
             },
             push2: {
-              isAllowed: serviceIncludesDev && columns.push2.isAllowed,
+              isAllowed: hasDev && columns.push2.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.push2.isEnabled,
               price: foundLabService.addOns.hasDev.push2.price,
             },
             push3: {
-              isAllowed: serviceIncludesDev && columns.push3.isAllowed,
+              isAllowed: hasDev && columns.push3.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.push3.isEnabled,
               price: foundLabService.addOns.hasDev.push3.price,
             },
             pull1: {
-              isAllowed: serviceIncludesDev && columns.pull1.isAllowed,
+              isAllowed: hasDev && columns.pull1.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.pull1.isEnabled,
               price: foundLabService.addOns.hasDev.pull1.price,
             },
             pull2: {
-              isAllowed: serviceIncludesDev && columns.pull2.isAllowed,
+              isAllowed: hasDev && columns.pull2.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.pull2.isEnabled,
               price: foundLabService.addOns.hasDev.pull2.price,
             },
             pull3: {
-              isAllowed: serviceIncludesDev && columns.pull3.isAllowed,
+              isAllowed: hasDev && columns.pull3.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.pull3.isEnabled,
               price: foundLabService.addOns.hasDev.pull3.price,
             },
-            jpegScans: {
-              isAllowed: serviceIncludesScan && columns.jpegScans.isAllowed,
-              isEnabled: true,
-              price: 0,
-            },
-            rawScans: {
-              isAllowed: serviceIncludesScan && columns.rawScans.isAllowed,
-              isEnabled: foundLabService.addOns.hasScan.rawScans.isEnabled,
-              price: foundLabService.addOns.hasScan.rawScans.price,
-            },
             defaultScanner: {
-              isAllowed:
-                serviceIncludesScan && columns.defaultScanner.isAllowed,
+              isAllowed: hasScan && columns.defaultScanner.isAllowed,
               isEnabled: true,
               price: 0,
+            },
+            defaultScannerDefaultScanRes: {
+              isAllowed:
+                hasScan && columns.defaultScannerDefaultScanRes.isAllowed,
+              isEnabled: true,
+              price: 0,
+            },
+            defaultScannerScanResB: {
+              isAllowed: hasScan && columns.defaultScannerScanResB.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResB.isEnabled,
+              price:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResB.price,
+            },
+            defaultScannerScanResC: {
+              isAllowed: hasScan && columns.defaultScannerScanResC.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResC.isEnabled,
+              price:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResC.price,
+            },
+            defaultScannerScanResD: {
+              isAllowed: hasScan && columns.defaultScannerScanResD.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResD.isEnabled,
+              price:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResD.price,
+            },
+            defaultScannerScanResE: {
+              isAllowed: hasScan && columns.defaultScannerScanResE.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResE.isEnabled,
+              price:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResE.price,
+            },
+            defaultScannerScanResF: {
+              isAllowed: hasScan && columns.defaultScannerScanResF.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResF.isEnabled,
+              price:
+                foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                  .scanResF.price,
             },
             scannerB: {
-              isAllowed: serviceIncludesScan && columns.scannerB.isAllowed,
+              isAllowed: hasScan && columns.scannerB.isAllowed,
               isEnabled: foundLabService.addOns.hasScan.scannerB.isEnabled,
               price: foundLabService.addOns.hasScan.scannerB.price,
             },
+            scannerBDefaultScanRes: {
+              isAllowed: hasScan && columns.scannerBDefaultScanRes.isAllowed,
+              isEnabled: foundLabService.addOns.hasScan.scannerB.isEnabled,
+              price: 0,
+            },
+            scannerBScanResB: {
+              isAllowed: hasScan && columns.scannerBScanResB.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResB
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResB
+                  .price,
+            },
+            scannerBScanResC: {
+              isAllowed: hasScan && columns.scannerBScanResC.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResC
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResC
+                  .price,
+            },
+            scannerBScanResD: {
+              isAllowed: hasScan && columns.scannerBScanResD.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResD
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResD
+                  .price,
+            },
+            scannerBScanResE: {
+              isAllowed: hasScan && columns.scannerBScanResE.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResE
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResE
+                  .price,
+            },
+            scannerBScanResF: {
+              isAllowed: hasScan && columns.scannerBScanResF.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResF
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResF
+                  .price,
+            },
             scannerC: {
-              isAllowed: serviceIncludesScan && columns.scannerC.isAllowed,
+              isAllowed: hasScan && columns.scannerC.isAllowed,
               isEnabled: foundLabService.addOns.hasScan.scannerC.isEnabled,
               price: foundLabService.addOns.hasScan.scannerC.price,
             },
-            defaultScanRes: {
-              isAllowed:
-                serviceIncludesScan && columns.defaultScanRes.isAllowed,
-              isEnabled: true,
+
+            scannerCDefaultScanRes: {
+              isAllowed: hasScan && columns.scannerCDefaultScanRes.isAllowed,
+              isEnabled: foundLabService.addOns.hasScan.scannerC.isEnabled,
               price: 0,
             },
-            scanResB: {
-              isAllowed: serviceIncludesScan && columns.scanResB.isAllowed,
-              isEnabled: foundLabService.addOns.hasScan.scanResB.isEnabled,
-              price: foundLabService.addOns.hasScan.scanResB.price,
+            scannerCScanResB: {
+              isAllowed: hasScan && columns.scannerCScanResB.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResB
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResB
+                  .price,
             },
-            scanResC: {
-              isAllowed: serviceIncludesScan && columns.scanResC.isAllowed,
-              isEnabled: foundLabService.addOns.hasScan.scanResC.isEnabled,
-              price: foundLabService.addOns.hasScan.scanResC.price,
+            scannerCScanResC: {
+              isAllowed: hasScan && columns.scannerCScanResC.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResC
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResC
+                  .price,
+            },
+            scannerCScanResD: {
+              isAllowed: hasScan && columns.scannerCScanResD.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResD
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResD
+                  .price,
+            },
+            scannerCScanResE: {
+              isAllowed: hasScan && columns.scannerCScanResE.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResE
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResE
+                  .price,
+            },
+            scannerCScanResF: {
+              isAllowed: hasScan && columns.scannerCScanResF.isAllowed,
+              isEnabled:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResF
+                  .isEnabled,
+              price:
+                foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResF
+                  .price,
             },
             defaultScanOption: {
-              isAllowed:
-                serviceIncludesScan && columns.defaultScanOption.isAllowed,
+              isAllowed: hasScan && columns.defaultScanOption.isAllowed,
               isEnabled: true,
               price: 0,
             },
             scanOptionB: {
-              isAllowed: serviceIncludesScan && columns.scanOptionB.isAllowed,
+              isAllowed: hasScan && columns.scanOptionB.isAllowed,
               isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
               price: foundLabService.addOns.hasScan.scanOptionB.price,
             },
             scanOptionC: {
-              isAllowed: serviceIncludesScan && columns.scanOptionB.isAllowed,
+              isAllowed: hasScan && columns.scanOptionB.isAllowed,
               isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
               price: foundLabService.addOns.hasScan.scanOptionB.price,
             },
@@ -1213,8 +1370,6 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       // get the things that the lab allows
       const labAllowsDev = foundLab.settings.devSettings.isEnabled;
       const labAllowsScan = foundLab.settings.scanSettings.isEnabled;
-      const labAllowsRawScansByRoll = !foundLab.settings.scanSettings.rawByOrder
-        .isEnabled;
       const labAllowsScannerB =
         foundLab.settings.scanSettings.scanners.scannerB.isEnabled;
       const labAllowsScannerC =
@@ -1223,6 +1378,12 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         foundLab.settings.scanSettings.scanResolutions.scanResB.isEnabled;
       const labAllowsScanResC =
         foundLab.settings.scanSettings.scanResolutions.scanResC.isEnabled;
+      const labAllowsScanResD =
+        foundLab.settings.scanSettings.scanResolutions.scanResD.isEnabled;
+      const labAllowsScanResE =
+        foundLab.settings.scanSettings.scanResolutions.scanResE.isEnabled;
+      const labAllowsScanResF =
+        foundLab.settings.scanSettings.scanResolutions.scanResF.isEnabled;
       const labAllowsScanOptionB =
         foundLab.settings.scanSettings.customScanOptions.scanOptionB.isEnabled;
       const labAllowsScanOptionC =
@@ -1231,19 +1392,82 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       const defaultScannerName =
         foundLab.settings.scanSettings.scanners.defaultScanner.name ||
         'Default Scanner';
+      const defaultScannerDefaultScanResName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
+        'Default Scan Res'
+      }`;
+      const defaultScannerScanResBName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
+        'Scan Res B'
+      }`;
+      const defaultScannerScanResCName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
+        'Scan Res C'
+      }`;
+      const defaultScannerScanResDName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
+        'Scan Res D'
+      }`;
+      const defaultScannerScanResEName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
+        'Scan Res E'
+      }`;
+      const defaultScannerScanResFName = `${defaultScannerName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
+        'Scan Res F'
+      }`;
       const scannerBName =
         foundLab.settings.scanSettings.scanners.scannerB.name || 'Scanner B';
+      const scannerBDefaultScanResName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
+        'Default Scan Res'
+      }`;
+      const scannerBScanResBName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
+        'Scan Res B'
+      }`;
+      const scannerBScanResCName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
+        'Scan Res C'
+      }`;
+      const scannerBScanResDName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
+        'Scan Res D'
+      }`;
+      const scannerBScanResEName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
+        'Scan Res E'
+      }`;
+      const scannerBScanResFName = `${scannerBName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
+        'Scan Res F'
+      }`;
       const scannerCName =
         foundLab.settings.scanSettings.scanners.scannerC.name || 'Scanner C';
-      const defaultScanResName =
+      const scannerCDefaultScanResName = `${scannerCName}: ${
         foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
-        'Default Scan Res';
-      const scanResBName =
+        'Default Scan Res'
+      }`;
+      const scannerCScanResBName = `${scannerCName}: ${
         foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
-        'Scan Res B';
-      const scanResCName =
+        'Scan Res B'
+      }`;
+      const scannerCScanResCName = `${scannerCName}: ${
         foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
-        'Scan Res C';
+        'Scan Res C'
+      }`;
+      const scannerCScanResDName = `${scannerCName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
+        'Scan Res D'
+      }`;
+      const scannerCScanResEName = `${scannerCName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
+        'Scan Res E'
+      }`;
+      const scannerCScanResFName = `${scannerCName}: ${
+        foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
+        'Scan Res F'
+      }`;
       const defaultScanOptionName =
         foundLab.settings.scanSettings.customScanOptions.defaultScanOption
           .name || 'Default Scan Option';
@@ -1270,14 +1494,27 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         pull1: [],
         pull2: [],
         pull3: [],
-        jpegScans: [],
-        rawScans: [],
         defaultScanner: [],
+        defaultScannerDefaultScanRes: [],
+        defaultScannerScanResB: [],
+        defaultScannerScanResC: [],
+        defaultScannerScanResD: [],
+        defaultScannerScanResE: [],
+        defaultScannerScanResF: [],
         scannerB: [],
+        scannerBDefaultScanRes: [],
+        scannerBScanResB: [],
+        scannerBScanResC: [],
+        scannerBScanResD: [],
+        scannerBScanResE: [],
+        scannerBScanResF: [],
         scannerC: [],
-        defaultScanRes: [],
-        scanResB: [],
-        scanResC: [],
+        scannerCDefaultScanRes: [],
+        scannerCScanResB: [],
+        scannerCScanResC: [],
+        scannerCScanResD: [],
+        scannerCScanResE: [],
+        scannerCScanResF: [],
         defaultScanOption: [],
         scanOptionB: [],
         scanOptionC: [],
@@ -1286,6 +1523,8 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       {
         if (!labAllowsDev) {
           const message = 'You must enable developing to offer this add-on.';
+          warning.receiveUndeveloped.push(message);
+          warning.noPushPull.push(message);
           warnings.push1.push(message);
           warnings.push2.push(message);
           warnings.push3.push(message);
@@ -1295,44 +1534,106 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         }
         if (!labAllowsScan) {
           const message = 'You must enable scanning to offer this add-on.';
+          warnings.receiveUncut.push(message);
           warnings.receiveSleeved.push(message);
           warnings.receiveMounted.push(message);
           warnings.jpegScans.push(message);
           warnings.rawScans.push(message);
           warnings.defaultScanner.push(message);
+          warnings.defaultScannerDefaultScanRes.push(message);
+          warnings.defaultScannerScanResB.push(message);
+          warnings.defaultScannerScanResC.push(message);
+          warnings.defaultScannerScanResD.push(message);
+          warnings.defaultScannerScanResE.push(message);
+          warnings.defaultScannerScanResF.push(message);
           warnings.scannerB.push(message);
+          warnings.scannerBDefaultScanRes.push(message);
+          warnings.scannerBScanResB.push(message);
+          warnings.scannerBScanResC.push(message);
+          warnings.scannerBScanResD.push(message);
+          warnings.scannerBScanResE.push(message);
+          warnings.scannerBScanResF.push(message);
           warnings.scannerC.push(message);
-          warnings.defaultScanRes.push(message);
-          warnings.scanResB.push(message);
-          warnings.scanResC.push(message);
+          warnings.scannerCDefaultScanRes.push(message);
+          warnings.scannerCScanResB.push(message);
+          warnings.scannerCScanResC.push(message);
+          warnings.scannerCScanResD.push(message);
+          warnings.scannerCScanResE.push(message);
+          warnings.scannerCScanResF.push(message);
           warnings.defaultScanOption.push(message);
           warnings.scanOptionB.push(message);
           warnings.scanOptionC.push(message);
         }
-        if (!labAllowsRawScansByRoll) {
-          warnings.rawScans.push(
-            'You must disable raw scans by order to offer this add-on.'
-          );
+        if (!labAllowsDev && !labAllowsScan) {
+          const message = `You must enable developing or scanning to offer this add-on.`;
+          warnings.returnUncut.push(message);
+          warnings.returnSleeved.push(message);
+          warnings.returnMounted.push(message);
         }
         if (!labAllowsScannerB) {
-          warnings.scannerB.push(
-            `You must enable the scanner "${scannerBName}" to offer this add-on.`
-          );
+          const message = `You must enable the scanner "${scannerBName}" to offer this add-on.`;
+          warnings.scannerB.push(message);
+          warnings.scannerBDefaultScanRes.push(message);
+          warnings.scannerBScanResB.push(message);
+          warnings.scannerBScanResC.push(message);
+          warnings.scannerBScanResD.push(message);
+          warnings.scannerBScanResE.push(message);
+          warnings.scannerBScanResF.push(message);
         }
         if (!labAllowsScannerC) {
-          warnings.scannerC.push(
-            `You must enable the scanner "${scannerCName}" to offer this add-on.`
-          );
+          const message = `You must enable the scanner "${scannerCName}" to offer this add-on.`;
+          warnings.scannerC.push(message);
+          warnings.scannerCDefaultScanRes.push(message);
+          warnings.scannerCScanResB.push(message);
+          warnings.scannerCScanResC.push(message);
+          warnings.scannerCScanResD.push(message);
+          warnings.scannerCScanResE.push(message);
+          warnings.scannerCScanResF.push(message);
         }
         if (!labAllowsScanResB) {
-          warnings.scanResB.push(
-            `You must enable the scan resolution "${scanResBName}" to offer this add-on.`
-          );
+          const message = `You must enable the scan resolution "${
+            foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
+            'Scan Res B'
+          }" to offer this add-on.`;
+          warnings.defaultScannerScanResB.push(message);
+          warnings.scannerBScanResB.push(message);
+          warnings.scannerCScanResB.push(message);
         }
         if (!labAllowsScanResC) {
-          warnings.scanResC.push(
-            `You must enable the scan resolution "${scanResCName}" to offer this add-on.`
-          );
+          const message = `You must enable the scan resolution "${
+            foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
+            'Scan Res C'
+          }" to offer this add-on.`;
+          warnings.defaultScannerScanResC.push(message);
+          warnings.scannerBScanResC.push(message);
+          warnings.scannerCScanResC.push(message);
+        }
+        if (!labAllowsScanResD) {
+          const message = `You must enable the scan resolution "${
+            foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
+            'Scan Res D'
+          }" to offer this add-on.`;
+          warnings.defaultScannerScanResD.push(message);
+          warnings.scannerBScanResD.push(message);
+          warnings.scannerCScanResD.push(message);
+        }
+        if (!labAllowsScanResE) {
+          const message = `You must enable the scan resolution "${
+            foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
+            'Scan Res E'
+          }" to offer this add-on.`;
+          warnings.defaultScannerScanResE.push(message);
+          warnings.scannerBScanResE.push(message);
+          warnings.scannerCScanResE.push(message);
+        }
+        if (!labAllowsScanResF) {
+          const message = `You must enable the scan resolution "${
+            foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
+            'Scan Res F'
+          }" to offer this add-on.`;
+          warnings.defaultScannerScanResF.push(message);
+          warnings.scannerBScanResF.push(message);
+          warnings.scannerCScanResF.push(message);
         }
         if (!labAllowsScanOptionB) {
           warnings.scanOptionB.push(
@@ -1385,8 +1686,8 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
         returnUncut: {
           name: 'Return Uncut',
           warning: {
-            isPresent: warnings.returnUnsleeved.length > 0,
-            messages: warnings.returnUnsleeved,
+            isPresent: warnings.returnUncut.length > 0,
+            messages: warnings.returnUncut,
           },
         },
         returnSleeved: {
@@ -1452,25 +1753,53 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             messages: warnings.pull3,
           },
         },
-        jpegScans: {
-          name: 'Jpeg Scans',
-          warning: {
-            isPresent: warnings.jpegScans.length > 0,
-            messages: warnings.jpegScans,
-          },
-        },
-        rawScans: {
-          name: 'Raw Scans',
-          warning: {
-            isPresent: warnings.rawScans.length > 0,
-            messages: warnings.rawScans,
-          },
-        },
         defaultScanner: {
           name: defaultScannerName,
           warning: {
             isPresent: warnings.defaultScanner.length > 0,
             messages: warnings.defaultScanner,
+          },
+        },
+        defaultScannerDefaultScanRes: {
+          name: defaultScannerDefaultScanResName,
+          warning: {
+            isPresent: warnings.defaultScannerDefaultScanRes.length > 0,
+            messages: warnings.defaultScannerDefaultScanRes,
+          },
+        },
+        defaultScannerScanResB: {
+          name: defaultScannerScanResBName,
+          warning: {
+            isPresent: warnings.defaultScannerScanResB.length > 0,
+            messages: warnings.defaultScannerScanResB,
+          },
+        },
+        defaultScannerScanResC: {
+          name: defaultScannerScanResCName,
+          warning: {
+            isPresent: warnings.defaultScannerScanResC.length > 0,
+            messages: warnings.defaultScannerScanResC,
+          },
+        },
+        defaultScannerScanResD: {
+          name: defaultScannerScanResDName,
+          warning: {
+            isPresent: warnings.defaultScannerScanResD.length > 0,
+            messages: warnings.defaultScannerScanResD,
+          },
+        },
+        defaultScannerScanResE: {
+          name: defaultScannerScanResEName,
+          warning: {
+            isPresent: warnings.defaultScannerScanResE.length > 0,
+            messages: warnings.defaultScannerScanResE,
+          },
+        },
+        defaultScannerScanResF: {
+          name: defaultScannerScanResFName,
+          warning: {
+            isPresent: warnings.defaultScannerScanResF.length > 0,
+            messages: warnings.defaultScannerScanResF,
           },
         },
         scannerB: {
@@ -1480,6 +1809,48 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             messages: warnings.scannerB,
           },
         },
+        scannerBDefaultScanRes: {
+          name: scannerBDefaultScanResName,
+          warning: {
+            isPresent: warnings.scannerBDefaultScanRes.length > 0,
+            messages: warnings.scannerBDefaultScanRes,
+          },
+        },
+        scannerBScanResB: {
+          name: scannerBScanResBName,
+          warning: {
+            isPresent: warnings.scannerBScanResB.length > 0,
+            messages: warnings.scannerBScanResB,
+          },
+        },
+        scannerBScanResC: {
+          name: scannerBScanResCName,
+          warning: {
+            isPresent: warnings.scannerBScanResC.length > 0,
+            messages: warnings.scannerBScanResC,
+          },
+        },
+        scannerBScanResD: {
+          name: scannerBScanResDName,
+          warning: {
+            isPresent: warnings.scannerBScanResD.length > 0,
+            messages: warnings.scannerBScanResD,
+          },
+        },
+        scannerBScanResE: {
+          name: scannerBScanResEName,
+          warning: {
+            isPresent: warnings.scannerBScanResE.length > 0,
+            messages: warnings.scannerBScanResE,
+          },
+        },
+        scannerBScanResF: {
+          name: scannerBScanResFName,
+          warning: {
+            isPresent: warnings.scannerBScanResF.length > 0,
+            messages: warnings.scannerBScanResF,
+          },
+        },
         scannerC: {
           name: scannerCName,
           warning: {
@@ -1487,25 +1858,47 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             messages: warnings.scannerC,
           },
         },
-        defaultScanRes: {
-          name: defaultScanResName,
+
+        scannerCDefaultScanRes: {
+          name: scannerCDefaultScanResName,
           warning: {
-            isPresent: warnings.defaultScanRes.length > 0,
-            messages: warnings.defaultScanRes,
+            isPresent: warnings.scannerCDefaultScanRes.length > 0,
+            messages: warnings.scannerCDefaultScanRes,
           },
         },
-        scanResB: {
-          name: scanResBName,
+        scannerCScanResB: {
+          name: scannerCScanResBName,
           warning: {
-            isPresent: warnings.scanResB.length > 0,
-            messages: warnings.scanResB,
+            isPresent: warnings.scannerCScanResB.length > 0,
+            messages: warnings.scannerCScanResB,
           },
         },
-        scanResC: {
-          name: scanResCName,
+        scannerCScanResC: {
+          name: scannerCScanResCName,
           warning: {
-            isPresent: warnings.scanResC.length > 0,
-            messages: warnings.scanResC,
+            isPresent: warnings.scannerCScanResC.length > 0,
+            messages: warnings.scannerCScanResC,
+          },
+        },
+        scannerCScanResD: {
+          name: scannerCScanResDName,
+          warning: {
+            isPresent: warnings.scannerCScanResD.length > 0,
+            messages: warnings.scannerCScanResD,
+          },
+        },
+        scannerCScanResE: {
+          name: scannerCScanResEName,
+          warning: {
+            isPresent: warnings.scannerCScanResE.length > 0,
+            messages: warnings.scannerCScanResE,
+          },
+        },
+        scannerCScanResF: {
+          name: scannerCScanResFName,
+          warning: {
+            isPresent: warnings.scannerCScanResF.length > 0,
+            messages: warnings.scannerCScanResF,
           },
         },
         defaultScanOption: {
@@ -1614,91 +2007,217 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             readOnly: true,
           },
           push1: {
-            isAllowed: serviceIncludesDev,
+            isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.push1.isEnabled,
             price: foundLabService.addOns.hasDev.push1.price,
           },
           push2: {
-            isAllowed: serviceIncludesDev,
+            isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.push2.isEnabled,
             price: foundLabService.addOns.hasDev.push2.price,
           },
           push3: {
-            isAllowed: serviceIncludesDev,
+            isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.push3.isEnabled,
             price: foundLabService.addOns.hasDev.push3.price,
           },
           pull1: {
-            isAllowed: serviceIncludesDev,
+            isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.pull1.isEnabled,
             price: foundLabService.addOns.hasDev.pull1.price,
           },
           pull2: {
-            isAllowed: serviceIncludesDev,
+            isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.pull2.isEnabled,
             price: foundLabService.addOns.hasDev.pull2.price,
           },
           pull3: {
-            isAllowed: serviceIncludesDev,
+            isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.pull3.isEnabled,
             price: foundLabService.addOns.hasDev.pull3.price,
           },
-          jpegScans: {
-            isAllowed: serviceIncludesScan,
-            isEnabled: true,
-            price: 0,
-            readOnly: true,
-          },
-          rawScans: {
-            isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.hasScan.rawScans.isEnabled,
-            price: foundLabService.addOns.hasScan.rawScans.price,
-          },
           defaultScanner: {
-            isAllowed: serviceIncludesScan,
+            isAllowed: hasScan,
             isEnabled: true,
             price: 0,
             readOnly: true,
+          },
+          defaultScannerDefaultScanRes: {
+            isAllowed: hasScan,
+            isEnabled: true,
+            price: 0,
+            readOnly: true,
+          },
+          defaultScannerScanResB: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResB.isEnabled,
+            price:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResB.price,
+          },
+          defaultScannerScanResC: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResC.isEnabled,
+            price:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResC.price,
+          },
+          defaultScannerScanResD: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResD.isEnabled,
+            price:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResD.price,
+          },
+          defaultScannerScanResE: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResE.isEnabled,
+            price:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResE.price,
+          },
+          defaultScannerScanResF: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResF.isEnabled,
+            price:
+              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
+                .scanResF.price,
           },
           scannerB: {
-            isAllowed: serviceIncludesScan,
+            isAllowed: hasScan,
             isEnabled: foundLabService.addOns.hasScan.scannerB.isEnabled,
             price: foundLabService.addOns.hasScan.scannerB.price,
           },
-          scannerC: {
-            isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.hasScan.scannerC.isEnabled,
-            price: foundLabService.addOns.hasScan.scannerC.price,
-          },
-          defaultScanRes: {
-            isAllowed: serviceIncludesScan,
-            isEnabled: true,
+          scannerBDefaultScanRes: {
+            isAllowed: hasScan,
+            isEnabled: foundLabService.addOns.hasScan.scannerB.isEnabled,
             price: 0,
             readOnly: true,
           },
-          scanResB: {
-            isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.hasScan.scanResB.isEnabled,
-            price: foundLabService.addOns.hasScan.scanResB.price,
+          scannerBScanResB: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResB
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResB
+                .price,
           },
-          scanResC: {
-            isAllowed: serviceIncludesScan,
-            isEnabled: foundLabService.addOns.hasScan.scanResC.isEnabled,
-            price: foundLabService.addOns.hasScan.scanResC.price,
+          scannerBScanResC: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResC
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResC
+                .price,
+          },
+          scannerBScanResD: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResD
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResD
+                .price,
+          },
+          scannerBScanResE: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResE
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResE
+                .price,
+          },
+          scannerBScanResF: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResF
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResF
+                .price,
+          },
+          scannerC: {
+            isAllowed: hasScan,
+            isEnabled: foundLabService.addOns.hasScan.scannerC.isEnabled,
+            price: foundLabService.addOns.hasScan.scannerC.price,
+          },
+          scannerCDefaultScanRes: {
+            isAllowed: hasScan,
+            isEnabled: foundLabService.addOns.hasScan.scannerC.isEnabled,
+            price: 0,
+            readOnly: true,
+          },
+          scannerCScanResB: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResB
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResB
+                .price,
+          },
+          scannerCScanResC: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResC
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResC
+                .price,
+          },
+          scannerCScanResD: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResD
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResD
+                .price,
+          },
+          scannerCScanResE: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResE
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResE
+                .price,
+          },
+          scannerCScanResF: {
+            isAllowed: hasScan,
+            isEnabled:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResF
+                .isEnabled,
+            price:
+              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResF
+                .price,
           },
           defaultScanOption: {
-            isAllowed: serviceIncludesScan,
+            isAllowed: hasScan,
             isEnabled: true,
             price: 0,
             readOnly: true,
           },
           scanOptionB: {
-            isAllowed: serviceIncludesScan,
+            isAllowed: hasScan,
             isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
             price: foundLabService.addOns.hasScan.scanOptionB.price,
           },
           scanOptionC: {
-            isAllowed: serviceIncludesScan,
+            isAllowed: hasScan,
             isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
             price: foundLabService.addOns.hasScan.scanOptionB.price,
           },
@@ -1749,11 +2268,23 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                 pull1: [],
                 pull2: [],
                 pull3: [],
-                rawScans: [],
+                defaultScannerScanResB: [],
+                defaultScannerScanResC: [],
+                defaultScannerScanResD: [],
+                defaultScannerScanResE: [],
+                defaultScannerScanResF: [],
                 scannerB: [],
+                scannerBScanResB: [],
+                scannerBScanResC: [],
+                scannerBScanResD: [],
+                scannerBScanResE: [],
+                scannerBScanResF: [],
                 scannerC: [],
-                scanResB: [],
-                scanResC: [],
+                scannerCScanResB: [],
+                scannerCScanResC: [],
+                scannerCScanResD: [],
+                scannerCScanResE: [],
+                scannerCScanResF: [],
                 scanOptionB: [],
                 scanOptionC: [],
               },
@@ -1791,10 +2322,11 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
               }
               // if enabling receive sleeved and the referenced service includes developing, add an error
               if (reqBodyLabServices[0].receiveSleeved.isEnabled) {
-                serviceError.messages.receiveSleeved.push(
-                  'Sleeved film cannot be developed.'
-                );
-              } else {
+                if (serviceIncludesDev) {
+                  serviceError.messages.receiveSleeved.push(
+                    'Sleeved film cannot be developed.'
+                  );
+                }
                 validatePrice(
                   reqBodyLabServices[0].receiveSleeved,
                   'receiveSleeved'
@@ -1805,7 +2337,7 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                 if (!serviceIncludesE6 || serviceIncludesDev) {
                   if (!serviceIncludesE6) {
                     serviceError.messages.receiveMounted.push(
-                      'Only E6 film may be mounted.'
+                      'Only E-6 film may be mounted.'
                     );
                   }
                   if (!serviceIncludesDev) {
@@ -1813,12 +2345,11 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                       'Mounted film cannot be developed.'
                     );
                   }
-                } else {
-                  validatePrice(
-                    reqBodyLabServices[0].receiveMounted,
-                    'receiveMounted'
-                  );
                 }
+                validatePrice(
+                  reqBodyLabServices[0].receiveMounted,
+                  'receiveMounted'
+                );
               }
               // if enabling return sleeved, validate the price
               if (reqBodyLabServices[0].returnSleeved.isEnabled) {
@@ -1831,14 +2362,13 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
               if (reqBodyLabServices[0].returnMounted.isEnabled) {
                 if (!serviceIncludesE6) {
                   serviceError.messages.returnMounted.push(
-                    'Only slide film may be mounted.'
-                  );
-                } else {
-                  validatePrice(
-                    reqBodyLabServices[0].returnMounted,
-                    'returnMounted'
+                    'Only E-6 film may be mounted.'
                   );
                 }
+                validatePrice(
+                  reqBodyLabServices[0].returnMounted,
+                  'returnMounted'
+                );
               }
               // possible errors for push1
               if (reqBodyLabServices[0].push1.isEnabled) {
@@ -1847,10 +2377,9 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.push1.push(
                     'Service type does not include developing.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].push1, 'push1');
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].push1, 'push1');
               }
               // possible errors for push2
               if (reqBodyLabServices[0].push2.isEnabled) {
@@ -1859,10 +2388,9 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.push2.push(
                     'Service type does not include developing.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].push2, 'push2');
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].push2, 'push2');
               }
               // possible errors for push3
               if (reqBodyLabServices[0].push3.isEnabled) {
@@ -1871,10 +2399,9 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.push3.push(
                     'Service type does not include developing.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].push3, 'push3');
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].push3, 'push3');
               }
               // possible errors for pull1
               if (reqBodyLabServices[0].pull1.isEnabled) {
@@ -1883,10 +2410,9 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.pull1.push(
                     'Service type does not include developing.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].pull1, 'pull1');
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].pull1, 'pull1');
               }
               // possible errors for pull2
               if (reqBodyLabServices[0].pull2.isEnabled) {
@@ -1895,10 +2421,9 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.pull2.push(
                     'Service type does not include developing.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].pull2, 'pull2');
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].pull2, 'pull2');
               }
               // possible errors for pull3
               if (reqBodyLabServices[0].pull3.isEnabled) {
@@ -1907,22 +2432,79 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.pull3.push(
                     'Service type does not include developing.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].pull3, 'pull3');
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].pull3, 'pull3');
               }
-              // possible error for raw scans
-              if (reqBodyLabServices[0].rawScans.isEnabled) {
+              // possible error for defaultScanner scanresb
+              if (reqBodyLabServices[0].defaultScannerScanResB.isEnabled) {
                 // add error if service doesn't include scanning
                 if (!serviceIncludesScan) {
-                  serviceError.messages.rawScans.push(
+                  serviceError.messages.defaultScannerScanResB.push(
                     'Service type does not include scanning.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].rawScans, 'rawScans');
                 }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].defaultScannerScanResB,
+                  'defaultScannerScanResB'
+                );
+              }
+              // possible error for defaultScanner scanresc
+              if (reqBodyLabServices[0].defaultScannerScanResC.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.defaultScannerScanResC.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].defaultScannerScanResC,
+                  'defaultScannerScanResC'
+                );
+              }
+              // possible error for defaultScanner scanresd
+              if (reqBodyLabServices[0].defaultScannerScanResD.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.defaultScannerScanResD.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].defaultScannerScanResD,
+                  'defaultScannerScanResD'
+                );
+              }
+              // possible error for defaultScanner scanrese
+              if (reqBodyLabServices[0].defaultScannerScanResE.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.defaultScannerScanResE.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].defaultScannerScanResE,
+                  'defaultScannerScanResE'
+                );
+              }
+              // possible error for defaultScanner scanresf
+              if (reqBodyLabServices[0].defaultScannerScanResF.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.defaultScannerScanResF.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].defaultScannerScanResF,
+                  'defaultScannerScanResF'
+                );
               }
               // possible error for scannerb
               if (reqBodyLabServices[0].scannerB.isEnabled) {
@@ -1931,10 +2513,79 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.scannerB.push(
                     'Service type does not include scanning.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].scannerB, 'scannerB');
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].scannerB, 'scannerB');
+              }
+              // possible error for scannerB scanresb
+              if (reqBodyLabServices[0].scannerBScanResB.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerBScanResB.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerBScanResB,
+                  'scannerBScanResB'
+                );
+              }
+              // possible error for scannerB scanresc
+              if (reqBodyLabServices[0].scannerBScanResC.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerBScanResC.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerBScanResC,
+                  'scannerBScanResC'
+                );
+              }
+              // possible error for scannerB scanresd
+              if (reqBodyLabServices[0].scannerBScanResD.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerBScanResD.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerBScanResD,
+                  'scannerBScanResD'
+                );
+              }
+              // possible error for scannerB scanrese
+              if (reqBodyLabServices[0].scannerBScanResE.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerBScanResE.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerBScanResE,
+                  'scannerBScanResE'
+                );
+              }
+              // possible error for scannerB scanresf
+              if (reqBodyLabServices[0].scannerBScanResF.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerBScanResF.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerBScanResF,
+                  'scannerBScanResF'
+                );
               }
               // possible error for scannerc
               if (reqBodyLabServices[0].scannerC.isEnabled) {
@@ -1943,34 +2594,84 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.scannerC.push(
                     'Service type does not include scanning.'
                   );
-                } else {
-                  validatePrice(reqBodyLabServices[0].scannerC, 'scannerC');
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].scannerC, 'scannerC');
               }
-              // possible error for scanresb
-              if (reqBodyLabServices[0].scanResB.isEnabled) {
+
+              ///
+              ///
+              // possible error for scannerC scanresb
+              if (reqBodyLabServices[0].scannerCScanResB.isEnabled) {
                 // add error if service doesn't include scanning
                 if (!serviceIncludesScan) {
-                  serviceError.messages.scanResB.push(
+                  serviceError.messages.scannerCScanResB.push(
                     'Service type does not include scanning.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].scanResB, 'scanResB');
                 }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerCScanResB,
+                  'scannerCScanResB'
+                );
               }
-              // possible error for scanresc
-              if (reqBodyLabServices[0].scanResC.isEnabled) {
+              // possible error for scannerC scanresc
+              if (reqBodyLabServices[0].scannerCScanResC.isEnabled) {
                 // add error if service doesn't include scanning
                 if (!serviceIncludesScan) {
-                  serviceError.messages.scanResC.push(
+                  serviceError.messages.scannerCScanResC.push(
                     'Service type does not include scanning.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(reqBodyLabServices[0].scanResC, 'scanResC');
                 }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerCScanResC,
+                  'scannerCScanResC'
+                );
               }
+              // possible error for scannerC scanresd
+              if (reqBodyLabServices[0].scannerCScanResD.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerCScanResD.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerCScanResD,
+                  'scannerCScanResD'
+                );
+              }
+              // possible error for scannerC scanrese
+              if (reqBodyLabServices[0].scannerCScanResE.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerCScanResE.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerCScanResE,
+                  'scannerCScanResE'
+                );
+              }
+              // possible error for scannerC scanresf
+              if (reqBodyLabServices[0].scannerCScanResF.isEnabled) {
+                // add error if service doesn't include scanning
+                if (!serviceIncludesScan) {
+                  serviceError.messages.scannerCScanResF.push(
+                    'Service type does not include scanning.'
+                  );
+                }
+                // validate the price
+                validatePrice(
+                  reqBodyLabServices[0].scannerCScanResF,
+                  'scannerCScanResF'
+                );
+              }
+
               // possible error for scanoptionb
               if (reqBodyLabServices[0].scanOptionB.isEnabled) {
                 // add error if service doesn't include scanning
@@ -1978,13 +2679,9 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.scanOptionB.push(
                     'Service type does not include scanning.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(
-                    reqBodyLabServices[0].scanOptionB,
-                    'scanOptionB'
-                  );
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].scanOptionB, 'scanOptionB');
               }
               // possible error for scanoptionc
               if (reqBodyLabServices[0].scanOptionC.isEnabled) {
@@ -1993,13 +2690,9 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                   serviceError.messages.scanOptionC.push(
                     'Service type does not include scanning.'
                   );
-                } else {
-                  // validate the price
-                  validatePrice(
-                    reqBodyLabServices[0].scanOptionC,
-                    'scanOptionC'
-                  );
                 }
+                // validate the price
+                validatePrice(reqBodyLabServices[0].scanOptionC, 'scanOptionC');
               }
             }
             // create a "has error messages" variable to decide if we should push the serviceerror object
@@ -2015,7 +2708,7 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
             }
             // update the appropriate lab service if there are no error messages
             else {
-              // todo: find the corresponding lab service
+              // find the corresponding lab service
               foundLab.labServices.forEach((labService, index) => {
                 if (
                   labService.service.toString() ===
@@ -2041,12 +2734,12 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                       reqBodyLabServices[0].receiveSleeved.price;
 
                     // receive mounted
-                    foundLab.labServces[
+                    foundLab.labServices[
                       index
                     ].addOns.hasE6AndHasScanAndSansDev.receiveMounted.isEnabled =
                       reqBodyLabServices[0].receiveMounted.isEnabled;
 
-                    foundLab.labServces[
+                    foundLab.labServices[
                       index
                     ].addOns.hasE6AndHasScanAndSansDev.receiveMounted.price =
                       reqBodyLabServices[0].receiveMounted.price;
@@ -2107,13 +2800,51 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                     foundLab.labServices[index].addOns.hasDev.pull3.price =
                       reqBodyLabServices[0].pull3.price;
 
-                    // raw scans
+                    // defaultScannerScanResB
                     foundLab.labServices[
                       index
-                    ].addOns.hasScan.rawScans.isEnabled =
-                      reqBodyLabServices[0].rawScans.isEnabled;
-                    foundLab.labServices[index].addOns.hasScan.rawScans.price =
-                      reqBodyLabServices[0].rawScans.price;
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResB.isEnabled =
+                      reqBodyLabServices[0].defaultScannerScanResB.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResB.price =
+                      reqBodyLabServices[0].defaultScannerScanResB.price;
+                    // defaultScanner scanResC
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResC.isEnabled =
+                      reqBodyLabServices[0].defaultScannerScanResC.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResC.price =
+                      reqBodyLabServices[0].defaultScannerScanResC.price;
+                    // defaultScanner scanResD
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResD.isEnabled =
+                      reqBodyLabServices[0].defaultScannerScanResD.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResD.price =
+                      reqBodyLabServices[0].defaultScannerScanResD.price;
+                    // defaultScanner scanResE
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResE.isEnabled =
+                      reqBodyLabServices[0].defaultScannerScanResE.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResE.price =
+                      reqBodyLabServices[0].defaultScannerScanResE.price;
+                    // defaultScanner scanResF
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResF.isEnabled =
+                      reqBodyLabServices[0].defaultScannerScanResF.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResF.price =
+                      reqBodyLabServices[0].defaultScannerScanResF.price;
 
                     // scanner b
                     foundLab.labServices[
@@ -2123,6 +2854,52 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                     foundLab.labServices[index].addOns.hasScan.scannerB.price =
                       reqBodyLabServices[0].scannerB.price;
 
+                    // scannerB scanResB
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResB.isEnabled =
+                      reqBodyLabServices[0].scannerBScanResB.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResB.price =
+                      reqBodyLabServices[0].scannerBScanResB.price;
+                    // scannerB scanResC
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResC.isEnabled =
+                      reqBodyLabServices[0].scannerBScanResC.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResC.price =
+                      reqBodyLabServices[0].scannerBScanResC.price;
+                    // scannerB scanResD
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResD.isEnabled =
+                      reqBodyLabServices[0].scannerBScanResD.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResD.price =
+                      reqBodyLabServices[0].scannerBScanResD.price;
+                    // scannerB scanResE
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResE.isEnabled =
+                      reqBodyLabServices[0].scannerBScanResE.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResE.price =
+                      reqBodyLabServices[0].scannerBScanResE.price;
+                    // scannerB scanResF
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResF.isEnabled =
+                      reqBodyLabServices[0].scannerBScanResF.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerB.scanResolutions.scanResF.price =
+                      reqBodyLabServices[0].scannerBScanResF.price;
+
                     // scanner c
                     foundLab.labServices[
                       index
@@ -2131,21 +2908,51 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                     foundLab.labServices[index].addOns.hasScan.scannerC.price =
                       reqBodyLabServices[0].scannerC.price;
 
-                    // scan res b
+                    // scannerC scanResB
                     foundLab.labServices[
                       index
-                    ].addOns.hasScan.scanResB.isEnabled =
-                      reqBodyLabServices[0].scanResB.isEnabled;
-                    foundLab.labServices[index].addOns.hasScan.scanResB.price =
-                      reqBodyLabServices[0].scanResB.price;
-
-                    // scan res c
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResB.isEnabled =
+                      reqBodyLabServices[0].scannerCScanResB.isEnabled;
                     foundLab.labServices[
                       index
-                    ].addOns.hasScan.scanResC.isEnabled =
-                      reqBodyLabServices[0].scanResC.isEnabled;
-                    foundLab.labServices[index].addOns.hasScan.scanResC.price =
-                      reqBodyLabServices[0].scanResC.price;
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResB.price =
+                      reqBodyLabServices[0].scannerCScanResB.price;
+                    // scannerC scanResC
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResC.isEnabled =
+                      reqBodyLabServices[0].scannerCScanResC.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResC.price =
+                      reqBodyLabServices[0].scannerCScanResC.price;
+                    // scannerC scanResD
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResD.isEnabled =
+                      reqBodyLabServices[0].scannerCScanResD.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResD.price =
+                      reqBodyLabServices[0].scannerCScanResD.price;
+                    // scannerC scanResE
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResE.isEnabled =
+                      reqBodyLabServices[0].scannerCScanResE.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResE.price =
+                      reqBodyLabServices[0].scannerCScanResE.price;
+                    // scannerC scanResF
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResF.isEnabled =
+                      reqBodyLabServices[0].scannerCScanResF.isEnabled;
+                    foundLab.labServices[
+                      index
+                    ].addOns.hasScan.scannerC.scanResolutions.scanResF.price =
+                      reqBodyLabServices[0].scannerCScanResF.price;
 
                     // scan option b
                     foundLab.labServices[

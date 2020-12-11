@@ -6,9 +6,7 @@ exports.filmSizes = [
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmTypes: [
         '5f8f58c1062b1b2a4900e990',
@@ -25,9 +23,7 @@ exports.filmSizes = [
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmTypes: [
         '5f8f58c1062b1b2a4900e990',
@@ -38,23 +34,13 @@ exports.filmSizes = [
     },
   },
   {
-    name: '35mm Mounted',
-    _id: '5f8f58c2062b1b2a4900e997',
-    compatibilities: {
-      serviceTypes: ['5f8f58c2062b1b2a4900e998', '5f8f58c2062b1b2a4900e99a'],
-      filmTypes: ['5f8f58c2062b1b2a4900e996'],
-    },
-  },
-  {
     name: '120',
     _id: '5f8f58c2062b1b2a4900e99b',
     compatibilities: {
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmTypes: [
         '5f8f58c1062b1b2a4900e990',
@@ -71,9 +57,7 @@ exports.filmSizes = [
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmTypes: [
         '5f8f58c1062b1b2a4900e990',
@@ -90,9 +74,7 @@ exports.filmSizes = [
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmTypes: [
         '5f8f58c1062b1b2a4900e990',
@@ -108,9 +90,7 @@ exports.filmSizes = [
       serviceTypes: [
         '5f8f58c1062b1b2a4900e98f',
         '5f8f58c2062b1b2a4900e992',
-        '5f8f58c2062b1b2a4900e994',
         '5f8f58c2062b1b2a4900e998',
-        '5f8f58c2062b1b2a4900e99a',
       ],
       filmTypes: [
         '5f8f58c1062b1b2a4900e990',
