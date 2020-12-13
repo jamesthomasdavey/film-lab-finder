@@ -46,6 +46,19 @@ router.get('/labs/find', (req, res) => {
   findFromService(req.body.services);
 });
 
+router.get('/labs/:labId/name', (req, res) => {
+  Lab.findById(req.params.labId)
+    .then(foundLab => {
+      if (!foundLab) return res.status(404).json({ error: 'Lab not found' });
+      return res.json({
+        name: foundLab.name,
+      });
+    })
+    .catch(err => {
+      return res.status(404).json({ error: 'Lab not found' });
+    });
+});
+
 // @route   post /api/labs/new
 // @desc    creates a new lab based on parameters
 // @access  admin
