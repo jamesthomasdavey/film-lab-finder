@@ -15,12 +15,14 @@ const { validate } = require('uuid');
 const cookieName = 'flf-token';
 
 exports.register = (req, res) => {
+  let error = '';
   let errors = {};
   User.findOne({ email: req.body.email }).then(foundUser => {
-    if (foundUser) errors.email = 'This email has already been registered.';
+    if (foundUser) error = 'This email has already been registered.';
     errors = { ...errors, ...validateRegisterInput(req.body) };
-    if (!isEmpty(errors)) return res.status(400).json({ errors: errors });
-    const newUser = new User(req.body);
+    if (!isEmpty(errors) || error)
+      return res.status(400).json({ errors: errors, error: error });
+    const newUser = new User({ ...req.body, email: req.body.email.trim() });
     newUser.save().then(createdUser => {
       // prevent sending this data to user
       createdUser.salt = undefined;
@@ -39,7 +41,7 @@ exports.signin = (req, res) => {
     if (!foundUser || !foundUser.authenticate(req.body.password))
       return res
         .status(401)
-        .json({ errors: { password: 'Email and password do not match.' } });
+        .json({ errors: { password: ['Email and password do not match.'] } });
     const token = jwt.sign({ _id: foundUser._id }, process.env.JWT_SECRET);
     // persist the token with expiry date
     res.cookie(cookieName, token, { expire: new Date() + 604800 });

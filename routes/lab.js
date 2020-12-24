@@ -9,6 +9,18 @@ const User = require('../models/user');
 // import helper functions
 const isNumber = require('../validation/is-number');
 
+const maximums = {
+  labNameLength: 100,
+  labDescriptionLength: 300,
+  shippingPrice: 100,
+  additionalResolutions: 12,
+  scannerNameLength: 50,
+  scannerDescLength: 150,
+  scanResNameLength: 50,
+  scanResDescLength: 150,
+  rawByOrderPrice: 999.99,
+};
+
 // @route   ***** CHANGE THIS ***** get /api/labs/find
 // @desc    returns all available labs, based on an array of services
 // @access  public
@@ -46,6 +58,9 @@ router.get('/labs/find', (req, res) => {
   findFromService(req.body.services);
 });
 
+// @route   get /api/labs/:labId/name
+// @desc    gets the name of the lab
+// @access  admin or lab owner
 router.get('/labs/:labId/name', (req, res) => {
   Lab.findById(req.params.labId)
     .then(foundLab => {
@@ -175,8 +190,16 @@ router.get('/labs/:labId/settings/edit', (req, res) => {
   // todo: make sure that user is lab owner
   Lab.findById(req.params.labId).then(foundLab => {
     return res.json({
-      name: foundLab.name,
-      description: foundLab.description,
+      name: {
+        value: foundLab.name,
+        errors: [],
+        maxLength: maximums.labNameLength,
+      },
+      description: {
+        value: foundLab.description,
+        errors: [],
+        maxLength: maximums.labDescriptionLength,
+      },
     });
   });
 });
@@ -192,19 +215,23 @@ router.put('/labs/:labId/settings', (req, res) => {
   };
   if (!req.body.name.trim()) {
     errors.name.push('Name is required.');
-  } else if (req.body.name.trim().length > 100) {
-    errors.name.push('Name must not exceed 100 characters.');
+  } else if (req.body.name.trim().length > maximums.labNameLength) {
+    errors.name.push(
+      `Name must not exceed ${maximums.labNameLength} characters.`
+    );
   }
-  if (req.body.description.trim().length > 300) {
-    errors.description.push('Description must not exceed 300 characters.');
+  if (req.body.description.trim().length > maximums.labDescriptionLength) {
+    errors.description.push(
+      `Description must not exceed ${maximums.labDescriptionLength} characters.`
+    );
   }
   if (errors.name.length > 0 || errors.description.length > 0) {
     return res.status(400).json({ errors: errors });
   }
   Lab.findById(req.params.labId).then(foundLab => {
     if (!foundLab) return res.status(404).json({ error: 'Lab not found.' });
-    foundLab.name = req.body.name;
-    foundLab.description = req.body.description;
+    foundLab.name = req.body.name.trim();
+    foundLab.description = req.body.description.trim();
     foundLab.save().then(savedLab => {
       if (!savedLab)
         return res.status(400).json({ error: 'Unable to save lab.' });
@@ -233,7 +260,22 @@ router.get('/labs/:labId/settings/ship', (req, res) => {
 router.get('/labs/:labId/settings/ship/edit', (req, res) => {
   // todo: make sure that user is lab owner
   Lab.findById(req.params.labId).then(foundLab => {
-    return res.json(foundLab.settings.shipSettings);
+    return res.json({
+      allowDropoff: {
+        checked: foundLab.settings.shipSettings.allowDropoff,
+        errors: [],
+      },
+      allowPickup: {
+        checked: foundLab.settings.shipSettings.allowPickup,
+        errors: [],
+      },
+      shippingPrice: {
+        value: foundLab.settings.shipSettings.shippingPrice.toFixed(2),
+        errors: [],
+        minValue: 0,
+        maxValue: maximums.shippingPrice,
+      },
+    });
   });
 });
 
@@ -243,12 +285,20 @@ router.get('/labs/:labId/settings/ship/edit', (req, res) => {
 router.put('/labs/:labId/settings/ship', (req, res) => {
   // todo: make sure that user is lab owner
   const errors = {
+    allowDropoff: [],
+    allowPickup: [],
     shippingPrice: [],
   };
-  if (!isNumber(req.body.shippingPrice)) {
+  if (
+    !isNumber(Number(req.body.shippingPrice)) ||
+    req.body.shippingPrice === ''
+  ) {
     errors.shippingPrice.push('Shipping price is required.');
   }
-  if (req.body.shippingPrice < 0 || req.body.shippingPrice > 100) {
+  if (
+    Number(req.body.shippingPrice).toFixed() < 0 ||
+    Number(req.body.shippingPrice).toFixed() > maximums.shippingPrice
+  ) {
     errors.shippingPrice.push('Shipping price must be between $0 and $100');
   }
   if (errors.shippingPrice.length > 0) {
@@ -259,7 +309,7 @@ router.put('/labs/:labId/settings/ship', (req, res) => {
     foundLab.settings.shipSettings = {
       allowDropoff: req.body.allowDropoff,
       allowPickup: req.body.allowPickup,
-      shippingPrice: req.body.shippingPrice,
+      shippingPrice: Number(req.body.shippingPrice).toFixed(2),
     };
     foundLab.save().then(savedLab => {
       if (!savedLab)
@@ -289,7 +339,9 @@ router.get('/labs/:labId/settings/dev', (req, res) => {
 router.get('/labs/:labId/settings/dev/edit', (req, res) => {
   // todo: make sure that user is lab owner
   Lab.findById(req.params.labId).then(foundLab => {
-    return res.json(foundLab.settings.devSettings);
+    return res.json({
+      isEnabled: { checked: foundLab.settings.devSettings.isEnabled },
+    });
   });
 });
 
@@ -299,7 +351,7 @@ router.get('/labs/:labId/settings/dev/edit', (req, res) => {
 router.put('/labs/:labId/settings/dev', (req, res) => {
   // todo: make sure that user is lab owner
   Lab.findById(req.params.labId).then(foundLab => {
-    foundLab.settings.devSettings.isEnabled = req.body.devIsEnabled;
+    foundLab.settings.devSettings.isEnabled = req.body.isEnabled;
     foundLab.save().then(savedLab => {
       if (!savedLab)
         return res.status(400).json({ error: 'Unable to save lab' });
@@ -328,7 +380,100 @@ router.get('/labs/:labId/settings/scan', (req, res) => {
 router.get('/labs/:labId/settings/scan/edit', (req, res) => {
   // todo: make sure that user is lab owner
   Lab.findById(req.params.labId).then(foundLab => {
-    return res.json(foundLab.settings.scanSettings);
+    return res.json({
+      isEnabled: {
+        checked: foundLab.settings.scanSettings.isEnabled,
+      },
+      rawByOrder: {
+        isEnabled: {
+          checked: foundLab.settings.scanSettings.rawByOrder.isEnabled,
+        },
+        price: {
+          value: Number(
+            foundLab.settings.scanSettings.rawByOrder.price
+          ).toFixed(2),
+          maxValue: maximums.rawByOrderPrice,
+        },
+      },
+      scanners: {
+        defaultScanner: {
+          name: {
+            value: foundLab.settings.scanSettings.scanners.defaultScanner.name,
+            maxLength: maximums.scannerNameLength,
+          },
+          desc: {
+            value: foundLab.settings.scanSettings.scanners.defaultScanner.desc,
+            maxLength: maximums.scannerDescLength,
+          },
+        },
+        scannerB: {
+          isEnabled: {
+            checked: foundLab.settings.scanSettings.scanners.scannerB.isEnabled,
+          },
+          name: {
+            value: foundLab.settings.scanSettings.scanners.scannerB.name,
+            maxLength: maximums.scannerNameLength,
+          },
+          desc: {
+            value: foundLab.settings.scanSettings.scanners.scannerB.desc,
+            maxLength: maximums.scannerDescLength,
+          },
+        },
+        scannerC: {
+          isEnabled: {
+            checked: foundLab.settings.scanSettings.scanners.scannerC.isEnabled,
+          },
+          name: {
+            value: foundLab.settings.scanSettings.scanners.scannerC.name,
+            maxLength: maximums.scannerNameLength,
+          },
+          desc: {
+            value: foundLab.settings.scanSettings.scanners.scannerC.desc,
+            maxLength: maximums.scannerDescLength,
+          },
+        },
+      },
+      scanResolutions: {
+        defaultScanRes: {
+          name: {
+            value:
+              foundLab.settings.scanSettings.scanResolutions.defaultScanRes
+                .name,
+            maxLength: maximums.scanResNameLength,
+          },
+          desc: {
+            value:
+              foundLab.settings.scanSettings.scanResolutions.defaultScanRes
+                .desc,
+            maxLength: maximums.scanResDescLength,
+          },
+          hasRawByDefault: {
+            checked:
+              foundLab.settings.scanSettings.scanResolutions.defaultScanRes
+                .hasRawByDefault,
+          },
+        },
+        additionalResolutions: foundLab.settings.scanSettings.scanResolutions.additionalResolutions.map(
+          resolution => {
+            return {
+              resId: resolution.resId,
+              isEnabled: { checked: resolution.isEnabled },
+              name: {
+                value: resolution.name,
+                maxLength: maximums.scanResNameLength,
+              },
+              desc: {
+                value: resolution.desc,
+                maxLength: maximums.scanResDescLength,
+              },
+              hasRawByDefault: {
+                checked: resolution.hasRawByDefault,
+              },
+            };
+          }
+        ),
+      },
+    });
   });
 });
 
@@ -337,456 +482,513 @@ router.get('/labs/:labId/settings/scan/edit', (req, res) => {
 // @access  private
 router.put('/labs/:labId/settings/scan', (req, res) => {
   // todo: make sure that user is lab owner
+  /*
+  {
+    isEnabled: true,
+    rawByOrder: {
+      isEnabled: false,
+      price: 0,
+    },
+    scanners: {
+      defaultScanner: {
+        name: "Noritsu",
+        desc: "",
+      },
+      scannerB: {
+        isEnabled: true,
+        name: "Frontier",
+        desc: "",
+      },
+      scannerC: {
+        isEnabled: false,
+        name: "",
+        desc: "",
+      },
+    },
+    scanResolutions: {
+      defaultScanRes: {
+        name: "Large Scans",
+        desc: "",
+        hasRawByDefault: false,
+      },
+      additionalResolutions: [
+        {
+          resId: 10,
+          isEnabled: true,
+          name: "Large Scans (RAW)",
+          desc: "",
+          hasRawByDefault: true,
+        },
+        {
+          resId: 11,
+          isEnabled: true,
+          name: "Extra Large Scans",
+          desc: "",
+          hasRawByDefault: false
+        },
+        {
+          resId: 12,
+          isEnabled: true,
+          name: "Extra Large Scans (RAW)",
+          desc: "",
+          hasRawByDefault: true
+        },
+      ],
+    },
+  }
+  */
+  const reqScanSettings = req.body;
+
   const errors = {
-    rawByOrderPrice: [],
-    defaultScannerName: [],
-    defaultScannerDesc: [],
-    scannerBName: [],
-    scannerBDesc: [],
-    scannerCName: [],
-    scannerCDesc: [],
-    defaultScanResName: [],
-    defaultScanResDesc: [],
-    scanResBName: [],
-    scanResBDesc: [],
-    scanResCName: [],
-    scanResCDesc: [],
-    scanResDName: [],
-    scanResDDesc: [],
-    scanResEName: [],
-    scanResEDesc: [],
-    scanResFName: [],
-    scanResFDesc: [],
-    customScanOptionsName: [],
-    defaultScanOptionName: [],
-    defaultScanOptionDesc: [],
-    scanOptionBName: [],
-    scanOptionBDesc: [],
-    scanOptionCName: [],
-    scanOptionCDesc: [],
+    rawByOrder: {
+      price: [],
+    },
+    scanners: {
+      defaultScanner: {
+        name: [],
+        desc: [],
+      },
+      scannerB: {
+        name: [],
+        desc: [],
+      },
+      scannerC: {
+        name: [],
+        desc: [],
+      },
+    },
+    scanResolutions: {
+      defaultScanRes: {
+        name: [],
+        desc: [],
+      },
+      additionalResolutions: reqScanSettings.scanResolutions.additionalResolutions.map(
+        () => {
+          return {
+            name: [],
+            desc: [],
+          };
+        }
+      ),
+    },
   };
   // handle all possible errors
   {
+    // if there are more than X custom scan resolutions,
+    if (
+      reqScanSettings.scanResolutions.additionalResolutions.length >
+      maximums.additionalResolutions
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'Maximum scan resolutions exceeded.' });
+    }
+    // check for duplicate resIds
+    {
+      const resIdDuplicates = {};
+      reqScanSettings.scanResolutions.additionalResolutions.forEach(
+        customScanResolution => {
+          if (resIdDuplicates[`resId${customScanResolution.resId}`]) {
+            return res
+              .status(400)
+              .json({ error: 'Duplicate resolution IDs found.' });
+          } else {
+            resIdDuplicates[`resId${customScanResolution.resId}`] = true;
+          }
+        }
+      );
+    }
     // if scanning is enabled,
-    if (req.body.scanIsEnabled) {
-      //// throw error if defaultscannername is not defined
+    if (reqScanSettings.isEnabled) {
+      //// throw error if default scanner name is not defined
       {
-        if (!req.body.defaultScannerName.trim()) {
-          errors.defaultScannerName.push(
+        if (!reqScanSettings.scanners.defaultScanner.name.trim()) {
+          errors.scanners.defaultScanner.name.push(
             'Default scanner must have a name if scanning is enabled.'
           );
         }
       }
-      //// throw error if defaultscanresname is not defined
+      //// throw error if default scan resolution name is not defined
       {
-        if (!req.body.defaultScanResName.trim()) {
-          errors.defaultScanResName.push(
+        if (!reqScanSettings.scanResolutions.defaultScanRes.name.trim()) {
+          errors.scanResolutions.defaultScanRes.name.push(
             'Default scan resolution must have a name if scanning is enabled.'
-          );
-        }
-      }
-      //// throw error if customscanoptionsname is not defined
-      {
-        if (!req.body.customScanOptionsName.trim()) {
-          errors.customScanOptionsName.push(
-            'Custom scan options must have a name if scanning is enabled.'
-          );
-        }
-      }
-      //// throw error if defaultscanoptionname is not defined
-      {
-        if (!req.body.defaultScanOptionName.trim()) {
-          errors.defaultScanOptionName.push(
-            'Default scan option must be defined if scanning is enabled.'
           );
         }
       }
     }
     // if raw by order is enabled,
-    if (req.body.rawByOrderIsEnabled) {
-      //// throw error if rawbyorderprice is not defined
-      if (!isNumber(req.body.rawByOrderPrice)) {
-        errors.rawByOrderPrice.push(
-          'Price must be defined if raw by order is enabled.'
+    if (reqScanSettings.rawByOrder.isEnabled) {
+      //// throw error if raw by order price is not defined
+      if (!isNumber(Number(reqScanSettings.rawByOrder.price))) {
+        errors.rawByOrder.price.push(
+          'Price must be defined if Raw By Order is enabled.'
         );
       }
     }
     // if scannerb is enabled,
-    if (req.body.scannerBIsEnabled) {
+    if (reqScanSettings.scanners.scannerB.isEnabled) {
       //// throw error if scannerbname is not defined
-      if (!req.body.scannerBName.trim()) {
-        errors.scannerBName.push('Scanner B must have a name if enabled.');
+      if (!reqScanSettings.scanners.scannerB.name.trim()) {
+        errors.scanners.scannerB.name.push(
+          'Scanner B must have a name if enabled.'
+        );
       }
     }
     // if scannerc is enabled,
-    if (req.body.scannerCIsEnabled) {
+    if (reqScanSettings.scanners.scannerC.isEnabled) {
       //// throw error if scannercname is not defined
-      if (!req.body.scannerCName.trim()) {
-        errors.scannerCName.push('Scanner C must have a name if enabled.');
-      }
-    }
-    // if scanresb is enabled,
-    if (req.body.scanResBIsEnabled) {
-      //// throw error if scanresbname is not defined
-      if (!req.body.scanResBName.trim()) {
-        errors.scanResBName.push(
-          'Scan resolution B must have a name if enabled.'
+      if (!reqScanSettings.scanners.scannerC.name.trim()) {
+        errors.scanners.scannerC.name.push(
+          'Scanner C must have a name if enabled.'
         );
       }
     }
-    // if scanresc is enabled,
-    if (req.body.scanResCIsEnabled) {
-      //// throw error if scanrescname is not defined
-      if (!req.body.scanResCName.trim()) {
-        errors.scanResCName.push(
-          'Scan resolution C must have a name if enabled.'
-        );
+    // if any of the custom scan resolutions are enabled,
+    reqScanSettings.scanResolutions.additionalResolutions.forEach(
+      (resolution, i) => {
+        if (resolution.isEnabled) {
+          //// throw an error if the scan resolution name is not defined
+          if (!resolution.name.trim()) {
+            errors.scanResolutions.additionalResolutions[i].name.push(
+              'Scan resolution must have a name if enabled.'
+            );
+          }
+        }
       }
-    }
-    // if scanresd is enabled,
-    if (req.body.scanResDIsEnabled) {
-      //// throw error if scanresdname is not defined
-      if (!req.body.scanResDName.trim()) {
-        errors.scanResDName.push(
-          'Scan resolution D must have a name if enabled.'
-        );
-      }
-    }
-    // if scanrese is enabled,
-    if (req.body.scanResEIsEnabled) {
-      //// throw error if scanresename is not defined
-      if (!req.body.scanResEName.trim()) {
-        errors.scanResEName.push(
-          'Scan resolution E must have a name if enabled.'
-        );
-      }
-    }
-    // if scanresf is enabled,
-    if (req.body.scanResFIsEnabled) {
-      //// throw error if scanresfname is not defined
-      if (!req.body.scanResFName.trim()) {
-        errors.scanResFName.push(
-          'Scan resolution F must have a name if enabled.'
-        );
-      }
-    }
-    // if scanoptionb is enabled,
-    if (req.body.scanOptionBIsEnabled) {
-      //// throw error if scanoptionbname is not defined
-      if (!req.body.scanOptionBName.trim()) {
-        errors.scanOptionBName.push(
-          'Custom scan option must have a name if enabled.'
-        );
-      }
-    }
-    // if scanoptionc is enabled,
-    if (req.body.scanOptionCIsEnabled) {
-      //// throw error if scanoptioncname is not defined
-      if (!req.body.scanOptionCName.trim()) {
-        errors.scanOptionCName.push(
-          'Custom scan option must have a name if enabled.'
-        );
-      }
-    }
+    );
     // throw errors for any names and descriptions that are too long (if they are present at all)
     {
       // defaultscanner name
-      if (req.body.defaultScannerName.trim()) {
-        if (req.body.defaultScannerName.trim().length > 50) {
-          errors.defaultScannerName.push(
-            'Scanner name must not exceed 50 characters.'
+      if (reqScanSettings.scanners.defaultScanner.name.trim()) {
+        if (
+          reqScanSettings.scanners.defaultScanner.name.trim().length >
+          maximums.scannerNameLength
+        ) {
+          errors.scanners.defaultScanner.name.push(
+            `Scanner name must not exceed ${maximums.scannerNameLength} characters.`
           );
         }
       }
       // defaultscanner desc
-      if (req.body.defaultScannerDesc.trim()) {
-        if (req.body.defaultScannerDesc.trim().length > 150) {
-          errors.defaultScannerDesc.push(
-            'Scanner description must not exceed 150 characters.'
+      if (reqScanSettings.scanners.defaultScanner.desc.trim()) {
+        if (
+          reqScanSettings.scanners.defaultScanner.desc.trim().length >
+          maximums.scannerDescLength
+        ) {
+          errors.scanners.defaultScanner.desc.push(
+            `Scanner description must not exceed ${maximums.scannerDescLength} characters.`
           );
         }
       }
       // scannerb name
-      if (req.body.scannerBName.trim()) {
-        if (req.body.scannerBName.trim().length > 50) {
-          errors.scannerBName.push(
-            'Scanner name must not exceed 50 characters.'
+      if (reqScanSettings.scanners.scannerB.name.trim()) {
+        if (
+          reqScanSettings.scanners.scannerB.name.trim().length >
+          maximums.scannerNameLength
+        ) {
+          errors.scanners.scannerB.name.push(
+            `Scanner name must not exceed ${maximums.scannerNameLength} characters.`
           );
         }
       }
       // scannerb desc
-      if (req.body.scannerBDesc.trim()) {
-        if (req.body.scannerBDesc.trim().length > 150) {
-          errors.scannerBDesc.push(
-            'Scanner description must not exceed 150 characters.'
+      if (reqScanSettings.scanners.scannerB.desc.trim()) {
+        if (
+          reqScanSettings.scanners.scannerB.desc.trim().length >
+          maximums.scannerDescLength
+        ) {
+          errors.scanners.scannerB.desc.push(
+            `Scanner description must not exceed ${maximums.scannerDescLength} characters.`
           );
         }
       }
       // scannerc name
-      if (req.body.scannerCName.trim()) {
-        if (req.body.scannerCName.trim().length > 50) {
-          errors.scannerCName.push(
-            'Scanner name must not exceed 50 characters.'
+      if (reqScanSettings.scanners.scannerC.name.trim()) {
+        if (
+          reqScanSettings.scanners.scannerC.name.trim().length >
+          maximums.scannerNameLength
+        ) {
+          errors.scanners.scannerC.name.push(
+            `Scanner name must not exceed ${maximums.scannerNameLength} characters.`
           );
         }
       }
       // scannerc desc
-      if (req.body.scannerCDesc.trim()) {
-        if (req.body.scannerCDesc.trim().length > 150) {
-          errors.scannerCDesc.push(
-            'Scanner description must not exceed 150 characters.'
+      if (reqScanSettings.scanners.scannerC.desc.trim()) {
+        if (
+          reqScanSettings.scanners.scannerC.desc.trim().length >
+          maximums.scannerDescLength
+        ) {
+          errors.scanners.scannerC.desc.push(
+            `Scanner description must not exceed ${maximums.scannerDescLength} characters.`
           );
         }
       }
       // defaultScanRes name
-      if (req.body.defaultScanResName.trim()) {
-        if (req.body.defaultScanResName.trim().length > 50) {
-          errors.defaultScanResName.push(
-            'Scan resolution name must not exceed 50 characters.'
+      if (reqScanSettings.scanResolutions.defaultScanRes.name.trim()) {
+        if (
+          reqScanSettings.scanResolutions.defaultScanRes.name.trim().length >
+          maximums.scanResNameLength
+        ) {
+          errors.scanResolutions.defaultScanRes.name.push(
+            `Scan resolution name must not exceed ${maximums.scanResNameLength} characters.`
           );
         }
       }
       // defaultScanRes desc
-      if (req.body.defaultScanResDesc.trim()) {
-        if (req.body.defaultScanResDesc.trim().length > 150) {
-          errors.defaultScanResDesc.push(
-            'Scan resolution description must not exceed 150 characters.'
+      if (reqScanSettings.scanResolutions.defaultScanRes.desc.trim()) {
+        if (
+          reqScanSettings.scanResolutions.defaultScanRes.desc.trim().length >
+          maximums.scanResDescLength
+        ) {
+          errors.scanResolutions.defaultScanRes.desc.push(
+            `Scan resolution description must not exceed ${maximums.scanResDescLength} characters.`
           );
         }
       }
-      // scanResB name
-      if (req.body.scanResBName.trim()) {
-        if (req.body.scanResBName.trim().length > 50) {
-          errors.scanResBName.push(
-            'Scan resolution name must not exceed 50 characters.'
-          );
+      // custom scan reses
+      reqScanSettings.scanResolutions.additionalResolutions.forEach(
+        (resolution, i) => {
+          if (resolution.name.trim()) {
+            if (resolution.name.trim().length > maximums.scanResNameLength) {
+              errors.scanResolutions.additionalResolutions[i].name.push(
+                `Scan resolution name must not exceed ${maximums.scanResNameLength} characters.`
+              );
+            }
+          }
+          if (resolution.desc.trim()) {
+            if (resolution.desc.trim().length > maximums.scanResDescLength) {
+              errors.scanResoltuions.additionalResolutions[i].desc.push(
+                `Scan resolution description must not exceed ${maximums.scanResDescLength} characters.`
+              );
+            }
+          }
         }
-      }
-      // scanResB desc
-      if (req.body.scanResBDesc.trim()) {
-        if (req.body.scanResBDesc.trim().length > 150) {
-          errors.scanResBDesc.push(
-            'Scan resolution description must not exceed 150 characters.'
-          );
-        }
-      }
-      // scanResC name
-      if (req.body.scanResCName.trim()) {
-        if (req.body.scanResCName.trim().length > 50) {
-          errors.scanResCName.push(
-            'Scan resolution name must not exceed 50 characters.'
-          );
-        }
-      }
-      // scanResC desc
-      if (req.body.scanResCDesc.trim()) {
-        if (req.body.scanResCDesc.trim().length > 150) {
-          errors.scanResCDesc.push(
-            'Scan resolution description must not exceed 150 characters.'
-          );
-        }
-      }
-      // scanResD name
-      if (req.body.scanResDName.trim()) {
-        if (req.body.scanResDName.trim().length > 50) {
-          errors.scanResDName.push(
-            'Scan resolution name must not exceed 50 characters.'
-          );
-        }
-      }
-      // scanResD desc
-      if (req.body.scanResDDesc.trim()) {
-        if (req.body.scanResDDesc.trim().length > 150) {
-          errors.scanResDDesc.push(
-            'Scan resolution description must not exceed 150 characters.'
-          );
-        }
-      }
-      // scanResE name
-      if (req.body.scanResEName.trim()) {
-        if (req.body.scanResEName.trim().length > 50) {
-          errors.scanResEName.push(
-            'Scan resolution name must not exceed 50 characters.'
-          );
-        }
-      }
-      // scanResE desc
-      if (req.body.scanResEDesc.trim()) {
-        if (req.body.scanResEDesc.trim().length > 150) {
-          errors.scanResEDesc.push(
-            'Scan resolution description must not exceed 150 characters.'
-          );
-        }
-      }
-      // scanResF name
-      if (req.body.scanResFName.trim()) {
-        if (req.body.scanResFName.trim().length > 50) {
-          errors.scanResFName.push(
-            'Scan resolution name must not exceed 50 characters.'
-          );
-        }
-      }
-      // scanResF desc
-      if (req.body.scanResFDesc.trim()) {
-        if (req.body.scanResFDesc.trim().length > 150) {
-          errors.scanResFDesc.push(
-            'Scan resolution description must not exceed 150 characters.'
-          );
-        }
-      }
-      // customScanOptionsName
-      if (req.body.customScanOptionsName.trim()) {
-        if (req.body.customScanOptionsName.trim().length > 50) {
-          errors.customScanOptionsName.push(
-            'Custom scan options name must not exceed 50 characters.'
-          );
-        }
-      }
-      // defaultScanOptionName
-      if (req.body.defaultScanOptionName.trim()) {
-        if (req.body.defaultScanOptionName.trim().length > 50) {
-          errors.defaultScanOptionName.push(
-            'Default scan option name must not exceed 50 characters.'
-          );
-        }
-      }
-      // defaultScanOptionDesc
-      if (req.body.defaultScanOptionDesc.trim()) {
-        if (req.body.defaultScanOptionDesc.trim().length > 150) {
-          errors.defaultScanOptionDesc.push(
-            'Default scan option description must not exceed 150 characters.'
-          );
-        }
-      }
-      // scanOptionBName
-      if (req.body.scanOptionBName.trim()) {
-        if (req.body.scanOptionBName.trim().length > 50) {
-          errors.scanOptionBName.push(
-            'Custom scan option name must not exceed 50 characters.'
-          );
-        }
-      }
-      // scanOptionBDesc
-      if (req.body.scanOptionBDesc.trim()) {
-        if (req.body.scanOptionBDesc.trim().length > 150) {
-          errors.scanOptionBDesc.push(
-            'Custom scan option description must not exceed 150 characters.'
-          );
-        }
-      }
-      // scanOptionCName
-      if (req.body.scanOptionCName.trim()) {
-        if (req.body.scanOptionCName.trim().length > 50) {
-          errors.scanOptionCName.push(
-            'Custom scan option name must not exceed 50 characters.'
-          );
-        }
-      }
-      // scanOptionCDesc
-      if (req.body.scanOptionCDesc.trim()) {
-        if (req.body.scanOptionCDesc.trim().length > 150) {
-          errors.scanOptionCDesc.push(
-            'Custom scan option description must not exceed 150 characters.'
-          );
-        }
-      }
+      );
     }
     // throw errors for any numbers that are not within range (if there is a number at all)
     {
       // rawByOrderPrice
       if (
-        isNumber(req.body.rawByOrderPrice) &&
-        (req.body.rawByOrderPrice < 0.01 || req.body.rawByOrderPrice > 999.99)
+        isNumber(reqScanSettings.rawByOrder.price) &&
+        (req.body.rawByOrderPrice < 0.01 ||
+          req.body.rawByOrderPrice > maximums.rawByOrderPrice)
       ) {
         errors.rawByOrderPrice.push(
-          'Raw by order price must be between $0.01 and $999.99.'
+          `Raw by order price must be between $0.01 and $${maximums.rawByOrderPrice}.`
         );
       }
     }
   }
   // if any of the errors arrays have a length of greater than 0, return the errors object
-  let hasErrors = false;
-  Object.keys(errors).forEach(itemName => {
-    if (errors[itemName].length > 0) {
-      hasErrors = true;
+  const hasErrors = () => {
+    if (errors.rawByOrder.price.length > 0) {
+      return true;
     }
-  });
-  if (hasErrors) {
+    if (errors.scanners.defaultScanner.name.length > 0) {
+      return true;
+    }
+    if (errors.scanners.defaultScanner.desc.length > 0) {
+      return true;
+    }
+    if (errors.scanners.scannerB.name.length > 0) {
+      return true;
+    }
+    if (errors.scanners.scannerB.desc.length > 0) {
+      return true;
+    }
+    if (errors.scanners.scannerC.name.length > 0) {
+      return true;
+    }
+    if (errors.scanners.scannerC.desc.length > 0) {
+      return true;
+    }
+    if (errors.scanResolutions.defaultScanRes.name.length > 0) {
+      return true;
+    }
+    if (errors.scanResolutions.defaultScanRes.desc.length > 0) {
+      return true;
+    }
+    let scanResErrors = false;
+    errors.scanResolutions.additionalResolutions.forEach(resolution => {
+      console.log(resolution.name);
+      if (resolution.name.length > 0) {
+        scanResErrors = true;
+      }
+      if (resolution.desc.length > 0) {
+        scanResErrors = true;
+      }
+    });
+    if (scanResErrors) return true;
+    return false;
+  };
+  if (hasErrors()) {
     return res.status(400).json({ errors: errors });
   }
   Lab.findById(req.params.labId).then(foundLab => {
     if (!foundLab) return res.status(404).json({ error: 'Lab not found' });
     foundLab.settings.scanSettings = {
-      isEnabled: req.body.scanIsEnabled,
+      isEnabled: reqScanSettings.isEnabled,
       rawByOrder: {
-        isEnabled: req.body.rawByOrderIsEnabled,
-        price: req.body.rawByOrderPrice,
+        isEnabled: reqScanSettings.rawByOrder.isEnabled,
+        price: reqScanSettings.rawByOrder.price,
       },
       scanners: {
         defaultScanner: {
-          name: req.body.defaultScannerName.trim(),
-          desc: req.body.defaultScannerDesc.trim(),
+          name: reqScanSettings.scanners.defaultScanner.name.trim(),
+          desc: reqScanSettings.scanners.defaultScanner.desc.trim(),
         },
         scannerB: {
-          isEnabled: req.body.scannerBIsEnabled,
-          name: req.body.scannerBName.trim(),
-          desc: req.body.scannerBDesc.trim(),
+          isEnabled: reqScanSettings.scanners.scannerB.isEnabled,
+          name: reqScanSettings.scanners.scannerB.name.trim(),
+          desc: reqScanSettings.scanners.scannerB.desc.trim(),
         },
         scannerC: {
-          isEnabled: req.body.scannerCIsEnabled,
-          name: req.body.scannerCName.trim(),
-          desc: req.body.scannerCDesc.trim(),
+          isEnabled: reqScanSettings.scanners.scannerC.isEnabled,
+          name: reqScanSettings.scanners.scannerC.name.trim(),
+          desc: reqScanSettings.scanners.scannerC.desc.trim(),
         },
       },
       scanResolutions: {
         defaultScanRes: {
-          name: req.body.defaultScanResName.trim(),
-          desc: req.body.defaultScanResDesc.trim(),
+          name: reqScanSettings.scanResolutions.defaultScanRes.name.trim(),
+          desc: reqScanSettings.scanResolutions.defaultScanRes.desc.trim(),
         },
-        scanResB: {
-          isEnabled: req.body.scanResBIsEnabled,
-          name: req.body.scanResBName.trim(),
-          desc: req.body.scanResBDesc.trim(),
-        },
-        scanResC: {
-          isEnabled: req.body.scanResCIsEnabled,
-          name: req.body.scanResCName.trim(),
-          desc: req.body.scanResCDesc.trim(),
-        },
-        scanResD: {
-          isEnabled: req.body.scanResDIsEnabled,
-          name: req.body.scanResDName.trim(),
-          desc: req.body.scanResDDesc.trim(),
-        },
-        scanResE: {
-          isEnabled: req.body.scanResEIsEnabled,
-          name: req.body.scanResEName.trim(),
-          desc: req.body.scanResEDesc.trim(),
-        },
-        scanResF: {
-          isEnabled: req.body.scanResFIsEnabled,
-          name: req.body.scanResFName.trim(),
-          desc: req.body.scanResFDesc.trim(),
-        },
-      },
-      customScanOptions: {
-        name: req.body.customScanOptionsName.trim(),
-        defaultScanOption: {
-          name: req.body.defaultScanOptionName.trim(),
-          desc: req.body.defaultScanOptionDesc.trim(),
-        },
-        scanOptionB: {
-          isEnabled: req.body.scanOptionBIsEnabled,
-          name: req.body.scanOptionBName.trim(),
-          desc: req.body.scanOptionBDesc.trim(),
-        },
-        scanOptionC: {
-          isEnabled: req.body.scanOptionCIsEnabled,
-          name: req.body.scanOptionCName.trim(),
-          desc: req.body.scanOptionCDesc.trim(),
-        },
+        additionalResolutions: reqScanSettings.scanResolutions.additionalResolutions.map(
+          resolution => {
+            return {
+              resId: resolution.resId,
+              isEnabled: resolution.isEnabled,
+              name: resolution.name,
+              desc: resolution.desc,
+              hasRawByDefault: resolution.hasRawByDefault,
+            };
+          }
+        ),
       },
     };
+
+    foundLab.labServices.forEach((labService, i) => {
+      // default scanner
+      const defaultScannerCustomResolutions = [];
+      reqScanSettings.scanResolutions.additionalResolutions.forEach(
+        (reqResolution, index) => {
+          ////// for each requested custom resolution, check if it already exists or not
+          let resolutionAlreadyExists = false;
+          let resolutionIndex;
+          labService.addOns.hasScan.defaultScanner.scanResolutions.forEach(
+            foundResolution => {
+              if (foundResolution.resId === reqResolution.resId) {
+                resolutionAlreadyExists = true;
+                resolutionIndex = index;
+              }
+            }
+          );
+          if (resolutionAlreadyExists) {
+            defaultScannerCustomResolutions.push({
+              resId: reqResolution.resId,
+              isEnabled:
+                labService.addOns.hasScan.defaultScanner.scanResolutions[
+                  resolutionIndex
+                ].isEnabled,
+              price:
+                labService.addOns.hasScan.defaultScanner.scanResolutions[
+                  resolutionIndex
+                ].price,
+            });
+          } else {
+            defaultScannerCustomResolutions.push({
+              resId: reqResolution.resId,
+              isEnabled: reqResolution.isEnabled,
+              price: reqResolution.price,
+            });
+          }
+        }
+      );
+      foundLab.labServices[
+        i
+      ].addOns.hasScan.defaultScanner.scanResolutions = defaultScannerCustomResolutions;
+      // scanner b
+      const scannerBCustomResolutions = [];
+      reqScanSettings.scanResolutions.additionalResolutions.forEach(
+        (reqResolution, index) => {
+          ////// for each requested custom resolution, check if it already exists or not
+          let resolutionAlreadyExists = false;
+          let resolutionIndex;
+          labService.addOns.hasScan.scannerB.scanResolutions.forEach(
+            foundResolution => {
+              if (foundResolution.resId === reqResolution.resId) {
+                resolutionAlreadyExists = true;
+                resolutionIndex = index;
+              }
+            }
+          );
+          if (resolutionAlreadyExists) {
+            scannerBCustomResolutions.push({
+              resId: reqResolution.resId,
+              isEnabled:
+                labService.addOns.hasScan.scannerB.scanResolutions[
+                  resolutionIndex
+                ].isEnabled,
+              price:
+                labService.addOns.hasScan.scannerB.scanResolutions[
+                  resolutionIndex
+                ].price,
+            });
+          } else {
+            scannerBCustomResolutions.push({
+              resId: reqResolution.resId,
+              isEnabled: reqResolution.isEnabled,
+              price: reqResolution.price,
+            });
+          }
+        }
+      );
+      foundLab.labServices[
+        i
+      ].addOns.hasScan.scannerB.scanResolutions = scannerBCustomResolutions;
+      // scanner c
+      const scannerCCustomResolutions = [];
+      reqScanSettings.scanResolutions.additionalResolutions.forEach(
+        (reqResolution, index) => {
+          ////// for each requested custom resolution, check if it already exists or not
+          let resolutionAlreadyExists = false;
+          let resolutionIndex;
+          labService.addOns.hasScan.scannerC.scanResolutions.forEach(
+            foundResolution => {
+              if (foundResolution.resId === reqResolution.resId) {
+                resolutionAlreadyExists = true;
+                resolutionIndex = index;
+              }
+            }
+          );
+          if (resolutionAlreadyExists) {
+            scannerCCustomResolutions.push({
+              resId: reqResolution.resId,
+              isEnabled:
+                labService.addOns.hasScan.scannerC.scanResolutions[
+                  resolutionIndex
+                ].isEnabled,
+              price:
+                labService.addOns.hasScan.scannerC.scanResolutions[
+                  resolutionIndex
+                ].price,
+            });
+          } else {
+            scannerCCustomResolutions.push({
+              resId: reqResolution.resId,
+              isEnabled: reqResolution.isEnabled,
+              price: reqResolution.price,
+            });
+          }
+        }
+      );
+      foundLab.labServices[
+        i
+      ].addOns.hasScan.scannerC.scanResolutions = scannerCCustomResolutions;
+    });
+
     foundLab.save().then(savedLab => {
       if (!savedLab)
         return res.status(400).json({ error: 'Unable to save lab' });
