@@ -13,6 +13,7 @@ const maximums = {
   labNameLength: 100,
   labDescriptionLength: 300,
   shippingPrice: 100,
+  additionalScanners: 3,
   additionalResolutions: 12,
   scannerNameLength: 50,
   scannerDescLength: 150,
@@ -509,7 +510,16 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
   };
   // handle all possible errors
   {
-    // if there are more than X custom scan resolutions,
+    // if there are more than x additional scanners
+    if (
+      reqScanSettings.scanners.additionalScanners.length >
+      maximums.additionalScanners
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'Maximum scan resolutions exceeded.' });
+    }
+    // if there are more than X additional scan resolutions,
     if (
       reqScanSettings.scanResolutions.additionalResolutions.length >
       maximums.additionalResolutions
@@ -519,17 +529,27 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
         .json({ error: 'Maximum scan resolutions exceeded.' });
     }
     // check for duplicate scannerIds
+    {
+      const scannerIdDuplicates = {};
+      reqScanSettings.scanners.additionalScanners.forEach(scanner => {
+        if (scannerIdDuplicates[`scannerId${scanner.scannerId}`]) {
+          return res
+            .status(400)
+            .json({ error: 'Duplicate scanner IDs found.' });
+        }
+      });
+    }
     // check for duplicate resIds
     {
       const resIdDuplicates = {};
       reqScanSettings.scanResolutions.additionalResolutions.forEach(
-        customScanResolution => {
-          if (resIdDuplicates[`resId${customScanResolution.resId}`]) {
+        resolution => {
+          if (resIdDuplicates[`resId${resolution.resId}`]) {
             return res
               .status(400)
               .json({ error: 'Duplicate resolution IDs found.' });
           } else {
-            resIdDuplicates[`resId${customScanResolution.resId}`] = true;
+            resIdDuplicates[`resId${resolution.resId}`] = true;
           }
         }
       );
@@ -781,16 +801,16 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           name: reqScanSettings.scanners.defaultScanner.name.trim(),
           desc: reqScanSettings.scanners.defaultScanner.desc.trim(),
         },
-        scannerB: {
-          isEnabled: reqScanSettings.scanners.scannerB.isEnabled,
-          name: reqScanSettings.scanners.scannerB.name.trim(),
-          desc: reqScanSettings.scanners.scannerB.desc.trim(),
-        },
-        scannerC: {
-          isEnabled: reqScanSettings.scanners.scannerC.isEnabled,
-          name: reqScanSettings.scanners.scannerC.name.trim(),
-          desc: reqScanSettings.scanners.scannerC.desc.trim(),
-        },
+        additionalScanners: reqScanSettings.scanners.additionalScanners.map(
+          scanner => {
+            return {
+              scannerId: scanner.scannerId,
+              isEnabled: scanner.isEnabled,
+              name: scanner.name,
+              desc: scanner.desc,
+            };
+          }
+        ),
       },
       scanResolutions: {
         defaultScanRes: {
