@@ -31,33 +31,29 @@ const labSchema = new mongoose.Schema({
       },
       scanners: {
         defaultScanner: {
-          // make sure this is required if scanning is enabled
           name: { type: String, default: 'Noritsu' },
           desc: { type: String, default: '' },
         },
-        scannerB: {
-          isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: 'Fuji Frontier' },
-          desc: { type: String, default: '' },
-        },
-        scannerC: {
-          isEnabled: { type: Boolean, default: false },
-          name: { type: String, default: '' },
-          desc: { type: String, default: '' },
-        },
+        additionalScanners: [
+          {
+            scannerId: { type: Number, unique: true, required: true },
+            isEnabled: { type: Boolean, default: true },
+            name: { type: String, default: '', required: true },
+            desc: { type: String, default: '' },
+          },
+        ],
       },
       scanResolutions: {
         defaultScanRes: {
-          // make sure this is required if scanning is enabled
           name: { type: String, default: 'Large Scans' },
           desc: { type: String, default: '' },
           hasRawByDefault: { type: Boolean, default: false },
         },
         additionalResolutions: [
           {
-            isEnabled: { type: Boolean, default: true },
             resId: { type: Number, unique: true, required: true },
-            name: { type: String, default: '' },
+            isEnabled: { type: Boolean, default: true },
+            name: { type: String, default: '', required: true },
             desc: { type: String, default: '' },
             hasRawByDefault: { type: Boolean, default: false },
           },

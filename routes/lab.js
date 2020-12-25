@@ -406,32 +406,22 @@ router.get('/labs/:labId/settings/scan/edit', (req, res) => {
             maxLength: maximums.scannerDescLength,
           },
         },
-        scannerB: {
-          isEnabled: {
-            checked: foundLab.settings.scanSettings.scanners.scannerB.isEnabled,
-          },
-          name: {
-            value: foundLab.settings.scanSettings.scanners.scannerB.name,
-            maxLength: maximums.scannerNameLength,
-          },
-          desc: {
-            value: foundLab.settings.scanSettings.scanners.scannerB.desc,
-            maxLength: maximums.scannerDescLength,
-          },
-        },
-        scannerC: {
-          isEnabled: {
-            checked: foundLab.settings.scanSettings.scanners.scannerC.isEnabled,
-          },
-          name: {
-            value: foundLab.settings.scanSettings.scanners.scannerC.name,
-            maxLength: maximums.scannerNameLength,
-          },
-          desc: {
-            value: foundLab.settings.scanSettings.scanners.scannerC.desc,
-            maxLength: maximums.scannerDescLength,
-          },
-        },
+        additionalScanners: foundLab.settings.scanSettings.scanners.additionalScanners.map(
+          scanner => {
+            return {
+              scannerId: scanner.scannerId,
+              isEnabled: { checked: scanner.isEnabled },
+              name: {
+                value: scanner.name,
+                maxLength: maximums.scannerNameLength,
+              },
+              desc: {
+                value: scanner.desc,
+                maxLength: maximums.scannerDescLength,
+              },
+            };
+          }
+        ),
       },
       scanResolutions: {
         defaultScanRes: {
@@ -493,14 +483,14 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
         name: [],
         desc: [],
       },
-      scannerB: {
-        name: [],
-        desc: [],
-      },
-      scannerC: {
-        name: [],
-        desc: [],
-      },
+      additionalScanners: reqScanSettings.scanners.additionalScanners.map(
+        () => {
+          return {
+            name: [],
+            desc: [],
+          };
+        }
+      ),
     },
     scanResolutions: {
       defaultScanRes: {
@@ -528,6 +518,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
         .status(400)
         .json({ error: 'Maximum scan resolutions exceeded.' });
     }
+    // check for duplicate scannerIds
     // check for duplicate resIds
     {
       const resIdDuplicates = {};
@@ -571,25 +562,40 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
         );
       }
     }
-    // if scannerb is enabled,
-    if (reqScanSettings.scanners.scannerB.isEnabled) {
-      //// throw error if scannerbname is not defined
-      if (!reqScanSettings.scanners.scannerB.name.trim()) {
-        errors.scanners.scannerB.name.push(
-          'Scanner B must have a name if enabled.'
+    // if any of the additional scanners exist,
+    reqScanSettings.scanners.additionalScanners.forEach((scanner, i) => {
+      // throw an error if the scanner name is not defined
+      if (!scanner.name.trim()) {
+        errors.scanners.additionalScanners[i].name.push(
+          'Scanner must have a name. Remove this scanner if no longer needed.'
         );
+      } else {
+        // throw an error if the scanner name is not unique
+        let nameIsUnique = true;
+        if (scanner.name === reqScanSettings.scanners.defaultScanner.name) {
+          nameIsUnique = false;
+        } else {
+          reqScanSettings.scanners.additionalScanners.forEach(
+            (otherScanner, otherScannerIndex) => {
+              if (i > otherScannerIndex) {
+                if (
+                  scanner.name === otherScanner.name &&
+                  scanner.scannerId !== otherScanner.scannerId
+                ) {
+                  nameIsUnique = false;
+                }
+              }
+            }
+          );
+        }
+        if (!nameIsUnique) {
+          errors.scanners.additionalScanners[i].name.push(
+            'Scanner name must be unique.'
+          );
+        }
       }
-    }
-    // if scannerc is enabled,
-    if (reqScanSettings.scanners.scannerC.isEnabled) {
-      //// throw error if scannercname is not defined
-      if (!reqScanSettings.scanners.scannerC.name.trim()) {
-        errors.scanners.scannerC.name.push(
-          'Scanner C must have a name if enabled.'
-        );
-      }
-    }
-    // if any of the custom scan resolutions exist,
+    });
+    // if any of the additional scan resolutions exist,
     reqScanSettings.scanResolutions.additionalResolutions.forEach(
       (resolution, i) => {
         // throw an error if the scan resolution name is not defined
@@ -597,9 +603,8 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           errors.scanResolutions.additionalResolutions[i].name.push(
             'Scan resolution must have a name. Remove this resolution if no longer needed.'
           );
-        }
-        // throw an error if the scan resolution name is not unique
-        else {
+        } else {
+          // throw an error if the scan resolution name is not unique
           let nameIsUnique = true;
           if (
             resolution.name ===
@@ -652,50 +657,19 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
-      // scannerb name
-      if (reqScanSettings.scanners.scannerB.name.trim()) {
-        if (
-          reqScanSettings.scanners.scannerB.name.trim().length >
-          maximums.scannerNameLength
-        ) {
-          errors.scanners.scannerB.name.push(
+      // additional scanners
+      reqScanSettings.scanners.additionalScanners.forEach((scanner, i) => {
+        if (scanner.name.trim().length > maximums.scannerNameLength) {
+          errors.scanners.additionalScanners[i].name.push(
             `Scanner name must not exceed ${maximums.scannerNameLength} characters.`
           );
         }
-      }
-      // scannerb desc
-      if (reqScanSettings.scanners.scannerB.desc.trim()) {
-        if (
-          reqScanSettings.scanners.scannerB.desc.trim().length >
-          maximums.scannerDescLength
-        ) {
-          errors.scanners.scannerB.desc.push(
+        if (scanner.desc.trim().length > maximums.scannerDescLength) {
+          errors.scanners.additionalScanners[i].desc.push(
             `Scanner description must not exceed ${maximums.scannerDescLength} characters.`
           );
         }
-      }
-      // scannerc name
-      if (reqScanSettings.scanners.scannerC.name.trim()) {
-        if (
-          reqScanSettings.scanners.scannerC.name.trim().length >
-          maximums.scannerNameLength
-        ) {
-          errors.scanners.scannerC.name.push(
-            `Scanner name must not exceed ${maximums.scannerNameLength} characters.`
-          );
-        }
-      }
-      // scannerc desc
-      if (reqScanSettings.scanners.scannerC.desc.trim()) {
-        if (
-          reqScanSettings.scanners.scannerC.desc.trim().length >
-          maximums.scannerDescLength
-        ) {
-          errors.scanners.scannerC.desc.push(
-            `Scanner description must not exceed ${maximums.scannerDescLength} characters.`
-          );
-        }
-      }
+      });
       // defaultScanRes name
       if (reqScanSettings.scanResolutions.defaultScanRes.name.trim()) {
         if (
@@ -718,22 +692,18 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
           );
         }
       }
-      // custom scan reses
+      // additional reses
       reqScanSettings.scanResolutions.additionalResolutions.forEach(
         (resolution, i) => {
-          if (resolution.name.trim()) {
-            if (resolution.name.trim().length > maximums.scanResNameLength) {
-              errors.scanResolutions.additionalResolutions[i].name.push(
-                `Scan resolution name must not exceed ${maximums.scanResNameLength} characters.`
-              );
-            }
+          if (resolution.name.trim().length > maximums.scanResNameLength) {
+            errors.scanResolutions.additionalResolutions[i].name.push(
+              `Scan resolution name must not exceed ${maximums.scanResNameLength} characters.`
+            );
           }
-          if (resolution.desc.trim()) {
-            if (resolution.desc.trim().length > maximums.scanResDescLength) {
-              errors.scanResoltuions.additionalResolutions[i].desc.push(
-                `Scan resolution description must not exceed ${maximums.scanResDescLength} characters.`
-              );
-            }
+          if (resolution.desc.trim().length > maximums.scanResDescLength) {
+            errors.scanResoltuions.additionalResolutions[i].desc.push(
+              `Scan resolution description must not exceed ${maximums.scanResDescLength} characters.`
+            );
           }
         }
       );
@@ -763,17 +733,17 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
     if (errors.scanners.defaultScanner.desc.length > 0) {
       return true;
     }
-    if (errors.scanners.scannerB.name.length > 0) {
-      return true;
-    }
-    if (errors.scanners.scannerB.desc.length > 0) {
-      return true;
-    }
-    if (errors.scanners.scannerC.name.length > 0) {
-      return true;
-    }
-    if (errors.scanners.scannerC.desc.length > 0) {
-      return true;
+    {
+      let scannerErrors = false;
+      errors.scanners.additionalScanners.forEach(scanner => {
+        if (scanner.name.length > 0) {
+          scannerErrors = true;
+        }
+        if (scanner.desc.length > 0) {
+          scannerErrors = true;
+        }
+      });
+      if (scannerErrors) return true;
     }
     if (errors.scanResolutions.defaultScanRes.name.length > 0) {
       return true;
@@ -781,16 +751,18 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
     if (errors.scanResolutions.defaultScanRes.desc.length > 0) {
       return true;
     }
-    let scanResErrors = false;
-    errors.scanResolutions.additionalResolutions.forEach(resolution => {
-      if (resolution.name.length > 0) {
-        scanResErrors = true;
-      }
-      if (resolution.desc.length > 0) {
-        scanResErrors = true;
-      }
-    });
-    if (scanResErrors) return true;
+    {
+      let scanResErrors = false;
+      errors.scanResolutions.additionalResolutions.forEach(resolution => {
+        if (resolution.name.length > 0) {
+          scanResErrors = true;
+        }
+        if (resolution.desc.length > 0) {
+          scanResErrors = true;
+        }
+      });
+      if (scanResErrors) return true;
+    }
     return false;
   };
   if (hasErrors()) {
