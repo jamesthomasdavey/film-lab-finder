@@ -482,61 +482,6 @@ router.get('/labs/:labId/settings/scan/edit', (req, res) => {
 // @access  private
 router.put('/labs/:labId/settings/scan', (req, res) => {
   // todo: make sure that user is lab owner
-  /*
-  {
-    isEnabled: true,
-    rawByOrder: {
-      isEnabled: false,
-      price: 0,
-    },
-    scanners: {
-      defaultScanner: {
-        name: "Noritsu",
-        desc: "",
-      },
-      scannerB: {
-        isEnabled: true,
-        name: "Frontier",
-        desc: "",
-      },
-      scannerC: {
-        isEnabled: false,
-        name: "",
-        desc: "",
-      },
-    },
-    scanResolutions: {
-      defaultScanRes: {
-        name: "Large Scans",
-        desc: "",
-        hasRawByDefault: false,
-      },
-      additionalResolutions: [
-        {
-          resId: 10,
-          isEnabled: true,
-          name: "Large Scans (RAW)",
-          desc: "",
-          hasRawByDefault: true,
-        },
-        {
-          resId: 11,
-          isEnabled: true,
-          name: "Extra Large Scans",
-          desc: "",
-          hasRawByDefault: false
-        },
-        {
-          resId: 12,
-          isEnabled: true,
-          name: "Extra Large Scans (RAW)",
-          desc: "",
-          hasRawByDefault: true
-        },
-      ],
-    },
-  }
-  */
   const reqScanSettings = req.body;
 
   const errors = {
@@ -644,14 +589,40 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
         );
       }
     }
-    // if any of the custom scan resolutions are enabled,
+    // if any of the custom scan resolutions exist,
     reqScanSettings.scanResolutions.additionalResolutions.forEach(
       (resolution, i) => {
-        if (resolution.isEnabled) {
-          //// throw an error if the scan resolution name is not defined
-          if (!resolution.name.trim()) {
+        // throw an error if the scan resolution name is not defined
+        if (!resolution.name.trim()) {
+          errors.scanResolutions.additionalResolutions[i].name.push(
+            'Scan resolution must have a name. Remove this resolution if no longer needed.'
+          );
+        }
+        // throw an error if the scan resolution name is not unique
+        else {
+          let nameIsUnique = true;
+          if (
+            resolution.name ===
+            reqScanSettings.scanResolutions.defaultScanRes.name
+          ) {
+            nameIsUnique = false;
+          } else {
+            reqScanSettings.scanResolutions.additionalResolutions.forEach(
+              (otherRes, otherResIndex) => {
+                if (i > otherResIndex) {
+                  if (
+                    resolution.name === otherRes.name &&
+                    resolution.resId !== otherRes.resId
+                  ) {
+                    nameIsUnique = false;
+                  }
+                }
+              }
+            );
+          }
+          if (!nameIsUnique) {
             errors.scanResolutions.additionalResolutions[i].name.push(
-              'Scan resolution must have a name if enabled.'
+              'Scan resolution name must be unique.'
             );
           }
         }
@@ -812,7 +783,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
     }
     let scanResErrors = false;
     errors.scanResolutions.additionalResolutions.forEach(resolution => {
-      console.log(resolution.name);
       if (resolution.name.length > 0) {
         scanResErrors = true;
       }
@@ -854,6 +824,8 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
         defaultScanRes: {
           name: reqScanSettings.scanResolutions.defaultScanRes.name.trim(),
           desc: reqScanSettings.scanResolutions.defaultScanRes.desc.trim(),
+          hasRawByDefault:
+            reqScanSettings.scanResolutions.defaultScanRes.hasRawByDefault,
         },
         additionalResolutions: reqScanSettings.scanResolutions.additionalResolutions.map(
           resolution => {
