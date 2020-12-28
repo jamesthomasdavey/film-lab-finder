@@ -420,6 +420,8 @@ router.get('/labs/:labId/settings/scan/edit', (req, res) => {
                 value: scanner.desc,
                 maxLength: maximums.scannerDescLength,
               },
+              remove: false,
+              hasBeenSaved: true,
             };
           }
         ),
@@ -460,6 +462,8 @@ router.get('/labs/:labId/settings/scan/edit', (req, res) => {
               hasRawByDefault: {
                 checked: resolution.hasRawByDefault,
               },
+              remove: false,
+              hasBeenSaved: true,
             };
           }
         ),
@@ -592,7 +596,10 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
       } else {
         // throw an error if the scanner name is not unique
         let nameIsUnique = true;
-        if (scanner.name === reqScanSettings.scanners.defaultScanner.name) {
+        if (
+          scanner.name.trim() ===
+          reqScanSettings.scanners.defaultScanner.name.trim()
+        ) {
           nameIsUnique = false;
         } else {
           reqScanSettings.scanners.additionalScanners.forEach(
@@ -806,8 +813,8 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
             return {
               scannerId: scanner.scannerId,
               isEnabled: scanner.isEnabled,
-              name: scanner.name,
-              desc: scanner.desc,
+              name: scanner.name.trim(),
+              desc: scanner.desc.trim(),
             };
           }
         ),
@@ -824,8 +831,8 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
             return {
               resId: resolution.resId,
               isEnabled: resolution.isEnabled,
-              name: resolution.name,
-              desc: resolution.desc,
+              name: resolution.name.trim(),
+              desc: resolution.desc.trim(),
               hasRawByDefault: resolution.hasRawByDefault,
             };
           }
