@@ -135,36 +135,28 @@ const labSchema = new mongoose.Schema({
             price: { type: Number, default: 0 },
           },
           defaultScanner: {
-            scanResolutions: [
+            additionalResolutions: [
               {
                 resId: { type: Number, default: 0, unique: true },
-                isEnabled: { type: Boolean, default: true },
+                isEnabled: { type: Boolean, default: false },
                 price: { type: Number, default: 0 },
               },
             ],
           },
-          scannerB: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
-            scanResolutions: [
-              {
-                resId: { type: Number, default: 0, unique: true },
-                isEnabled: { type: Boolean, default: true },
-                price: { type: Number, default: 0 },
-              },
-            ],
-          },
-          scannerC: {
-            isEnabled: { type: Boolean, default: false },
-            price: { type: Number, default: 0 },
-            scanResolutions: [
-              {
-                resId: { type: Number, default: 0, unique: true },
-                isEnabled: { type: Boolean, default: true },
-                price: { type: Number, default: 0 },
-              },
-            ],
-          },
+          additionalScanners: [
+            {
+              scannerId: { type: Number, default: 0, unique: true },
+              isEnabled: { type: Boolean, default: false },
+              price: { type: Number, default: 0 },
+              additionalResolutions: [
+                {
+                  resId: { type: Number, default: 0, unique: true },
+                  isEnabled: { type: Boolean, default: false },
+                  price: { type: Number, default: 0 },
+                },
+              ],
+            },
+          ],
         },
       },
     },
