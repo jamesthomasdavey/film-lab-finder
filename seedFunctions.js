@@ -670,7 +670,7 @@ const seedArrayToMongooseModel = (array, mongooseModel) => {
 
 // execution
 exports.execute = () => {
-  // seeding; run these one at a time maybe
+  // seeding; run these one at a time
   // you need to paste each piece of data in. idk why.
   // seedArrayToMongooseModel(serviceTypes, ServiceType);
   // seedArrayToMongooseModel(filmTypes, FilmType);

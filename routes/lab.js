@@ -843,14 +843,14 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
       },
     };
 
-    // set all the scanners and scan resolutions for every lab service
+    // set the scanners and scan resolutions for every lab service
     foundLab.labServices.forEach((labService, i) => {
-      // set the custom resolutions for the default scanner
+      // set the additional resolutions for the default scanner
       {
         const defaultScannerCustomResolutions = [];
         reqScanSettings.scanResolutions.additionalResolutions.forEach(
           (reqResolution, index) => {
-            ////// for each requested custom resolution, check if it already exists or not
+            // for each requested custom resolution, check if it already exists or not
             let resolutionAlreadyExists = false;
             let resolutionIndex;
             labService.addOns.hasScan.defaultScanner.additionalResolutions.forEach(
@@ -890,7 +890,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
         const additionalScanners = [];
         reqScanSettings.scanners.additionalScanners.forEach(
           (reqScanner, index) => {
-            ////// for each requested custom scanner, check if it already exists or not
+            // for each requested custom scanner, check if it already exists or not
             let scannerAlreadyExists = false;
             let scannerIndex;
             let additionalScanner;
@@ -903,6 +903,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
               }
             );
 
+            // if the scanner already exists, use its pre-existing "isEnabled" and "price" settings
             if (scannerAlreadyExists) {
               additionalScanner = {
                 scannerId: reqScanner.scannerId,
@@ -914,6 +915,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
                     .price,
               };
             } else {
+              // if the scanner doesn't exist, set new "isEnabled" and "price" settings
               additionalScanner = {
                 scannerId: reqScanner.scannerId,
                 isEnabled: reqScanner.isEnabled,
@@ -926,17 +928,19 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
               const additionalScannerAdditionalResolutions = [];
               reqScanSettings.scanResolutions.additionalResolutions.forEach(
                 (reqResolution, index) => {
-                  ////// for each requested custom resolution, check if it already exists or not
+                  // for each requested custom resolution, check if it already exists in the lab service
                   let resolutionAlreadyExists = false;
                   let resolutionIndex;
-                  labService.addOns.hasScan.additionalScanners[
-                    scannerIndex
-                  ].additionalResolutions.forEach(foundResolution => {
-                    if (foundResolution.resId === reqResolution.resId) {
-                      resolutionAlreadyExists = true;
-                      resolutionIndex = index;
-                    }
-                  });
+                  if (scannerAlreadyExists) {
+                    labService.addOns.hasScan.additionalScanners[
+                      scannerIndex
+                    ].additionalResolutions.forEach(foundResolution => {
+                      if (foundResolution.resId === reqResolution.resId) {
+                        resolutionAlreadyExists = true;
+                        resolutionIndex = index;
+                      }
+                    });
+                  }
 
                   if (resolutionAlreadyExists) {
                     additionalScannerAdditionalResolutions.push({
@@ -1046,14 +1050,22 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
             isAllowed: labAllowsScan,
           },
           additionalResolutions: foundLab.settings.scanSettings.scanResolutions.additionalResolutions.map(
-            resolution => {
+            additionalResolution => {
               return {
-                name: resolution.name,
+                name: additionalResolution.name,
+                isAllowed: labAllowsScan,
               };
             }
           ),
         },
-        additionalScanners: [],
+        additionalScanners: foundLab.settings.scanSettings.scanners.additionalScanners.map(
+          additionalScanner => {
+            return {
+              name: additionalScanner.name,
+              isAllowed: labAllowsScan,
+            };
+          }
+        ),
       };
       // build out rows; if row is not supported by the lab, it won't appear
       const rows = [];
