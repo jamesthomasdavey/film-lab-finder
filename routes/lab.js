@@ -796,7 +796,10 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
     return res.status(400).json({ errors: errors });
   }
   Lab.findById(req.params.labId).then(foundLab => {
+    // throw an error if can't find the lab
     if (!foundLab) return res.status(404).json({ error: 'Lab not found' });
+
+    // set the settings of the found lab
     foundLab.settings.scanSettings = {
       isEnabled: reqScanSettings.isEnabled,
       rawByOrder: {
@@ -840,124 +843,133 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
       },
     };
 
+    // set all the scanners and scan resolutions for every lab service
     foundLab.labServices.forEach((labService, i) => {
-      // default scanner
-      const defaultScannerCustomResolutions = [];
-      reqScanSettings.scanResolutions.additionalResolutions.forEach(
-        (reqResolution, index) => {
-          ////// for each requested custom resolution, check if it already exists or not
-          let resolutionAlreadyExists = false;
-          let resolutionIndex;
-          labService.addOns.hasScan.defaultScanner.scanResolutions.forEach(
-            foundResolution => {
-              if (foundResolution.resId === reqResolution.resId) {
-                resolutionAlreadyExists = true;
-                resolutionIndex = index;
+      // set the custom resolutions for the default scanner
+      {
+        const defaultScannerCustomResolutions = [];
+        reqScanSettings.scanResolutions.additionalResolutions.forEach(
+          (reqResolution, index) => {
+            ////// for each requested custom resolution, check if it already exists or not
+            let resolutionAlreadyExists = false;
+            let resolutionIndex;
+            labService.addOns.hasScan.defaultScanner.additionalResolutions.forEach(
+              foundResolution => {
+                if (foundResolution.resId === reqResolution.resId) {
+                  resolutionAlreadyExists = true;
+                  resolutionIndex = index;
+                }
               }
+            );
+
+            if (resolutionAlreadyExists) {
+              defaultScannerCustomResolutions.push({
+                resId: reqResolution.resId,
+                isEnabled:
+                  labService.addOns.hasScan.defaultScanner
+                    .additionalResolutions[resolutionIndex].isEnabled,
+                price:
+                  labService.addOns.hasScan.defaultScanner
+                    .additionalResolutions[resolutionIndex].price,
+              });
+            } else {
+              defaultScannerCustomResolutions.push({
+                resId: reqResolution.resId,
+                isEnabled: reqResolution.isEnabled,
+                price: reqResolution.price,
+              });
             }
-          );
-          if (resolutionAlreadyExists) {
-            defaultScannerCustomResolutions.push({
-              resId: reqResolution.resId,
-              isEnabled:
-                labService.addOns.hasScan.defaultScanner.scanResolutions[
-                  resolutionIndex
-                ].isEnabled,
-              price:
-                labService.addOns.hasScan.defaultScanner.scanResolutions[
-                  resolutionIndex
-                ].price,
-            });
-          } else {
-            defaultScannerCustomResolutions.push({
-              resId: reqResolution.resId,
-              isEnabled: reqResolution.isEnabled,
-              price: reqResolution.price,
-            });
           }
-        }
-      );
-      foundLab.labServices[
-        i
-      ].addOns.hasScan.defaultScanner.scanResolutions = defaultScannerCustomResolutions;
-      // scanner b
-      const scannerBCustomResolutions = [];
-      reqScanSettings.scanResolutions.additionalResolutions.forEach(
-        (reqResolution, index) => {
-          ////// for each requested custom resolution, check if it already exists or not
-          let resolutionAlreadyExists = false;
-          let resolutionIndex;
-          labService.addOns.hasScan.scannerB.scanResolutions.forEach(
-            foundResolution => {
-              if (foundResolution.resId === reqResolution.resId) {
-                resolutionAlreadyExists = true;
-                resolutionIndex = index;
+        );
+        foundLab.labServices[
+          i
+        ].addOns.hasScan.defaultScanner.scanResolutions = defaultScannerCustomResolutions;
+      }
+      // set the additional scanners
+      {
+        const additionalScanners = [];
+        reqScanSettings.scanners.additionalScanners.forEach(
+          (reqScanner, index) => {
+            ////// for each requested custom scanner, check if it already exists or not
+            let scannerAlreadyExists = false;
+            let scannerIndex;
+            let additionalScanner;
+            labService.addOns.hasScan.additionalScanners.forEach(
+              foundScanner => {
+                if (foundScanner.scannerId === reqScanner.scannerId) {
+                  scannerAlreadyExists = true;
+                  scannerIndex = index;
+                }
               }
+            );
+
+            if (scannerAlreadyExists) {
+              additionalScanner = {
+                scannerId: reqScanner.scannerId,
+                isEnabled:
+                  labService.addOns.hasScan.additionalScanners[scannerIndex]
+                    .isEnabled,
+                price:
+                  labService.addOns.hasScan.additionalScanners[scannerIndex]
+                    .price,
+              };
+            } else {
+              additionalScanner = {
+                scannerId: reqScanner.scannerId,
+                isEnabled: reqScanner.isEnabled,
+                price: reqScanner.price,
+              };
             }
-          );
-          if (resolutionAlreadyExists) {
-            scannerBCustomResolutions.push({
-              resId: reqResolution.resId,
-              isEnabled:
-                labService.addOns.hasScan.scannerB.scanResolutions[
-                  resolutionIndex
-                ].isEnabled,
-              price:
-                labService.addOns.hasScan.scannerB.scanResolutions[
-                  resolutionIndex
-                ].price,
-            });
-          } else {
-            scannerBCustomResolutions.push({
-              resId: reqResolution.resId,
-              isEnabled: reqResolution.isEnabled,
-              price: reqResolution.price,
-            });
-          }
-        }
-      );
-      foundLab.labServices[
-        i
-      ].addOns.hasScan.scannerB.scanResolutions = scannerBCustomResolutions;
-      // scanner c
-      const scannerCCustomResolutions = [];
-      reqScanSettings.scanResolutions.additionalResolutions.forEach(
-        (reqResolution, index) => {
-          ////// for each requested custom resolution, check if it already exists or not
-          let resolutionAlreadyExists = false;
-          let resolutionIndex;
-          labService.addOns.hasScan.scannerC.scanResolutions.forEach(
-            foundResolution => {
-              if (foundResolution.resId === reqResolution.resId) {
-                resolutionAlreadyExists = true;
-                resolutionIndex = index;
-              }
+
+            // add additional resolutions to the additional scanner
+            {
+              const additionalScannerAdditionalResolutions = [];
+              reqScanSettings.scanResolutions.additionalResolutions.forEach(
+                (reqResolution, index) => {
+                  ////// for each requested custom resolution, check if it already exists or not
+                  let resolutionAlreadyExists = false;
+                  let resolutionIndex;
+                  labService.addOns.hasScan.additionalScanners[
+                    scannerIndex
+                  ].additionalResolutions.forEach(foundResolution => {
+                    if (foundResolution.resId === reqResolution.resId) {
+                      resolutionAlreadyExists = true;
+                      resolutionIndex = index;
+                    }
+                  });
+
+                  if (resolutionAlreadyExists) {
+                    additionalScannerAdditionalResolutions.push({
+                      resId: reqResolution.resId,
+                      isEnabled:
+                        labService.addOns.hasScan.additionalScanners[
+                          scannerIndex
+                        ].additionalResolutions[resolutionIndex].isEnabled,
+                      price:
+                        labService.addOns.hasScan.additionalScanners[
+                          scannerIndex
+                        ].additionalResolutions[resolutionIndex].price,
+                    });
+                  } else {
+                    additionalScannerAdditionalResolutions.push({
+                      resId: reqResolution.resId,
+                      isEnabled: reqResolution.isEnabled,
+                      price: reqResolution.price,
+                    });
+                  }
+                }
+              );
+              additionalScanner.additionalResolutions = additionalScannerAdditionalResolutions;
             }
-          );
-          if (resolutionAlreadyExists) {
-            scannerCCustomResolutions.push({
-              resId: reqResolution.resId,
-              isEnabled:
-                labService.addOns.hasScan.scannerC.scanResolutions[
-                  resolutionIndex
-                ].isEnabled,
-              price:
-                labService.addOns.hasScan.scannerC.scanResolutions[
-                  resolutionIndex
-                ].price,
-            });
-          } else {
-            scannerCCustomResolutions.push({
-              resId: reqResolution.resId,
-              isEnabled: reqResolution.isEnabled,
-              price: reqResolution.price,
-            });
+            additionalScanners.push(additionalScanner);
           }
-        }
-      );
-      foundLab.labServices[
-        i
-      ].addOns.hasScan.scannerC.scanResolutions = scannerCCustomResolutions;
+        );
+
+        foundLab.labServices[
+          i
+        ].addOns.hasScan.additionalScanners = additionalScanners;
+      }
+      // set the custom resolutions each custom scanner
     });
 
     foundLab.save().then(savedLab => {
@@ -999,10 +1011,10 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
         foundLab.settings.scanSettings.scanners.defaultScanner.name ||
         'Default Scanner';
       const defaultResolutionName =
-        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name;
+        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
+        'Default Resolution';
       // build out columns; if column is not enabled, it will not appear
       const columns = {
-        base: { name: 'Base', isAllowed: true },
         receiveUndeveloped: {
           name: 'Receive Undeveloped',
           isAllowed: labAllowsDev,
@@ -1019,12 +1031,6 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
           name: 'Receive Mounted',
           isAllowed: labAllowsScan,
         },
-        returnUncut: {
-          name: 'Return Uncut',
-          isAllowed: true,
-        },
-        returnSleeved: { name: 'Return Sleeved', isAllowed: true },
-        returnMounted: { name: 'Return Mounted', isAllowed: true },
         noPushPull: { name: 'No Push/Pull', isAllowed: labAllowsDev },
         push1: { name: 'Push +1', isAllowed: labAllowsDev },
         push2: { name: 'Push +2', isAllowed: labAllowsDev },
@@ -1032,7 +1038,22 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
         pull1: { name: 'Pull -1', isAllowed: labAllowsDev },
         pull2: { name: 'Pull -2', isAllowed: labAllowsDev },
         pull3: { name: 'Pull -3', isAllowed: labAllowsDev },
-        defaultScanner: { name: defaultScannerName, isAllowed: labAllowsScan },
+        defaultScanner: {
+          name: defaultScannerName,
+          isAllowed: labAllowsScan,
+          defaultResolution: {
+            name: defaultResolutionName,
+            isAllowed: labAllowsScan,
+          },
+          additionalResolutions: foundLab.settings.scanSettings.scanResolutions.additionalResolutions.map(
+            resolution => {
+              return {
+                name: resolution.name,
+              };
+            }
+          ),
+        },
+        additionalScanners: [],
       };
       // build out rows; if row is not supported by the lab, it won't appear
       const rows = [];
