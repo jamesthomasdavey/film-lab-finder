@@ -71,7 +71,7 @@ const labSchema = new mongoose.Schema({
       },
       // this is can be changed by checking/unchecking the row
       isEnabled: { type: Boolean, default: false },
-      price: { type: Number, default: 0 },
+      price: { type: Number, default: 10 },
       addOns: {
         hasScanAndSansDev: {
           isAllowed: { type: Boolean, default: false },

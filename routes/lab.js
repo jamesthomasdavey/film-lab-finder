@@ -847,7 +847,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
     foundLab.labServices.forEach((labService, i) => {
       // set the additional resolutions for the default scanner
       {
-        const defaultScannerCustomResolutions = [];
+        const defaultScannerAdditionalResolutions = [];
         reqScanSettings.scanResolutions.additionalResolutions.forEach(
           (reqResolution, index) => {
             // for each requested custom resolution, check if it already exists or not
@@ -861,9 +861,8 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
                 }
               }
             );
-
             if (resolutionAlreadyExists) {
-              defaultScannerCustomResolutions.push({
+              defaultScannerAdditionalResolutions.push({
                 resId: reqResolution.resId,
                 isEnabled:
                   labService.addOns.hasScan.defaultScanner
@@ -873,17 +872,18 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
                     .additionalResolutions[resolutionIndex].price,
               });
             } else {
-              defaultScannerCustomResolutions.push({
+              defaultScannerAdditionalResolutions.push({
                 resId: reqResolution.resId,
-                isEnabled: reqResolution.isEnabled,
-                price: reqResolution.price,
+                isEnabled: true,
+                price: 0,
               });
             }
           }
         );
+        console.log(defaultScannerAdditionalResolutions);
         foundLab.labServices[
           i
-        ].addOns.hasScan.defaultScanner.scanResolutions = defaultScannerCustomResolutions;
+        ].addOns.hasScan.defaultScanner.additionalResolutions = defaultScannerAdditionalResolutions;
       }
       // set the additional scanners
       {
@@ -918,8 +918,8 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
               // if the scanner doesn't exist, set new "isEnabled" and "price" settings
               additionalScanner = {
                 scannerId: reqScanner.scannerId,
-                isEnabled: reqScanner.isEnabled,
-                price: reqScanner.price,
+                isEnabled: true,
+                price: 0,
               };
             }
 
@@ -957,8 +957,8 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
                   } else {
                     additionalScannerAdditionalResolutions.push({
                       resId: reqResolution.resId,
-                      isEnabled: reqResolution.isEnabled,
-                      price: reqResolution.price,
+                      isEnabled: true,
+                      price: 0,
                     });
                   }
                 }
@@ -1035,6 +1035,18 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
           name: 'Receive Mounted',
           isAllowed: labAllowsScan,
         },
+        returnUncut: {
+          name: 'Return Uncut',
+          isAllowed: true,
+        },
+        returnSleeved: {
+          name: 'Return Sleeved',
+          isAllowed: true,
+        },
+        returnMounted: {
+          name: 'Return Mounted',
+          isAllowed: true,
+        },
         noPushPull: { name: 'No Push/Pull', isAllowed: labAllowsDev },
         push1: { name: 'Push +1', isAllowed: labAllowsDev },
         push2: { name: 'Push +2', isAllowed: labAllowsDev },
@@ -1053,7 +1065,7 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
             additionalResolution => {
               return {
                 name: additionalResolution.name,
-                isAllowed: labAllowsScan,
+                isAllowed: labAllowsScan && additionalResolution.isEnabled,
               };
             }
           ),
@@ -1062,7 +1074,22 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
           additionalScanner => {
             return {
               name: additionalScanner.name,
-              isAllowed: labAllowsScan,
+              isAllowed: labAllowsScan && additionalScanner.isEnabled,
+              defaultResolution: {
+                name: defaultResolutionName,
+                isAllowed: labAllowsScan && additionalScanner.isEnabled,
+              },
+              additionalResolutions: foundLab.settings.scanSettings.scanResolutions.additionalResolutions.map(
+                additionalResolution => {
+                  return {
+                    name: additionalResolution.name,
+                    isAllowed:
+                      labAllowsScan &&
+                      additionalScanner.isEnabled &&
+                      additionalResolution.isEnabled,
+                  };
+                }
+              ),
             };
           }
         ),
@@ -1109,12 +1136,12 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
               price: foundLabService.price,
             },
             receiveUndeveloped: {
-              isAllowed: true,
+              isAllowed: hasDev,
               isEnabled: true,
               price: 0,
             },
             receiveUncut: {
-              isAllowed: true,
+              isAllowed: hasScanAndSansDev,
               isEnabled: true,
               price: 0,
             },
@@ -1190,18 +1217,52 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
               isAllowed: hasScan && columns.defaultScanner.isAllowed,
               isEnabled: true,
               price: 0,
+              defaultResolution: {
+                isAllowed: hasScan && columns.defaultScanner.isAllowed,
+                isEnabled: true,
+                price: 0,
+              },
+              additionalResolutions: foundLabService.addOns.hasScan.defaultScanner.additionalResolutions.map(
+                (additionalResolution, i) => {
+                  return {
+                    isAllowed:
+                      hasScan &&
+                      columns.defaultScanner.additionalResolutions[i].isAllowed,
+                    isEnabled: additionalResolution.isEnabled,
+                    price: additionalResolution.price,
+                  };
+                }
+              ),
             },
-            defaultScannerDefaultScanRes: {
-              isAllowed:
-                hasScan && columns.defaultScannerDefaultScanRes.isAllowed,
-              isEnabled: true,
-              price: 0,
-            },
-            defaultScanOption: {
-              isAllowed: hasScan && columns.defaultScanOption.isAllowed,
-              isEnabled: true,
-              price: 0,
-            },
+            additionalScanners: foundLabService.addOns.hasScan.additionalScanners.map(
+              (additionalScanner, i) => {
+                return {
+                  isAllowed: hasScan && columns.additionalScanners[i].isAllowed,
+                  isEnabled: additionalScanner.isEnabled,
+                  price: additionalScanner.price,
+                  defaultResolution: {
+                    isAllowed:
+                      hasScan && columns.additionalScanners[i].isAllowed,
+                    isEnabled: true,
+                    price: 0,
+                  },
+                  additionalResolutions: additionalScanner.additionalResolutions.map(
+                    (additionalResolution, resIndex) => {
+                      return {
+                        isAllowed:
+                          hasScan &&
+                          columns.additionalScanners[i].additionalResolutions[
+                            resIndex
+                          ].isAllowed,
+                        isEnabled: additionalResolution.isEnabled,
+                        price: additionalResolution.price,
+                      };
+                    }
+                  ),
+                };
+              }
+            ),
+            // add remaining stuff here
           });
         }
       });
