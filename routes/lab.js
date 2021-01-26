@@ -880,7 +880,6 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
             }
           }
         );
-        console.log(defaultScannerAdditionalResolutions);
         foundLab.labServices[
           i
         ].addOns.hasScan.defaultScanner.additionalResolutions = defaultScannerAdditionalResolutions;
@@ -1291,558 +1290,207 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       // get the things that the lab allows
       const labAllowsDev = foundLab.settings.devSettings.isEnabled;
       const labAllowsScan = foundLab.settings.scanSettings.isEnabled;
-      const labAllowsScannerB =
-        foundLab.settings.scanSettings.scanners.scannerB.isEnabled;
-      const labAllowsScannerC =
-        foundLab.settings.scanSettings.scanners.scannerC.isEnabled;
-      const labAllowsScanResB =
-        foundLab.settings.scanSettings.scanResolutions.scanResB.isEnabled;
-      const labAllowsScanResC =
-        foundLab.settings.scanSettings.scanResolutions.scanResC.isEnabled;
-      const labAllowsScanResD =
-        foundLab.settings.scanSettings.scanResolutions.scanResD.isEnabled;
-      const labAllowsScanResE =
-        foundLab.settings.scanSettings.scanResolutions.scanResE.isEnabled;
-      const labAllowsScanResF =
-        foundLab.settings.scanSettings.scanResolutions.scanResF.isEnabled;
-      const labAllowsScanOptionB =
-        foundLab.settings.scanSettings.customScanOptions.scanOptionB.isEnabled;
-      const labAllowsScanOptionC =
-        foundLab.settings.scanSettings.customScanOptions.scanOptionC.isEnabled;
       // get names for the custom defined columns
       const defaultScannerName =
         foundLab.settings.scanSettings.scanners.defaultScanner.name ||
         'Default Scanner';
-      const defaultScannerDefaultScanResName = `${defaultScannerName}: ${
+      const defaultResolutionName =
         foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
-        'Default Scan Res'
-      }`;
-      const defaultScannerScanResBName = `${defaultScannerName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
-        'Scan Res B'
-      }`;
-      const defaultScannerScanResCName = `${defaultScannerName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
-        'Scan Res C'
-      }`;
-      const defaultScannerScanResDName = `${defaultScannerName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
-        'Scan Res D'
-      }`;
-      const defaultScannerScanResEName = `${defaultScannerName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
-        'Scan Res E'
-      }`;
-      const defaultScannerScanResFName = `${defaultScannerName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
-        'Scan Res F'
-      }`;
-      const scannerBName =
-        foundLab.settings.scanSettings.scanners.scannerB.name || 'Scanner B';
-      const scannerBDefaultScanResName = `${scannerBName}: ${
-        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
-        'Default Scan Res'
-      }`;
-      const scannerBScanResBName = `${scannerBName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
-        'Scan Res B'
-      }`;
-      const scannerBScanResCName = `${scannerBName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
-        'Scan Res C'
-      }`;
-      const scannerBScanResDName = `${scannerBName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
-        'Scan Res D'
-      }`;
-      const scannerBScanResEName = `${scannerBName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
-        'Scan Res E'
-      }`;
-      const scannerBScanResFName = `${scannerBName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
-        'Scan Res F'
-      }`;
-      const scannerCName =
-        foundLab.settings.scanSettings.scanners.scannerC.name || 'Scanner C';
-      const scannerCDefaultScanResName = `${scannerCName}: ${
-        foundLab.settings.scanSettings.scanResolutions.defaultScanRes.name ||
-        'Default Scan Res'
-      }`;
-      const scannerCScanResBName = `${scannerCName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
-        'Scan Res B'
-      }`;
-      const scannerCScanResCName = `${scannerCName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
-        'Scan Res C'
-      }`;
-      const scannerCScanResDName = `${scannerCName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
-        'Scan Res D'
-      }`;
-      const scannerCScanResEName = `${scannerCName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
-        'Scan Res E'
-      }`;
-      const scannerCScanResFName = `${scannerCName}: ${
-        foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
-        'Scan Res F'
-      }`;
-      const defaultScanOptionName =
-        foundLab.settings.scanSettings.customScanOptions.defaultScanOption
-          .name || 'Default Scan Option';
-      const scanOptionBName =
-        foundLab.settings.scanSettings.customScanOptions.scanOptionB.name ||
-        'Scan Option B';
-      const scanOptionCName =
-        foundLab.settings.scanSettings.customScanOptions.scanOptionC.name ||
-        'Scan Option C';
+        'Default Resolution';
       // create an object of warnings that will be added to the columns
-      const warnings = {
-        base: [],
-        receiveUndeveloped: [],
-        receiveUncut: [],
-        receiveSleeved: [],
-        receiveMounted: [],
-        returnUncut: [],
-        returnSleeved: [],
-        returnMounted: [],
-        noPushPull: [],
-        push1: [],
-        push2: [],
-        push3: [],
-        pull1: [],
-        pull2: [],
-        pull3: [],
-        defaultScanner: [],
-        defaultScannerDefaultScanRes: [],
-        defaultScannerScanResB: [],
-        defaultScannerScanResC: [],
-        defaultScannerScanResD: [],
-        defaultScannerScanResE: [],
-        defaultScannerScanResF: [],
-        scannerB: [],
-        scannerBDefaultScanRes: [],
-        scannerBScanResB: [],
-        scannerBScanResC: [],
-        scannerBScanResD: [],
-        scannerBScanResE: [],
-        scannerBScanResF: [],
-        scannerC: [],
-        scannerCDefaultScanRes: [],
-        scannerCScanResB: [],
-        scannerCScanResC: [],
-        scannerCScanResD: [],
-        scannerCScanResE: [],
-        scannerCScanResF: [],
-        defaultScanOption: [],
-        scanOptionB: [],
-        scanOptionC: [],
-      };
-      // modify the warnings object where warnings apply
-      {
-        if (!labAllowsDev) {
-          const message = 'You must enable developing to offer this add-on.';
-          warning.receiveUndeveloped.push(message);
-          warning.noPushPull.push(message);
-          warnings.push1.push(message);
-          warnings.push2.push(message);
-          warnings.push3.push(message);
-          warnings.pull1.push(message);
-          warnings.pull2.push(message);
-          warnings.pull3.push(message);
-        }
-        if (!labAllowsScan) {
-          const message = 'You must enable scanning to offer this add-on.';
-          warnings.receiveUncut.push(message);
-          warnings.receiveSleeved.push(message);
-          warnings.receiveMounted.push(message);
-          warnings.jpegScans.push(message);
-          warnings.rawScans.push(message);
-          warnings.defaultScanner.push(message);
-          warnings.defaultScannerDefaultScanRes.push(message);
-          warnings.defaultScannerScanResB.push(message);
-          warnings.defaultScannerScanResC.push(message);
-          warnings.defaultScannerScanResD.push(message);
-          warnings.defaultScannerScanResE.push(message);
-          warnings.defaultScannerScanResF.push(message);
-          warnings.scannerB.push(message);
-          warnings.scannerBDefaultScanRes.push(message);
-          warnings.scannerBScanResB.push(message);
-          warnings.scannerBScanResC.push(message);
-          warnings.scannerBScanResD.push(message);
-          warnings.scannerBScanResE.push(message);
-          warnings.scannerBScanResF.push(message);
-          warnings.scannerC.push(message);
-          warnings.scannerCDefaultScanRes.push(message);
-          warnings.scannerCScanResB.push(message);
-          warnings.scannerCScanResC.push(message);
-          warnings.scannerCScanResD.push(message);
-          warnings.scannerCScanResE.push(message);
-          warnings.scannerCScanResF.push(message);
-          warnings.defaultScanOption.push(message);
-          warnings.scanOptionB.push(message);
-          warnings.scanOptionC.push(message);
-        }
-        if (!labAllowsDev && !labAllowsScan) {
-          const message = `You must enable developing or scanning to offer this add-on.`;
-          warnings.returnUncut.push(message);
-          warnings.returnSleeved.push(message);
-          warnings.returnMounted.push(message);
-        }
-        if (!labAllowsScannerB) {
-          const message = `You must enable the scanner "${scannerBName}" to offer this add-on.`;
-          warnings.scannerB.push(message);
-          warnings.scannerBDefaultScanRes.push(message);
-          warnings.scannerBScanResB.push(message);
-          warnings.scannerBScanResC.push(message);
-          warnings.scannerBScanResD.push(message);
-          warnings.scannerBScanResE.push(message);
-          warnings.scannerBScanResF.push(message);
-        }
-        if (!labAllowsScannerC) {
-          const message = `You must enable the scanner "${scannerCName}" to offer this add-on.`;
-          warnings.scannerC.push(message);
-          warnings.scannerCDefaultScanRes.push(message);
-          warnings.scannerCScanResB.push(message);
-          warnings.scannerCScanResC.push(message);
-          warnings.scannerCScanResD.push(message);
-          warnings.scannerCScanResE.push(message);
-          warnings.scannerCScanResF.push(message);
-        }
-        if (!labAllowsScanResB) {
-          const message = `You must enable the scan resolution "${
-            foundLab.settings.scanSettings.scanResolutions.scanResB.name ||
-            'Scan Res B'
-          }" to offer this add-on.`;
-          warnings.defaultScannerScanResB.push(message);
-          warnings.scannerBScanResB.push(message);
-          warnings.scannerCScanResB.push(message);
-        }
-        if (!labAllowsScanResC) {
-          const message = `You must enable the scan resolution "${
-            foundLab.settings.scanSettings.scanResolutions.scanResC.name ||
-            'Scan Res C'
-          }" to offer this add-on.`;
-          warnings.defaultScannerScanResC.push(message);
-          warnings.scannerBScanResC.push(message);
-          warnings.scannerCScanResC.push(message);
-        }
-        if (!labAllowsScanResD) {
-          const message = `You must enable the scan resolution "${
-            foundLab.settings.scanSettings.scanResolutions.scanResD.name ||
-            'Scan Res D'
-          }" to offer this add-on.`;
-          warnings.defaultScannerScanResD.push(message);
-          warnings.scannerBScanResD.push(message);
-          warnings.scannerCScanResD.push(message);
-        }
-        if (!labAllowsScanResE) {
-          const message = `You must enable the scan resolution "${
-            foundLab.settings.scanSettings.scanResolutions.scanResE.name ||
-            'Scan Res E'
-          }" to offer this add-on.`;
-          warnings.defaultScannerScanResE.push(message);
-          warnings.scannerBScanResE.push(message);
-          warnings.scannerCScanResE.push(message);
-        }
-        if (!labAllowsScanResF) {
-          const message = `You must enable the scan resolution "${
-            foundLab.settings.scanSettings.scanResolutions.scanResF.name ||
-            'Scan Res F'
-          }" to offer this add-on.`;
-          warnings.defaultScannerScanResF.push(message);
-          warnings.scannerBScanResF.push(message);
-          warnings.scannerCScanResF.push(message);
-        }
-        if (!labAllowsScanOptionB) {
-          warnings.scanOptionB.push(
-            `You must enable the scan option "${scanOptionBName}" to offer this add-on.`
-          );
-        }
-        if (!labAllowsScanOptionC) {
-          warnings.scanOptionC.push(
-            `You must enable the scan option "${scanOptionCName}" to offer this add-on.`
-          );
-        }
-      }
+      // const warnings = {
+      //   base: [],
+      //   receiveUndeveloped: [],
+      //   receiveUncut: [],
+      //   receiveSleeved: [],
+      //   receiveMounted: [],
+      //   returnUncut: [],
+      //   returnSleeved: [],
+      //   returnMounted: [],
+      //   noPushPull: [],
+      //   push1: [],
+      //   push2: [],
+      //   push3: [],
+      //   pull1: [],
+      //   pull2: [],
+      //   pull3: [],
+      //   defaultScanner: [],
+      // };
+      //// modify the warnings object where warnings apply
+      // {
+      //   if (!labAllowsDev) {
+      //     const message = 'You must enable developing to offer this add-on.';
+      //     warnings.receiveUndeveloped.push(message);
+      //     warnings.noPushPull.push(message);
+      //     warnings.push1.push(message);
+      //     warnings.push2.push(message);
+      //     warnings.push3.push(message);
+      //     warnings.pull1.push(message);
+      //     warnings.pull2.push(message);
+      //     warnings.pull3.push(message);
+      //   }
+      //   if (!labAllowsScan) {
+      //     const message = 'You must enable scanning to offer this add-on.';
+      //     warnings.receiveUncut.push(message);
+      //     warnings.receiveSleeved.push(message);
+      //     warnings.receiveMounted.push(message);
+      //     warnings.defaultScanner.push(message);
+      //   }
+      //   if (!labAllowsDev && !labAllowsScan) {
+      //     const message = `You must enable developing or scanning to offer services.`;
+      //     warnings.base.push(message);
+      //   }
+      //   if (!labAllowsDev && !labAllowsScan) {
+      //     const message = `You must enable developing or scanning to offer this add-on.`;
+      //     warnings.returnUncut.push(message);
+      //     warnings.returnSleeved.push(message);
+      //     warnings.returnMounted.push(message);
+      //   }
+      // }
       // build columns
       const columns = {
         base: {
           name: 'Base',
-          warning: {
-            isPresent: warnings.base.length > 0,
-            messages: warnings.base,
-          },
+          // warning: {
+          //   isPresent: warnings.base.length > 0,
+          //   messages: warnings.base,
+          // },
         },
         receiveUndeveloped: {
           name: 'Receive Undeveloped',
-          warning: {
-            isPresent: warnings.receiveUndeveloped.length > 0,
-            messages: warnings.receiveUndeveloped,
-          },
+          // warning: {
+          //   isPresent: warnings.receiveUndeveloped.length > 0,
+          //   messages: warnings.receiveUndeveloped,
+          // },
         },
         receiveUncut: {
           name: 'Receive Uncut',
-          warning: {
-            isPresent: warnings.receiveUncut.length > 0,
-            messages: warnings.receiveUncut,
-          },
+          // warning: {
+          //   isPresent: warnings.receiveUncut.length > 0,
+          //   messages: warnings.receiveUncut,
+          // },
         },
         receiveSleeved: {
           name: 'Receive Sleeved',
-          warning: {
-            isPresent: warnings.receiveSleeved.length > 0,
-            messages: warnings.receiveSleeved,
-          },
+          // warning: {
+          //   isPresent: warnings.receiveSleeved.length > 0,
+          //   messages: warnings.receiveSleeved,
+          // },
         },
         receiveMounted: {
           name: 'Receive Mounted',
-          warning: {
-            isPresent: warnings.receiveMounted.length > 0,
-            messages: warnings.receiveMounted,
-          },
+          // warning: {
+          //   isPresent: warnings.receiveMounted.length > 0,
+          //   messages: warnings.receiveMounted,
+          // },
         },
         returnUncut: {
           name: 'Return Uncut',
-          warning: {
-            isPresent: warnings.returnUncut.length > 0,
-            messages: warnings.returnUncut,
-          },
+          // warning: {
+          //   isPresent: warnings.returnUncut.length > 0,
+          //   messages: warnings.returnUncut,
+          // },
         },
         returnSleeved: {
           name: 'Return Sleeved',
-          warning: {
-            isPresent: warnings.returnSleeved.length > 0,
-            messages: warnings.returnSleeved,
-          },
+          // warning: {
+          //   isPresent: warnings.returnSleeved.length > 0,
+          //   messages: warnings.returnSleeved,
+          // },
         },
         returnMounted: {
           name: 'Return Mounted',
-          warning: {
-            isPresent: warnings.returnMounted.length > 0,
-            messages: warnings.returnMounted,
-          },
+          // warning: {
+          //   isPresent: warnings.returnMounted.length > 0,
+          //   messages: warnings.returnMounted,
+          // },
         },
         noPushPull: {
           name: 'No Push/Pull',
-          warning: {
-            isPresent: warnings.noPushPull.length > 0,
-            messages: warnings.noPushPull,
-          },
+          // warning: {
+          //   isPresent: warnings.noPushPull.length > 0,
+          //   messages: warnings.noPushPull,
+          // },
         },
         push1: {
           name: 'Push +1',
-          warning: {
-            isPresent: warnings.push1.length > 0,
-            messages: warnings.push1,
-          },
+          // warning: {
+          //   isPresent: warnings.push1.length > 0,
+          //   messages: warnings.push1,
+          // },
         },
         push2: {
           name: 'Push +2',
-          warning: {
-            isPresent: warnings.push2.length > 0,
-            messages: warnings.push2,
-          },
+          // warning: {
+          //   isPresent: warnings.push2.length > 0,
+          //   messages: warnings.push2,
+          // },
         },
         push3: {
           name: 'Push +3',
-          warning: {
-            isPresent: warnings.push3.length > 0,
-            messages: warnings.push3,
-          },
+          // warning: {
+          //   isPresent: warnings.push3.length > 0,
+          //   messages: warnings.push3,
+          // },
         },
         pull1: {
           name: 'Pull -1',
-          warning: {
-            isPresent: warnings.pull1.length > 0,
-            messages: warnings.pull1,
-          },
+          // warning: {
+          //   isPresent: warnings.pull1.length > 0,
+          //   messages: warnings.pull1,
+          // },
         },
         pull2: {
           name: 'Pull -2',
-          warning: {
-            isPresent: warnings.pull2.length > 0,
-            messages: warnings.pull2,
-          },
+          // warning: {
+          //   isPresent: warnings.pull2.length > 0,
+          //   messages: warnings.pull2,
+          // },
         },
         pull3: {
           name: 'Pull -3',
-          warning: {
-            isPresent: warnings.pull3.length > 0,
-            messages: warnings.pull3,
-          },
+          // warning: {
+          //   isPresent: warnings.pull3.length > 0,
+          //   messages: warnings.pull3,
+          // },
         },
         defaultScanner: {
           name: defaultScannerName,
-          warning: {
-            isPresent: warnings.defaultScanner.length > 0,
-            messages: warnings.defaultScanner,
+          // warning: {
+          //   isPresent: warnings.defaultScanner.length > 0,
+          //   messages: warnings.defaultScanner,
+          // },
+          defaultResolution: {
+            name: defaultResolutionName,
           },
+          additionalResolutions: foundLab.settings.scanSettings.scanResolutions.additionalResolutions.map(
+            additionalRes => {
+              return {
+                resId: additionalRes.resId,
+                name: additionalRes.name,
+              };
+            }
+          ),
         },
-        defaultScannerDefaultScanRes: {
-          name: defaultScannerDefaultScanResName,
-          warning: {
-            isPresent: warnings.defaultScannerDefaultScanRes.length > 0,
-            messages: warnings.defaultScannerDefaultScanRes,
-          },
-        },
-        defaultScannerScanResB: {
-          name: defaultScannerScanResBName,
-          warning: {
-            isPresent: warnings.defaultScannerScanResB.length > 0,
-            messages: warnings.defaultScannerScanResB,
-          },
-        },
-        defaultScannerScanResC: {
-          name: defaultScannerScanResCName,
-          warning: {
-            isPresent: warnings.defaultScannerScanResC.length > 0,
-            messages: warnings.defaultScannerScanResC,
-          },
-        },
-        defaultScannerScanResD: {
-          name: defaultScannerScanResDName,
-          warning: {
-            isPresent: warnings.defaultScannerScanResD.length > 0,
-            messages: warnings.defaultScannerScanResD,
-          },
-        },
-        defaultScannerScanResE: {
-          name: defaultScannerScanResEName,
-          warning: {
-            isPresent: warnings.defaultScannerScanResE.length > 0,
-            messages: warnings.defaultScannerScanResE,
-          },
-        },
-        defaultScannerScanResF: {
-          name: defaultScannerScanResFName,
-          warning: {
-            isPresent: warnings.defaultScannerScanResF.length > 0,
-            messages: warnings.defaultScannerScanResF,
-          },
-        },
-        scannerB: {
-          name: scannerBName,
-          warning: {
-            isPresent: warnings.scannerB.length > 0,
-            messages: warnings.scannerB,
-          },
-        },
-        scannerBDefaultScanRes: {
-          name: scannerBDefaultScanResName,
-          warning: {
-            isPresent: warnings.scannerBDefaultScanRes.length > 0,
-            messages: warnings.scannerBDefaultScanRes,
-          },
-        },
-        scannerBScanResB: {
-          name: scannerBScanResBName,
-          warning: {
-            isPresent: warnings.scannerBScanResB.length > 0,
-            messages: warnings.scannerBScanResB,
-          },
-        },
-        scannerBScanResC: {
-          name: scannerBScanResCName,
-          warning: {
-            isPresent: warnings.scannerBScanResC.length > 0,
-            messages: warnings.scannerBScanResC,
-          },
-        },
-        scannerBScanResD: {
-          name: scannerBScanResDName,
-          warning: {
-            isPresent: warnings.scannerBScanResD.length > 0,
-            messages: warnings.scannerBScanResD,
-          },
-        },
-        scannerBScanResE: {
-          name: scannerBScanResEName,
-          warning: {
-            isPresent: warnings.scannerBScanResE.length > 0,
-            messages: warnings.scannerBScanResE,
-          },
-        },
-        scannerBScanResF: {
-          name: scannerBScanResFName,
-          warning: {
-            isPresent: warnings.scannerBScanResF.length > 0,
-            messages: warnings.scannerBScanResF,
-          },
-        },
-        scannerC: {
-          name: scannerCName,
-          warning: {
-            isPresent: warnings.scannerC.length > 0,
-            messages: warnings.scannerC,
-          },
-        },
-
-        scannerCDefaultScanRes: {
-          name: scannerCDefaultScanResName,
-          warning: {
-            isPresent: warnings.scannerCDefaultScanRes.length > 0,
-            messages: warnings.scannerCDefaultScanRes,
-          },
-        },
-        scannerCScanResB: {
-          name: scannerCScanResBName,
-          warning: {
-            isPresent: warnings.scannerCScanResB.length > 0,
-            messages: warnings.scannerCScanResB,
-          },
-        },
-        scannerCScanResC: {
-          name: scannerCScanResCName,
-          warning: {
-            isPresent: warnings.scannerCScanResC.length > 0,
-            messages: warnings.scannerCScanResC,
-          },
-        },
-        scannerCScanResD: {
-          name: scannerCScanResDName,
-          warning: {
-            isPresent: warnings.scannerCScanResD.length > 0,
-            messages: warnings.scannerCScanResD,
-          },
-        },
-        scannerCScanResE: {
-          name: scannerCScanResEName,
-          warning: {
-            isPresent: warnings.scannerCScanResE.length > 0,
-            messages: warnings.scannerCScanResE,
-          },
-        },
-        scannerCScanResF: {
-          name: scannerCScanResFName,
-          warning: {
-            isPresent: warnings.scannerCScanResF.length > 0,
-            messages: warnings.scannerCScanResF,
-          },
-        },
-        defaultScanOption: {
-          name: defaultScanOptionName,
-          warning: {
-            isPresent: warnings.defaultScanOption.length > 0,
-            messages: warnings.defaultScanOption,
-          },
-        },
-        scanOptionB: {
-          name: scanOptionBName,
-          warning: {
-            isPresent: warnings.scanOptionB.length > 0,
-            messages: warnings.scanOptionB,
-          },
-        },
-        scanOptionC: {
-          name: scanOptionCName,
-          warning: {
-            isPresent: warnings.scanOptionC.length > 0,
-            messages: warnings.scanOptionC,
-          },
-        },
+        additionalScanners: foundLab.settings.scanSettings.scanners.additionalScanners.map(
+          additionalScanner => {
+            return {
+              scannerId: additionalScanner.scannerId,
+              name: additionalScanner.name,
+              defaultResolution: {
+                name: defaultResolutionName,
+              },
+              additionalResolutions: foundLab.settings.scanSettings.scanResolutions.additionalResolutions.map(
+                additionalRes => {
+                  return {
+                    resId: additionalRes.resId,
+                    name: additionalRes.name,
+                  };
+                }
+              ),
+            };
+          }
+        ),
       };
       // build rows
       const rows = foundLab.labServices.map(foundLabService => {
@@ -1863,6 +1511,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
           unsupportedServiceTypes.push('Scanning');
         }
         return {
+          hasChanged: false,
           serviceId: foundLabService.service._id,
           serviceType: foundLabService.service.serviceType.name,
           warning: {
@@ -1962,186 +1611,10 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             isEnabled: true,
             price: 0,
             readOnly: true,
+            defaultResolution: {},
+            additionalResolutions: [],
           },
-          defaultScannerDefaultScanRes: {
-            isAllowed: hasScan,
-            isEnabled: true,
-            price: 0,
-            readOnly: true,
-          },
-          defaultScannerScanResB: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResB.isEnabled,
-            price:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResB.price,
-          },
-          defaultScannerScanResC: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResC.isEnabled,
-            price:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResC.price,
-          },
-          defaultScannerScanResD: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResD.isEnabled,
-            price:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResD.price,
-          },
-          defaultScannerScanResE: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResE.isEnabled,
-            price:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResE.price,
-          },
-          defaultScannerScanResF: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResF.isEnabled,
-            price:
-              foundLabService.addOns.hasScan.defaultScanner.scanResolutions
-                .scanResF.price,
-          },
-          scannerB: {
-            isAllowed: hasScan,
-            isEnabled: foundLabService.addOns.hasScan.scannerB.isEnabled,
-            price: foundLabService.addOns.hasScan.scannerB.price,
-          },
-          scannerBDefaultScanRes: {
-            isAllowed: hasScan,
-            isEnabled: foundLabService.addOns.hasScan.scannerB.isEnabled,
-            price: 0,
-            readOnly: true,
-          },
-          scannerBScanResB: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResB
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResB
-                .price,
-          },
-          scannerBScanResC: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResC
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResC
-                .price,
-          },
-          scannerBScanResD: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResD
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResD
-                .price,
-          },
-          scannerBScanResE: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResE
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResE
-                .price,
-          },
-          scannerBScanResF: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResF
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerB.scanResolutions.scanResF
-                .price,
-          },
-          scannerC: {
-            isAllowed: hasScan,
-            isEnabled: foundLabService.addOns.hasScan.scannerC.isEnabled,
-            price: foundLabService.addOns.hasScan.scannerC.price,
-          },
-          scannerCDefaultScanRes: {
-            isAllowed: hasScan,
-            isEnabled: foundLabService.addOns.hasScan.scannerC.isEnabled,
-            price: 0,
-            readOnly: true,
-          },
-          scannerCScanResB: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResB
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResB
-                .price,
-          },
-          scannerCScanResC: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResC
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResC
-                .price,
-          },
-          scannerCScanResD: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResD
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResD
-                .price,
-          },
-          scannerCScanResE: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResE
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResE
-                .price,
-          },
-          scannerCScanResF: {
-            isAllowed: hasScan,
-            isEnabled:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResF
-                .isEnabled,
-            price:
-              foundLabService.addOns.hasScan.scannerC.scanResolutions.scanResF
-                .price,
-          },
-          defaultScanOption: {
-            isAllowed: hasScan,
-            isEnabled: true,
-            price: 0,
-            readOnly: true,
-          },
-          scanOptionB: {
-            isAllowed: hasScan,
-            isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
-            price: foundLabService.addOns.hasScan.scanOptionB.price,
-          },
-          scanOptionC: {
-            isAllowed: hasScan,
-            isEnabled: foundLabService.addOns.hasScan.scanOptionB.isEnabled,
-            price: foundLabService.addOns.hasScan.scanOptionB.price,
-          },
+          additionalScanners: [],
         };
       });
       // send columns and rows

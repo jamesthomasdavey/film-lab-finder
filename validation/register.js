@@ -8,7 +8,6 @@ module.exports = reqBody => {
     password2: [],
   };
 
-  console.log(reqBody);
   reqBody.email = !isEmpty(reqBody.email.trim()) ? reqBody.email.trim() : '';
   reqBody.password = !isEmpty(reqBody.password) ? reqBody.password : '';
   reqBody.password2 = !isEmpty(reqBody.password2) ? reqBody.password2 : '';
