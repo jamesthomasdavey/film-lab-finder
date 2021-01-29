@@ -1611,10 +1611,46 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             isEnabled: true,
             price: 0,
             readOnly: true,
-            defaultResolution: {},
-            additionalResolutions: [],
+            defaultResolution: {
+              isAllowed: hasScan,
+              isEnabled: true,
+              price: 0,
+              readOnly: true,
+            },
+            additionalResolutions: foundLabService.addOns.hasScan.defaultScanner.additionalResolutions.map(
+              additionalResolution => {
+                return {
+                  isAllowed: hasScan,
+                  isEnabled: additionalResolution.isEnabled,
+                  price: additionalResolution.price,
+                };
+              }
+            ),
           },
-          additionalScanners: [],
+          additionalScanners: foundLabService.addOns.hasScan.additionalScanners.map(
+            additionalScanner => {
+              return {
+                isAllowed: hasScan,
+                isEnabled: additionalScanner.isEnabled,
+                price: additionalScanner.price,
+                defaultResolution: {
+                  isAllowed: hasScan,
+                  isEnabled: additionalScanner.isEnabled,
+                  price: 0,
+                  readOnly: true,
+                },
+                additionalResolutions: additionalScanner.additionalResolutions.map(
+                  additionalResolution => {
+                    return {
+                      isAllowed: hasScan,
+                      isEnabled: additionalResolution.isEnabled,
+                      price: additionalResolution.price,
+                    };
+                  }
+                ),
+              };
+            }
+          ),
         };
       });
       // send columns and rows
