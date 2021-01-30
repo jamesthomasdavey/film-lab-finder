@@ -1132,94 +1132,99 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
             base: {
               isAllowed: true,
               isEnabled: true,
-              price: foundLabService.price,
+              price: foundLabService.price.toFixed(2),
             },
             receiveUndeveloped: {
               isAllowed: hasDev,
               isEnabled: true,
-              price: 0,
+              price: Number(0).toFixed(2),
             },
             receiveUncut: {
               isAllowed: hasScanAndSansDev,
               isEnabled: true,
-              price: 0,
+              price: Number(0).toFixed(2),
             },
             receiveSleeved: {
               isAllowed: hasScanAndSansDev,
               isEnabled:
                 foundLabService.addOns.hasScanAndSansDev.receiveSleeved
                   .isEnabled,
-              price:
-                foundLabService.addOns.hasScanAndSansDev.receiveSleeved.price,
+              price: foundLabService.addOns.hasScanAndSansDev.receiveSleeved.price.toFixed(
+                2
+              ),
             },
             receiveMounted: {
               isAllowed: hasE6AndHasScanAndSansDev,
               isEnabled:
                 foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted
                   .isEnabled,
-              price:
-                foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted
-                  .price,
+              price: foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted.price.toFixed(
+                2
+              ),
             },
             returnUncut: {
               isAllowed: true,
               isEnabled: true,
-              price: 0,
+              price: Number(0).toFixed(2),
             },
             returnSleeved: {
               isAllowed: hasScanOrHasDev,
               isEnabled:
                 foundLabService.addOns.hasScanOrHasDev.returnSleeved.isEnabled,
-              price: foundLabService.addOns.hasScanOrHasDev.returnSleeved.price,
+              price: foundLabService.addOns.hasScanOrHasDev.returnSleeved.price.toFixed(
+                2
+              ),
             },
             returnMounted: {
               isAllowed: hasE6,
               isEnabled: foundLabService.addOns.hasE6.returnMounted.isEnabled,
-              price: foundLabService.addOns.hasE6.returnMounted.price,
+              price: foundLabService.addOns.hasE6.returnMounted.price.toFixed(
+                2
+              ),
             },
             noPushPull: {
               isAllowed: hasDev && columns.noPushPull.isAllowed,
               isEnabled: true,
-              price: 0,
+              price: Number(0).toFixed(2),
             },
             push1: {
               isAllowed: hasDev && columns.push1.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.push1.isEnabled,
-              price: foundLabService.addOns.hasDev.push1.price,
+              price: foundLabService.addOns.hasDev.push1.price.toFixed(2),
             },
             push2: {
               isAllowed: hasDev && columns.push2.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.push2.isEnabled,
-              price: foundLabService.addOns.hasDev.push2.price,
+              price: foundLabService.addOns.hasDev.push2.price.toFixed(2),
             },
             push3: {
               isAllowed: hasDev && columns.push3.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.push3.isEnabled,
-              price: foundLabService.addOns.hasDev.push3.price,
+              price: foundLabService.addOns.hasDev.push3.price.toFixed(2),
             },
             pull1: {
               isAllowed: hasDev && columns.pull1.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.pull1.isEnabled,
-              price: foundLabService.addOns.hasDev.pull1.price,
+              price: foundLabService.addOns.hasDev.pull1.price.toFixed(2),
             },
             pull2: {
               isAllowed: hasDev && columns.pull2.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.pull2.isEnabled,
-              price: foundLabService.addOns.hasDev.pull2.price,
+              price: foundLabService.addOns.hasDev.pull2.price.toFixed(2),
             },
             pull3: {
               isAllowed: hasDev && columns.pull3.isAllowed,
               isEnabled: foundLabService.addOns.hasDev.pull3.isEnabled,
-              price: foundLabService.addOns.hasDev.pull3.price,
+              price: foundLabService.addOns.hasDev.pull3.price.toFixed(2),
             },
             defaultScanner: {
               isAllowed: hasScan && columns.defaultScanner.isAllowed,
               isEnabled: true,
-              price: 0,
+              price: Number(0).toFixed(2),
               defaultResolution: {
                 isAllowed: hasScan && columns.defaultScanner.isAllowed,
                 isEnabled: true,
-                price: 0,
+                price: Number(0).toFixed(2),
               },
               additionalResolutions: foundLabService.addOns.hasScan.defaultScanner.additionalResolutions.map(
                 (additionalResolution, i) => {
@@ -1228,7 +1233,7 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                       hasScan &&
                       columns.defaultScanner.additionalResolutions[i].isAllowed,
                     isEnabled: additionalResolution.isEnabled,
-                    price: additionalResolution.price,
+                    price: additionalResolution.price.toFixed(2),
                   };
                 }
               ),
@@ -1238,12 +1243,12 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                 return {
                   isAllowed: hasScan && columns.additionalScanners[i].isAllowed,
                   isEnabled: additionalScanner.isEnabled,
-                  price: additionalScanner.price,
+                  price: additionalScanner.price.toFixed(2),
                   defaultResolution: {
                     isAllowed:
                       hasScan && columns.additionalScanners[i].isAllowed,
                     isEnabled: true,
-                    price: 0,
+                    price: Number(0).toFixed(2),
                   },
                   additionalResolutions: additionalScanner.additionalResolutions.map(
                     (additionalResolution, resIndex) => {
@@ -1254,7 +1259,7 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                             resIndex
                           ].isAllowed,
                         isEnabled: additionalResolution.isEnabled,
-                        price: additionalResolution.price,
+                        price: additionalResolution.price.toFixed(2),
                       };
                     }
                   ),
@@ -1523,98 +1528,101 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
           base: {
             isAllowed: true,
             isEnabled: foundLabService.isEnabled,
-            price: foundLabService.price,
+            price: foundLabService.price.toFixed(2),
           },
           receiveUndeveloped: {
             isAllowed: hasDev,
             isEnabled: true,
-            price: 0,
+            price: Number(0).toFixed(2),
             readOnly: true,
           },
           receiveUncut: {
             isAllowed: hasScanAndSansDev,
             isEnabled: true,
-            price: 0,
+            price: Number(0).toFixed(2),
             readOnly: true,
           },
           receiveSleeved: {
             isAllowed: hasScanAndSansDev,
             isEnabled:
               foundLabService.addOns.hasScanAndSansDev.receiveSleeved.isEnabled,
-            price:
-              foundLabService.addOns.hasScanAndSansDev.receiveSleeved.price,
+            price: foundLabService.addOns.hasScanAndSansDev.receiveSleeved.price.toFixed(
+              2
+            ),
           },
           receiveMounted: {
             isAllowed: hasE6AndHasScanAndSansDev,
             isEnabled:
               foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted
                 .isEnabled,
-            price:
-              foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted
-                .price,
+            price: foundLabService.addOns.hasE6AndHasScanAndSansDev.receiveMounted.price.toFixed(
+              2
+            ),
           },
           returnUncut: {
             isAllowed: true,
             isEnabled: true,
-            price: 0,
+            price: Number(0).toFixed(2),
             readOnly: true,
           },
           returnSleeved: {
             isAllowed: hasScanOrHasDev,
             isEnabled:
               foundLabService.addOns.hasScanOrHasDev.returnSleeved.isEnabled,
-            price: foundLabService.addOns.hasScanOrHasDev.returnSleeved.price,
+            price: foundLabService.addOns.hasScanOrHasDev.returnSleeved.price.toFixed(
+              2
+            ),
           },
           returnMounted: {
             isAllowed: hasE6,
             isEnabled: foundLabService.addOns.hasE6.returnMounted.isEnabled,
-            price: foundLabService.addOns.hasE6.returnMounted.price,
+            price: foundLabService.addOns.hasE6.returnMounted.price.toFixed(2),
           },
           noPushPull: {
             isAllowed: hasDev,
             isEnabled: true,
-            price: 0,
+            price: Number(0).toFixed(2),
             readOnly: true,
           },
           push1: {
             isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.push1.isEnabled,
-            price: foundLabService.addOns.hasDev.push1.price,
+            price: foundLabService.addOns.hasDev.push1.price.toFixed(2),
           },
           push2: {
             isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.push2.isEnabled,
-            price: foundLabService.addOns.hasDev.push2.price,
+            price: foundLabService.addOns.hasDev.push2.price.toFixed(2),
           },
           push3: {
             isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.push3.isEnabled,
-            price: foundLabService.addOns.hasDev.push3.price,
+            price: foundLabService.addOns.hasDev.push3.price.toFixed(2),
           },
           pull1: {
             isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.pull1.isEnabled,
-            price: foundLabService.addOns.hasDev.pull1.price,
+            price: foundLabService.addOns.hasDev.pull1.price.toFixed(2),
           },
           pull2: {
             isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.pull2.isEnabled,
-            price: foundLabService.addOns.hasDev.pull2.price,
+            price: foundLabService.addOns.hasDev.pull2.price.toFixed(2),
           },
           pull3: {
             isAllowed: hasDev,
             isEnabled: foundLabService.addOns.hasDev.pull3.isEnabled,
-            price: foundLabService.addOns.hasDev.pull3.price,
+            price: foundLabService.addOns.hasDev.pull3.price.toFixed(2),
           },
           defaultScanner: {
             isAllowed: hasScan,
             isEnabled: true,
-            price: 0,
+            price: Number(0).toFixed(2),
             readOnly: true,
             defaultResolution: {
               isAllowed: hasScan,
               isEnabled: true,
-              price: 0,
+              price: Number(0).toFixed(2),
               readOnly: true,
             },
             additionalResolutions: foundLabService.addOns.hasScan.defaultScanner.additionalResolutions.map(
@@ -1622,7 +1630,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
                 return {
                   isAllowed: hasScan,
                   isEnabled: additionalResolution.isEnabled,
-                  price: additionalResolution.price,
+                  price: additionalResolution.price.toFixed(2),
                 };
               }
             ),
@@ -1636,7 +1644,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
                 defaultResolution: {
                   isAllowed: hasScan,
                   isEnabled: additionalScanner.isEnabled,
-                  price: 0,
+                  price: Number(0).toFixed(2),
                   readOnly: true,
                 },
                 additionalResolutions: additionalScanner.additionalResolutions.map(
@@ -1644,7 +1652,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
                     return {
                       isAllowed: hasScan,
                       isEnabled: additionalResolution.isEnabled,
-                      price: additionalResolution.price,
+                      price: additionalResolution.price.toFixed(2),
                     };
                   }
                 ),
