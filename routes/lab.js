@@ -22,6 +22,15 @@ const maximums = {
   rawByOrderPrice: 999.99,
 };
 
+// @route   get /api/labs
+// @desc    returns all available labs, period
+// @access  admin
+router.get('/labs', (req, res) => {
+  Lab.find().then(foundLabs => {
+    return res.json({ labs: foundLabs });
+  });
+});
+
 // @route   ***** CHANGE THIS ***** get /api/labs/find
 // @desc    returns all available labs, based on an array of services
 // @access  public
@@ -1630,6 +1639,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
                 return {
                   isAllowed: hasScan,
                   isEnabled: additionalResolution.isEnabled,
+                  resId: additionalResolution.resId,
                   price: additionalResolution.price.toFixed(2),
                 };
               }
@@ -1640,6 +1650,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
               return {
                 isAllowed: hasScan,
                 isEnabled: additionalScanner.isEnabled,
+                scannerId: additionalScanner.scannerId,
                 price: additionalScanner.price,
                 defaultResolution: {
                   isAllowed: hasScan,
@@ -1652,6 +1663,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
                     return {
                       isAllowed: hasScan,
                       isEnabled: additionalResolution.isEnabled,
+                      resId: additionalResolution.resId,
                       price: additionalResolution.price.toFixed(2),
                     };
                   }
@@ -1672,19 +1684,18 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
 router.put('/labs/:labId/settings/service-pricing', (req, res) => {
   // todo: make sure that user is lab owner
   Lab.findById(req.params.labId).then(foundLab => {
-    const errors = [];
+    // const errors = [];
     // cycle through the reqbody labservices (recursively)
     const applyChangesToLab = reqBodyLabServices => {
       if (reqBodyLabServices.length === 0) {
         // todo: if the errors array isn't empty, send it back
-        if (errors.length > 0) {
-          return res.status(400).json({ errors: errors });
-        } else {
-          // todo: otherwise, save and redirect
-          foundLab.save().then(data => {
-            return res.json({ success: true });
-          });
-        }
+        // if (errors.length > 0) {
+        //   return res.status(400).json({ errors: errors });
+        // } else {
+        foundLab.save().then(data => {
+          return res.json({ success: true });
+        });
+        // }
       } else {
         Service.findById(reqBodyLabServices[0].serviceId)
           .populate('serviceType')
@@ -1692,480 +1703,211 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
           .populate('filmSize')
           .then(foundService => {
             // create an error object
-            const serviceError = {
-              serviceId: reqBodyLabServices[0].serviceId.toString(),
-              messages: {
-                base: [],
-                receiveSleeved: [],
-                receiveMounted: [],
-                returnSleeved: [],
-                returnMounted: [],
-                push1: [],
-                push2: [],
-                push3: [],
-                pull1: [],
-                pull2: [],
-                pull3: [],
-                defaultScannerScanResB: [],
-                defaultScannerScanResC: [],
-                defaultScannerScanResD: [],
-                defaultScannerScanResE: [],
-                defaultScannerScanResF: [],
-                scannerB: [],
-                scannerBScanResB: [],
-                scannerBScanResC: [],
-                scannerBScanResD: [],
-                scannerBScanResE: [],
-                scannerBScanResF: [],
-                scannerC: [],
-                scannerCScanResB: [],
-                scannerCScanResC: [],
-                scannerCScanResD: [],
-                scannerCScanResE: [],
-                scannerCScanResF: [],
-                scanOptionB: [],
-                scanOptionC: [],
-              },
-            };
+            // const serviceError = {
+            //   serviceId: reqBodyLabServices[0].serviceId.toString(),
+            //   messages: {
+            //     base: [],
+            //     receiveUndeveloped: [],
+            //     receiveUncut: [],
+            //     receiveSleeved: [],
+            //     receiveMounted: [],
+            //     returnUncut: [],
+            //     returnSleeved: [],
+            //     returnMounted: [],
+            //     noPushPull: [],
+            //     push1: [],
+            //     push2: [],
+            //     push3: [],
+            //     pull1: [],
+            //     pull2: [],
+            //     pull3: [],
+            //     defaultScanner: [],
+            //   },
+            // };
             // add necessary errors
-            {
-              // check what the service includes
-              const serviceIncludesDev =
-                foundService.serviceType.includedServiceTypes.dev;
-              const serviceIncludesScan =
-                foundService.serviceType.includedServiceTypes.scan;
-              const serviceIncludesE6 =
-                foundService.filmType.includedFilmTypes.e6;
-              const validatePrice = (addOn, addOnName) => {
-                // if there's no price, add error
-                if (!isNumber(addOn.price)) {
-                  serviceError.messages[addOnName].push(
-                    'Price is required when enabling this cell.'
-                  );
-                  // if price is above 999.99, add error
-                } else if (addOn.price > 999.99) {
-                  serviceError.messages[addOnName].push(
-                    'Price must not exceed $999.99.'
-                  );
-                  // if price is below 0, add error
-                } else if (addOn.price < 0) {
-                  serviceError.messages[addOnName].push(
-                    'Price must not be below $0.'
-                  );
-                }
-              };
-              // if enabling this service, validate the base price
-              if (reqBodyLabServices[0].base.isEnabled) {
-                validatePrice(reqBodyLabServices[0].base, 'base');
-              }
-              // if enabling receive sleeved and the referenced service includes developing, add an error
-              if (reqBodyLabServices[0].receiveSleeved.isEnabled) {
-                if (serviceIncludesDev) {
-                  serviceError.messages.receiveSleeved.push(
-                    'Sleeved film cannot be developed.'
-                  );
-                }
-                validatePrice(
-                  reqBodyLabServices[0].receiveSleeved,
-                  'receiveSleeved'
-                );
-              }
-              // if enabling receive mounted and the referenced service includes developing or not e6, add an error
-              if (reqBodyLabServices[0].receiveMounted.isEnabled) {
-                if (!serviceIncludesE6 || serviceIncludesDev) {
-                  if (!serviceIncludesE6) {
-                    serviceError.messages.receiveMounted.push(
-                      'Only E-6 film may be mounted.'
-                    );
-                  }
-                  if (!serviceIncludesDev) {
-                    serviceError.messages.receiveMounted.push(
-                      'Mounted film cannot be developed.'
-                    );
-                  }
-                }
-                validatePrice(
-                  reqBodyLabServices[0].receiveMounted,
-                  'receiveMounted'
-                );
-              }
-              // if enabling return sleeved, validate the price
-              if (reqBodyLabServices[0].returnSleeved.isEnabled) {
-                validatePrice(
-                  reqBodyLabServices[0].returnSleeved,
-                  'returnSleeved'
-                );
-              }
-              // possible errors for returning mounted
-              if (reqBodyLabServices[0].returnMounted.isEnabled) {
-                if (!serviceIncludesE6) {
-                  serviceError.messages.returnMounted.push(
-                    'Only E-6 film may be mounted.'
-                  );
-                }
-                validatePrice(
-                  reqBodyLabServices[0].returnMounted,
-                  'returnMounted'
-                );
-              }
-              // possible errors for push1
-              if (reqBodyLabServices[0].push1.isEnabled) {
-                // add error if service doesn't include developing
-                if (!serviceIncludesDev) {
-                  serviceError.messages.push1.push(
-                    'Service type does not include developing.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].push1, 'push1');
-              }
-              // possible errors for push2
-              if (reqBodyLabServices[0].push2.isEnabled) {
-                // add error if service doesn't include developing
-                if (!serviceIncludesDev) {
-                  serviceError.messages.push2.push(
-                    'Service type does not include developing.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].push2, 'push2');
-              }
-              // possible errors for push3
-              if (reqBodyLabServices[0].push3.isEnabled) {
-                // add error if service doesn't include developing
-                if (!serviceIncludesDev) {
-                  serviceError.messages.push3.push(
-                    'Service type does not include developing.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].push3, 'push3');
-              }
-              // possible errors for pull1
-              if (reqBodyLabServices[0].pull1.isEnabled) {
-                // add error if service doesn't include developing
-                if (!serviceIncludesDev) {
-                  serviceError.messages.pull1.push(
-                    'Service type does not include developing.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].pull1, 'pull1');
-              }
-              // possible errors for pull2
-              if (reqBodyLabServices[0].pull2.isEnabled) {
-                // add error if service doesn't include developing
-                if (!serviceIncludesDev) {
-                  serviceError.messages.pull2.push(
-                    'Service type does not include developing.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].pull2, 'pull2');
-              }
-              // possible errors for pull3
-              if (reqBodyLabServices[0].pull3.isEnabled) {
-                // add error if service doesn't include developing
-                if (!serviceIncludesDev) {
-                  serviceError.messages.pull3.push(
-                    'Service type does not include developing.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].pull3, 'pull3');
-              }
-              // possible error for defaultScanner scanresb
-              if (reqBodyLabServices[0].defaultScannerScanResB.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.defaultScannerScanResB.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].defaultScannerScanResB,
-                  'defaultScannerScanResB'
-                );
-              }
-              // possible error for defaultScanner scanresc
-              if (reqBodyLabServices[0].defaultScannerScanResC.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.defaultScannerScanResC.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].defaultScannerScanResC,
-                  'defaultScannerScanResC'
-                );
-              }
-              // possible error for defaultScanner scanresd
-              if (reqBodyLabServices[0].defaultScannerScanResD.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.defaultScannerScanResD.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].defaultScannerScanResD,
-                  'defaultScannerScanResD'
-                );
-              }
-              // possible error for defaultScanner scanrese
-              if (reqBodyLabServices[0].defaultScannerScanResE.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.defaultScannerScanResE.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].defaultScannerScanResE,
-                  'defaultScannerScanResE'
-                );
-              }
-              // possible error for defaultScanner scanresf
-              if (reqBodyLabServices[0].defaultScannerScanResF.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.defaultScannerScanResF.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].defaultScannerScanResF,
-                  'defaultScannerScanResF'
-                );
-              }
-              // possible error for scannerb
-              if (reqBodyLabServices[0].scannerB.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerB.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].scannerB, 'scannerB');
-              }
-              // possible error for scannerB scanresb
-              if (reqBodyLabServices[0].scannerBScanResB.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerBScanResB.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerBScanResB,
-                  'scannerBScanResB'
-                );
-              }
-              // possible error for scannerB scanresc
-              if (reqBodyLabServices[0].scannerBScanResC.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerBScanResC.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerBScanResC,
-                  'scannerBScanResC'
-                );
-              }
-              // possible error for scannerB scanresd
-              if (reqBodyLabServices[0].scannerBScanResD.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerBScanResD.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerBScanResD,
-                  'scannerBScanResD'
-                );
-              }
-              // possible error for scannerB scanrese
-              if (reqBodyLabServices[0].scannerBScanResE.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerBScanResE.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerBScanResE,
-                  'scannerBScanResE'
-                );
-              }
-              // possible error for scannerB scanresf
-              if (reqBodyLabServices[0].scannerBScanResF.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerBScanResF.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerBScanResF,
-                  'scannerBScanResF'
-                );
-              }
-              // possible error for scannerc
-              if (reqBodyLabServices[0].scannerC.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerC.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].scannerC, 'scannerC');
-              }
-
-              ///
-              ///
-              // possible error for scannerC scanresb
-              if (reqBodyLabServices[0].scannerCScanResB.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerCScanResB.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerCScanResB,
-                  'scannerCScanResB'
-                );
-              }
-              // possible error for scannerC scanresc
-              if (reqBodyLabServices[0].scannerCScanResC.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerCScanResC.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerCScanResC,
-                  'scannerCScanResC'
-                );
-              }
-              // possible error for scannerC scanresd
-              if (reqBodyLabServices[0].scannerCScanResD.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerCScanResD.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerCScanResD,
-                  'scannerCScanResD'
-                );
-              }
-              // possible error for scannerC scanrese
-              if (reqBodyLabServices[0].scannerCScanResE.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerCScanResE.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerCScanResE,
-                  'scannerCScanResE'
-                );
-              }
-              // possible error for scannerC scanresf
-              if (reqBodyLabServices[0].scannerCScanResF.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scannerCScanResF.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(
-                  reqBodyLabServices[0].scannerCScanResF,
-                  'scannerCScanResF'
-                );
-              }
-
-              // possible error for scanoptionb
-              if (reqBodyLabServices[0].scanOptionB.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scanOptionB.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].scanOptionB, 'scanOptionB');
-              }
-              // possible error for scanoptionc
-              if (reqBodyLabServices[0].scanOptionC.isEnabled) {
-                // add error if service doesn't include scanning
-                if (!serviceIncludesScan) {
-                  serviceError.messages.scanOptionC.push(
-                    'Service type does not include scanning.'
-                  );
-                }
-                // validate the price
-                validatePrice(reqBodyLabServices[0].scanOptionC, 'scanOptionC');
-              }
-            }
+            // {
+            //   // check what the service includes
+            //   const serviceIncludesDev =
+            //     foundService.serviceType.includedServiceTypes.dev;
+            //   const serviceIncludesScan =
+            //     foundService.serviceType.includedServiceTypes.scan;
+            //   const serviceIncludesE6 =
+            //     foundService.filmType.includedFilmTypes.e6;
+            //   const validatePrice = (addOn, addOnName) => {
+            //     // if there's no price, add error
+            //     if (!isNumber(addOn.price)) {
+            //       serviceError.messages[addOnName].push(
+            //         'Price is required when enabling this cell.'
+            //       );
+            //       // if price is above 999.99, add error
+            //     } else if (addOn.price > 99.99) {
+            //       serviceError.messages[addOnName].push(
+            //         'Price must not exceed $99.99.'
+            //       );
+            //       // if price is below 0, add error
+            //     } else if (addOn.price < 0) {
+            //       serviceError.messages[addOnName].push(
+            //         'Price must not be below $0.00.'
+            //       );
+            //     }
+            //   };
+            //   // if enabling this service, validate the base price
+            //   if (reqBodyLabServices[0].base.isEnabled) {
+            //     validatePrice(reqBodyLabServices[0].base, 'base');
+            //   }
+            //   // if enabling receive sleeved and the referenced service includes developing, add an error
+            //   if (reqBodyLabServices[0].receiveSleeved.isEnabled) {
+            //     if (serviceIncludesDev) {
+            //       serviceError.messages.receiveSleeved.push(
+            //         'Sleeved film cannot be developed.'
+            //       );
+            //     }
+            //     validatePrice(
+            //       reqBodyLabServices[0].receiveSleeved,
+            //       'receiveSleeved'
+            //     );
+            //   }
+            //   // if enabling receive mounted and the referenced service includes developing or not e6, add an error
+            //   if (reqBodyLabServices[0].receiveMounted.isEnabled) {
+            //     if (!serviceIncludesE6 || serviceIncludesDev) {
+            //       if (!serviceIncludesE6) {
+            //         serviceError.messages.receiveMounted.push(
+            //           'Only E-6 film may be mounted.'
+            //         );
+            //       }
+            //       if (!serviceIncludesDev) {
+            //         serviceError.messages.receiveMounted.push(
+            //           'Mounted film cannot be developed.'
+            //         );
+            //       }
+            //     }
+            //     validatePrice(
+            //       reqBodyLabServices[0].receiveMounted,
+            //       'receiveMounted'
+            //     );
+            //   }
+            //   // if enabling return sleeved, validate the price
+            //   if (reqBodyLabServices[0].returnSleeved.isEnabled) {
+            //     validatePrice(
+            //       reqBodyLabServices[0].returnSleeved,
+            //       'returnSleeved'
+            //     );
+            //   }
+            //   // possible errors for returning mounted
+            //   if (reqBodyLabServices[0].returnMounted.isEnabled) {
+            //     if (!serviceIncludesE6) {
+            //       serviceError.messages.returnMounted.push(
+            //         'Only E-6 film may be mounted.'
+            //       );
+            //     }
+            //     validatePrice(
+            //       reqBodyLabServices[0].returnMounted,
+            //       'returnMounted'
+            //     );
+            //   }
+            //   // possible errors for push1
+            //   if (reqBodyLabServices[0].push1.isEnabled) {
+            //     // add error if service doesn't include developing
+            //     if (!serviceIncludesDev) {
+            //       serviceError.messages.push1.push(
+            //         'Service type does not include developing.'
+            //       );
+            //     }
+            //     // validate the price
+            //     validatePrice(reqBodyLabServices[0].push1, 'push1');
+            //   }
+            //   // possible errors for push2
+            //   if (reqBodyLabServices[0].push2.isEnabled) {
+            //     // add error if service doesn't include developing
+            //     if (!serviceIncludesDev) {
+            //       serviceError.messages.push2.push(
+            //         'Service type does not include developing.'
+            //       );
+            //     }
+            //     // validate the price
+            //     validatePrice(reqBodyLabServices[0].push2, 'push2');
+            //   }
+            //   // possible errors for push3
+            //   if (reqBodyLabServices[0].push3.isEnabled) {
+            //     // add error if service doesn't include developing
+            //     if (!serviceIncludesDev) {
+            //       serviceError.messages.push3.push(
+            //         'Service type does not include developing.'
+            //       );
+            //     }
+            //     // validate the price
+            //     validatePrice(reqBodyLabServices[0].push3, 'push3');
+            //   }
+            //   // possible errors for pull1
+            //   if (reqBodyLabServices[0].pull1.isEnabled) {
+            //     // add error if service doesn't include developing
+            //     if (!serviceIncludesDev) {
+            //       serviceError.messages.pull1.push(
+            //         'Service type does not include developing.'
+            //       );
+            //     }
+            //     // validate the price
+            //     validatePrice(reqBodyLabServices[0].pull1, 'pull1');
+            //   }
+            //   // possible errors for pull2
+            //   if (reqBodyLabServices[0].pull2.isEnabled) {
+            //     // add error if service doesn't include developing
+            //     if (!serviceIncludesDev) {
+            //       serviceError.messages.pull2.push(
+            //         'Service type does not include developing.'
+            //       );
+            //     }
+            //     // validate the price
+            //     validatePrice(reqBodyLabServices[0].pull2, 'pull2');
+            //   }
+            //   // possible errors for pull3
+            //   if (reqBodyLabServices[0].pull3.isEnabled) {
+            //     // add error if service doesn't include developing
+            //     if (!serviceIncludesDev) {
+            //       serviceError.messages.pull3.push(
+            //         'Service type does not include developing.'
+            //       );
+            //     }
+            //     // validate the price
+            //     validatePrice(reqBodyLabServices[0].pull3, 'pull3');
+            //   }
+            // }
             // create a "has error messages" variable to decide if we should push the serviceerror object
-            let hasErrorMessages = false;
-            Object.keys(serviceError.messages).forEach(itemName => {
-              if (serviceError.messages[itemName].length > 0) {
-                hasErrorMessages = true;
-              }
-            });
-            // push the serviceError if there are error messages
-            if (hasErrorMessages) {
-              errors.push(serviceError);
-            }
+            // let hasErrorMessages = false;
+            // Object.keys(serviceError.messages).forEach(itemName => {
+            //   if (serviceError.messages[itemName].length > 0) {
+            //     hasErrorMessages = true;
+            //   }
+            // });
+            // // push the serviceError if there are error messages
+            // if (hasErrorMessages) {
+            //   errors.push(serviceError);
+            // }
             // update the appropriate lab service if there are no error messages
-            else {
-              // find the corresponding lab service
-              foundLab.labServices.forEach((labService, index) => {
-                if (
-                  labService.service.toString() ===
-                  reqBodyLabServices[0].serviceId.toString()
-                ) {
-                  // update all the stuff
-                  {
-                    // service itself
-                    foundLab.labServices[index].isEnabled =
-                      reqBodyLabServices[0].base.isEnabled;
-                    foundLab.labServices[index].price =
-                      reqBodyLabServices[0].base.price;
+            // else {
+            // find the corresponding lab service
+            foundLab.labServices.forEach((labService, index) => {
+              if (
+                labService.service.toString() ===
+                reqBodyLabServices[0].serviceId.toString()
+              ) {
+                // update all the stuff
+                {
+                  // service itself
+                  foundLab.labServices[index].isEnabled =
+                    reqBodyLabServices[0].base.isEnabled;
+                  foundLab.labServices[index].price =
+                    reqBodyLabServices[0].base.price;
+
+                  if (reqBodyLabServices[0].base.isEnabled) {
+                    // receive undeveloped --- unnecessary
+                    // receive uncut --- unnecessary
 
                     // receive sleeved
                     foundLab.labServices[
                       index
                     ].addOns.hasScanAndSansDev.receiveSleeved.isEnabled =
                       reqBodyLabServices[0].receiveSleeved.isEnabled;
-
                     foundLab.labServices[
                       index
                     ].addOns.hasScanAndSansDev.receiveSleeved.price =
@@ -2176,11 +1918,12 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                       index
                     ].addOns.hasE6AndHasScanAndSansDev.receiveMounted.isEnabled =
                       reqBodyLabServices[0].receiveMounted.isEnabled;
-
                     foundLab.labServices[
                       index
                     ].addOns.hasE6AndHasScanAndSansDev.receiveMounted.price =
                       reqBodyLabServices[0].receiveMounted.price;
+
+                    // return uncut --- unnecessary
 
                     // return sleeved
                     foundLab.labServices[
@@ -2201,6 +1944,8 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                       index
                     ].addOns.hasE6.returnMounted.price =
                       reqBodyLabServices[0].returnMounted.price;
+
+                    // no push pull --- unnecessary
 
                     // push 1
                     foundLab.labServices[index].addOns.hasDev.push1.isEnabled =
@@ -2238,183 +1983,49 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
                     foundLab.labServices[index].addOns.hasDev.pull3.price =
                       reqBodyLabServices[0].pull3.price;
 
-                    // defaultScannerScanResB
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResB.isEnabled =
-                      reqBodyLabServices[0].defaultScannerScanResB.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResB.price =
-                      reqBodyLabServices[0].defaultScannerScanResB.price;
-                    // defaultScanner scanResC
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResC.isEnabled =
-                      reqBodyLabServices[0].defaultScannerScanResC.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResC.price =
-                      reqBodyLabServices[0].defaultScannerScanResC.price;
-                    // defaultScanner scanResD
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResD.isEnabled =
-                      reqBodyLabServices[0].defaultScannerScanResD.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResD.price =
-                      reqBodyLabServices[0].defaultScannerScanResD.price;
-                    // defaultScanner scanResE
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResE.isEnabled =
-                      reqBodyLabServices[0].defaultScannerScanResE.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResE.price =
-                      reqBodyLabServices[0].defaultScannerScanResE.price;
-                    // defaultScanner scanResF
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResF.isEnabled =
-                      reqBodyLabServices[0].defaultScannerScanResF.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.defaultScanner.scanResolutions.scanResF.price =
-                      reqBodyLabServices[0].defaultScannerScanResF.price;
+                    // default scanner --- unnecessary
+                    // default scanner default resolution --- unnecessary
 
-                    // scanner b
+                    // default scanner additional resolutions
                     foundLab.labServices[
                       index
-                    ].addOns.hasScan.scannerB.isEnabled =
-                      reqBodyLabServices[0].scannerB.isEnabled;
-                    foundLab.labServices[index].addOns.hasScan.scannerB.price =
-                      reqBodyLabServices[0].scannerB.price;
+                    ].addOns.hasScan.defaultScanner.additionalResolutions = reqBodyLabServices[0].defaultScanner.additionalResolutions.map(
+                      additionalResolution => {
+                        return {
+                          resId: additionalResolution.resId,
+                          isEnabled: additionalResolution.isEnabled,
+                          price: additionalResolution.price,
+                        };
+                      }
+                    );
 
-                    // scannerB scanResB
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResB.isEnabled =
-                      reqBodyLabServices[0].scannerBScanResB.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResB.price =
-                      reqBodyLabServices[0].scannerBScanResB.price;
-                    // scannerB scanResC
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResC.isEnabled =
-                      reqBodyLabServices[0].scannerBScanResC.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResC.price =
-                      reqBodyLabServices[0].scannerBScanResC.price;
-                    // scannerB scanResD
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResD.isEnabled =
-                      reqBodyLabServices[0].scannerBScanResD.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResD.price =
-                      reqBodyLabServices[0].scannerBScanResD.price;
-                    // scannerB scanResE
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResE.isEnabled =
-                      reqBodyLabServices[0].scannerBScanResE.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResE.price =
-                      reqBodyLabServices[0].scannerBScanResE.price;
-                    // scannerB scanResF
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResF.isEnabled =
-                      reqBodyLabServices[0].scannerBScanResF.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerB.scanResolutions.scanResF.price =
-                      reqBodyLabServices[0].scannerBScanResF.price;
+                    // additional scanners
 
-                    // scanner c
                     foundLab.labServices[
                       index
-                    ].addOns.hasScan.scannerC.isEnabled =
-                      reqBodyLabServices[0].scannerC.isEnabled;
-                    foundLab.labServices[index].addOns.hasScan.scannerC.price =
-                      reqBodyLabServices[0].scannerC.price;
-
-                    // scannerC scanResB
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResB.isEnabled =
-                      reqBodyLabServices[0].scannerCScanResB.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResB.price =
-                      reqBodyLabServices[0].scannerCScanResB.price;
-                    // scannerC scanResC
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResC.isEnabled =
-                      reqBodyLabServices[0].scannerCScanResC.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResC.price =
-                      reqBodyLabServices[0].scannerCScanResC.price;
-                    // scannerC scanResD
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResD.isEnabled =
-                      reqBodyLabServices[0].scannerCScanResD.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResD.price =
-                      reqBodyLabServices[0].scannerCScanResD.price;
-                    // scannerC scanResE
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResE.isEnabled =
-                      reqBodyLabServices[0].scannerCScanResE.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResE.price =
-                      reqBodyLabServices[0].scannerCScanResE.price;
-                    // scannerC scanResF
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResF.isEnabled =
-                      reqBodyLabServices[0].scannerCScanResF.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scannerC.scanResolutions.scanResF.price =
-                      reqBodyLabServices[0].scannerCScanResF.price;
-
-                    // scan option b
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scanOptionB.isEnabled =
-                      reqBodyLabServices[0].scanOptionB.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scanOptionB.price =
-                      reqBodyLabServices[0].scanOptionB.price;
-
-                    // scan option c
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scanOptionC.isEnabled =
-                      reqBodyLabServices[0].scanOptionC.isEnabled;
-                    foundLab.labServices[
-                      index
-                    ].addOns.hasScan.scanOptionC.price =
-                      reqBodyLabServices[0].scanOptionC.price;
+                    ].addOns.hasScan.additionalScanners = reqBodyLabServices[0].additionalScanners.map(
+                      additionalScanner => {
+                        return {
+                          scannerId: additionalScanner.scannerId,
+                          isEnabled: additionalScanner.isEnabled,
+                          price: additionalScanner.price,
+                          additionalResolutions: additionalScanner.additionalResolutions.map(
+                            additionalResolution => {
+                              return {
+                                resId: additionalResolution.resId,
+                                isEnabled: additionalResolution.isEnabled,
+                                price: additionalResolution.price,
+                              };
+                            }
+                          ),
+                        };
+                      }
+                    );
                   }
                 }
-              });
-            }
+              }
+            });
+            // }
             const newArray = [...reqBodyLabServices];
             newArray.shift();
             applyChangesToLab(newArray);
