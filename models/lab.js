@@ -36,7 +36,11 @@ const labSchema = new mongoose.Schema({
         },
         additionalScanners: [
           {
-            scannerId: { type: Number, unique: true, required: true },
+            scannerId: {
+              type: Number,
+              // unique: true,
+              required: true,
+            },
             isEnabled: { type: Boolean, default: true },
             name: { type: String, default: '', required: true },
             desc: { type: String, default: '' },
@@ -51,7 +55,11 @@ const labSchema = new mongoose.Schema({
         },
         additionalResolutions: [
           {
-            resId: { type: Number, unique: true, required: true },
+            resId: {
+              type: Number,
+              // unique: true,
+              required: true,
+            },
             isEnabled: { type: Boolean, default: true },
             name: { type: String, default: '', required: true },
             desc: { type: String, default: '' },
@@ -137,7 +145,11 @@ const labSchema = new mongoose.Schema({
           defaultScanner: {
             additionalResolutions: [
               {
-                resId: { type: Number, default: 0, unique: true },
+                resId: {
+                  type: Number,
+                  default: 0,
+                  // unique: true,
+                },
                 isEnabled: { type: Boolean, default: false },
                 price: { type: Number, default: 0 },
               },
@@ -145,12 +157,20 @@ const labSchema = new mongoose.Schema({
           },
           additionalScanners: [
             {
-              scannerId: { type: Number, default: 0, unique: true },
+              scannerId: {
+                type: Number,
+                default: 0,
+                // unique: true,
+              },
               isEnabled: { type: Boolean, default: false },
               price: { type: Number, default: 0 },
               additionalResolutions: [
                 {
-                  resId: { type: Number, default: 0, unique: true },
+                  resId: {
+                    type: Number,
+                    default: 0,
+                    // unique: true,
+                  },
                   isEnabled: { type: Boolean, default: false },
                   price: { type: Number, default: 0 },
                 },

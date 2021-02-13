@@ -87,18 +87,43 @@ router.get('/labs/:labId/name', (req, res) => {
 // @route   post /api/labs/new
 // @desc    creates a new lab based on parameters
 // @access  admin
-router.post('/labs/new', (req, res) => {
+router.post('/labs', (req, res) => {
   // todo: make sure that user is admin
+  const errors = {
+    name: [],
+    _id: [],
+    ownedBy: [],
+  };
+
+  const hasErrors = () => {
+    return (
+      errors.name.length > 0 ||
+      errors._id.length > 0 ||
+      errors.ownedBy.length > 0
+    );
+  };
+
+  if (!req.body.name) {
+    errors.name.push('Lab name is required.');
+  }
+
+  if (!req.body.ownedBy) {
+    errors.ownedBy.push('Owner ID is required.');
+  }
+
+  if (hasErrors()) return res.status(400).json({ errors: errors });
+
   Lab.findOne({ name: req.body.name }).then(labWithMatchingName => {
+    // if there is a lab with a matching name, add an error
     if (labWithMatchingName)
-      return res
-        .status(400)
-        .json({ errors: { name: 'This name has already been registered.' } });
+      errors.name.push('This name has already been registered.');
+    // find all the available services
     Service.find({})
       .populate('serviceType')
       .populate('filmType')
       .populate('filmSize')
       .then(foundServices => {
+        // create a labservices array that corresponds to every existing lab service
         const labServices = foundServices.map(foundService => {
           const labService = {
             addOns: {
@@ -153,12 +178,11 @@ router.post('/labs/new', (req, res) => {
         // add an _id if it's defined
         if (req.body._id) newLab._id = req.body._id;
         User.findById(req.body.ownedBy).then(foundUser => {
-          if (!foundUser)
-            return res.status(404).json({ error: 'User not found.' });
+          if (!foundUser) errors.ownedBy.push('User not found.');
           if (foundUser.lab)
-            return res
-              .status(400)
-              .json({ error: 'User is already a lab owner.' });
+            errors.ownedBy.push('User is already a lab owner.');
+          if (hasErrors()) return res.status(400).json({ errors: errors });
+          // console.log(newLab);
           newLab.save().then(savedLab => {
             if (!savedLab)
               return res.status(400).json({ error: 'Unable to save lab.' });
@@ -168,7 +192,8 @@ router.post('/labs/new', (req, res) => {
                 return res
                   .status(400)
                   .json({ error: 'Unable to save lab to user.' });
-              return res.json(savedLab);
+              console.log(savedLab._id);
+              return res.json({ success: true, labId: savedLab._id });
             });
           });
         });
