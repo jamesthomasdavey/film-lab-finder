@@ -3,8 +3,16 @@ const router = express.Router();
 
 const { requireSignin, isAuth, isAdmin } = require('../controllers/auth');
 
+const User = require('../models/user');
+
 // import middleware
 const { userById } = require('../controllers/user');
+
+router.get('/users', (__, res) => {
+  User.find().then(foundUsers => {
+    return res.json({ users: foundUsers });
+  });
+});
 
 // @route   get /api/secret/:userId
 // @desc

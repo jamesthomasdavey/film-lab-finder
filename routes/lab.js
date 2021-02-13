@@ -210,12 +210,20 @@ router.post('/labs', (req, res) => {
 // @access  private
 router.get('/labs/:labId/settings', (req, res) => {
   // todo: make sure that user is lab owner
-  Lab.findById(req.params.labId).then(foundLab => {
-    return res.json({
-      name: foundLab.name,
-      description: foundLab.description,
+  Lab.findById(req.params.labId)
+    .populate('ownedBy')
+    .then(foundLab => {
+      return res.json({
+        name: foundLab.name,
+        description: foundLab.description,
+        owners: foundLab.ownedBy.map(owner => {
+          return {
+            email: owner.email,
+            _id: owner._id,
+          };
+        }),
+      });
     });
-  });
 });
 
 // @route   get /api/labs/:labId/settings/edit
