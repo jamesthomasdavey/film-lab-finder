@@ -17,12 +17,15 @@ const cookieName = 'flf-token';
 exports.register = (req, res) => {
   let error = '';
   let errors = {};
-  User.findOne({ email: req.body.email }).then(foundUser => {
+  User.findOne({ email: req.body.email.toLowerCase() }).then(foundUser => {
     if (foundUser) error = 'This email has already been registered.';
     errors = { ...errors, ...validateRegisterInput(req.body) };
     if (!isEmpty(errors) || error)
       return res.status(400).json({ errors: errors, error: error });
-    const newUser = new User({ ...req.body, email: req.body.email.trim() });
+    const newUser = new User({
+      ...req.body,
+      email: req.body.email.toLowerCase().trim(),
+    });
     newUser.save().then(createdUser => {
       // prevent sending this data to user
       createdUser.salt = undefined;

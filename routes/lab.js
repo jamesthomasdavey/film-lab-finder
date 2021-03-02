@@ -107,10 +107,6 @@ router.post('/labs', (req, res) => {
     errors.name.push('Lab name is required.');
   }
 
-  if (!req.body.ownedBy) {
-    errors.ownedBy.push('Owner ID is required.');
-  }
-
   if (hasErrors()) return res.status(400).json({ errors: errors });
 
   Lab.findOne({ name: req.body.name }).then(labWithMatchingName => {
@@ -256,29 +252,34 @@ router.put('/labs/:labId/settings', (req, res) => {
     name: [],
     description: [],
   };
-  if (!req.body.name.trim()) {
-    errors.name.push('Name is required.');
-  } else if (req.body.name.trim().length > maximums.labNameLength) {
-    errors.name.push(
-      `Name must not exceed ${maximums.labNameLength} characters.`
-    );
-  }
-  if (req.body.description.trim().length > maximums.labDescriptionLength) {
-    errors.description.push(
-      `Description must not exceed ${maximums.labDescriptionLength} characters.`
-    );
-  }
-  if (errors.name.length > 0 || errors.description.length > 0) {
-    return res.status(400).json({ errors: errors });
-  }
-  Lab.findById(req.params.labId).then(foundLab => {
-    if (!foundLab) return res.status(404).json({ error: 'Lab not found.' });
-    foundLab.name = req.body.name.trim();
-    foundLab.description = req.body.description.trim();
-    foundLab.save().then(savedLab => {
-      if (!savedLab)
-        return res.status(400).json({ error: 'Unable to save lab.' });
-      return res.json({ success: true });
+  Lab.findOne({ name: req.body.name.trim() }).then(foundLab => {
+    if (foundLab) {
+      errors.name.push('This lab name has already been registered.');
+    }
+    if (!req.body.name.trim()) {
+      errors.name.push('Name is required.');
+    } else if (req.body.name.trim().length > maximums.labNameLength) {
+      errors.name.push(
+        `Name must not exceed ${maximums.labNameLength} characters.`
+      );
+    }
+    if (req.body.description.trim().length > maximums.labDescriptionLength) {
+      errors.description.push(
+        `Description must not exceed ${maximums.labDescriptionLength} characters.`
+      );
+    }
+    if (errors.name.length > 0 || errors.description.length > 0) {
+      return res.status(400).json({ errors: errors });
+    }
+    Lab.findById(req.params.labId).then(foundLab => {
+      if (!foundLab) return res.status(404).json({ error: 'Lab not found.' });
+      foundLab.name = req.body.name.trim();
+      foundLab.description = req.body.description.trim();
+      foundLab.save().then(savedLab => {
+        if (!savedLab)
+          return res.status(400).json({ error: 'Unable to save lab.' });
+        return res.json({ success: true });
+      });
     });
   });
 });

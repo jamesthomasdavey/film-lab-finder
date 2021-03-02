@@ -3,14 +3,26 @@ const isEmpty = require('./is-empty');
 
 module.exports = reqBody => {
   let errors = {
+    fullName: [],
     email: [],
     password: [],
     password2: [],
   };
-
+  reqBody.fullName = !isEmpty(reqBody.fullName.trim())
+    ? reqBody.fullName.trim()
+    : '';
   reqBody.email = !isEmpty(reqBody.email.trim()) ? reqBody.email.trim() : '';
   reqBody.password = !isEmpty(reqBody.password) ? reqBody.password : '';
   reqBody.password2 = !isEmpty(reqBody.password2) ? reqBody.password2 : '';
+
+  // fullName
+  if (Validator.isEmpty(reqBody.fullName.trim())) {
+    errors.fullName.push('Full name is required.');
+  } else if (!Validator.isLength(reqBody.fullName.trim(), { min: 2 })) {
+    errors.fullName.push('Full name must be at least 2 characters.');
+  } else if (!Validator.isLength(reqBody.fullName.trim(), { max: 100 })) {
+    errors.fullName.push('Full name may not exceed 100 characters.');
+  }
 
   // email
   if (Validator.isEmpty(reqBody.email.trim())) {
@@ -23,7 +35,7 @@ module.exports = reqBody => {
 
   // password
   if (Validator.isEmpty(reqBody.password)) {
-    errors.password.push('Password field is required.');
+    errors.password.push('Password is required.');
   } else if (!Validator.isLength(reqBody.password, { min: 6 })) {
     errors.password.push('Password must be at least 6 characters.');
   } else if (!Validator.isLength(reqBody.password, { max: 30 })) {

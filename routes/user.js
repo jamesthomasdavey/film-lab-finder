@@ -14,6 +14,12 @@ router.get('/users', (__, res) => {
   });
 });
 
+router.get('/users/:userId/dashboard', (req, res) => {
+  User.findById(req.params.userId).then(foundUser => {
+    return res.json({ user: foundUser });
+  });
+});
+
 // @route   get /api/secret/:userId
 // @desc
 // @access
