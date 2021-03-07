@@ -168,31 +168,40 @@ router.post('/labs', (req, res) => {
         });
         const newLab = new Lab({
           name: req.body.name,
-          ownedBy: [req.body.ownedBy],
           labServices: labServices,
         });
         // add an _id if it's defined
         if (req.body._id) newLab._id = req.body._id;
-        User.findById(req.body.ownedBy).then(foundUser => {
-          if (!foundUser) errors.ownedBy.push('User not found.');
-          if (foundUser.lab)
-            errors.ownedBy.push('User is already a lab owner.');
-          if (hasErrors()) return res.status(400).json({ errors: errors });
-          // console.log(newLab);
+        // add an owner if it's defined
+        if (req.body.ownedBy) {
+          User.findById(req.body.ownedBy).then(foundUser => {
+            if (!foundUser) errors.ownedBy.push('User not found.');
+            if (foundUser.lab)
+              errors.ownedBy.push('User is already a lab owner.');
+            if (hasErrors()) return res.status(400).json({ errors: errors });
+            newLab.ownedBy = [req.body.ownedBy];
+            // console.log(newLab);
+            newLab.save().then(savedLab => {
+              if (!savedLab)
+                return res.status(400).json({ error: 'Unable to save lab.' });
+              foundUser.lab = savedLab._id;
+              foundUser.save().then(savedUser => {
+                if (!savedUser)
+                  return res
+                    .status(400)
+                    .json({ error: 'Unable to save lab to user.' });
+                console.log(savedLab._id);
+                return res.json({ success: true, labId: savedLab._id });
+              });
+            });
+          });
+        } else {
           newLab.save().then(savedLab => {
             if (!savedLab)
               return res.status(400).json({ error: 'Unable to save lab.' });
-            foundUser.lab = savedLab._id;
-            foundUser.save().then(savedUser => {
-              if (!savedUser)
-                return res
-                  .status(400)
-                  .json({ error: 'Unable to save lab to user.' });
-              console.log(savedLab._id);
-              return res.json({ success: true, labId: savedLab._id });
-            });
+            return res.json({ success: true, labId: savedLab._id });
           });
-        });
+        }
       });
   });
 });
@@ -253,7 +262,7 @@ router.put('/labs/:labId/settings', (req, res) => {
     description: [],
   };
   Lab.findOne({ name: req.body.name.trim() }).then(foundLab => {
-    if (foundLab) {
+    if (foundLab && foundLab._id.toString() !== req.params.labId) {
       errors.name.push('This lab name has already been registered.');
     }
     if (!req.body.name.trim()) {
@@ -917,8 +926,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
             } else {
               defaultScannerAdditionalResolutions.push({
                 resId: reqResolution.resId,
-                isEnabled: true,
-                price: 0,
+                price: 0.0,
               });
             }
           }
@@ -960,8 +968,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
               // if the scanner doesn't exist, set new "isEnabled" and "price" settings
               additionalScanner = {
                 scannerId: reqScanner.scannerId,
-                isEnabled: true,
-                price: 0,
+                price: 0.0,
               };
             }
 
@@ -999,7 +1006,7 @@ router.put('/labs/:labId/settings/scan', (req, res) => {
                   } else {
                     additionalScannerAdditionalResolutions.push({
                       resId: reqResolution.resId,
-                      isEnabled: true,
+                      isEnabled: false,
                       price: 0,
                     });
                   }
@@ -1089,7 +1096,7 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
           name: 'Return Mounted',
           isAllowed: true,
         },
-        noPushPull: { name: 'No Push/Pull', isAllowed: labAllowsDev },
+        boxSpeed: { name: 'Box Speed', isAllowed: labAllowsDev },
         push1: { name: 'Push +1', isAllowed: labAllowsDev },
         push2: { name: 'Push +2', isAllowed: labAllowsDev },
         push3: { name: 'Push +3', isAllowed: labAllowsDev },
@@ -1225,8 +1232,8 @@ router.get('/labs/:labId/settings/service-pricing', (req, res) => {
                 2
               ),
             },
-            noPushPull: {
-              isAllowed: hasDev && columns.noPushPull.isAllowed,
+            boxSpeed: {
+              isAllowed: hasDev && columns.boxSpeed.isAllowed,
               isEnabled: true,
               price: Number(0).toFixed(2),
             },
@@ -1355,7 +1362,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       //   returnUncut: [],
       //   returnSleeved: [],
       //   returnMounted: [],
-      //   noPushPull: [],
+      //   boxSpeed: [],
       //   push1: [],
       //   push2: [],
       //   push3: [],
@@ -1369,7 +1376,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
       //   if (!labAllowsDev) {
       //     const message = 'You must enable developing to offer this add-on.';
       //     warnings.receiveUndeveloped.push(message);
-      //     warnings.noPushPull.push(message);
+      //     warnings.boxSpeed.push(message);
       //     warnings.push1.push(message);
       //     warnings.push2.push(message);
       //     warnings.push3.push(message);
@@ -1453,11 +1460,11 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
           //   messages: warnings.returnMounted,
           // },
         },
-        noPushPull: {
-          name: 'No Push/Pull',
+        boxSpeed: {
+          name: 'Box Speed',
           // warning: {
-          //   isPresent: warnings.noPushPull.length > 0,
-          //   messages: warnings.noPushPull,
+          //   isPresent: warnings.boxSpeed.length > 0,
+          //   messages: warnings.boxSpeed,
           // },
         },
         push1: {
@@ -1621,7 +1628,7 @@ router.get('/labs/:labId/settings/service-pricing/edit', (req, res) => {
             isEnabled: foundLabService.addOns.hasE6.returnMounted.isEnabled,
             price: foundLabService.addOns.hasE6.returnMounted.price.toFixed(2),
           },
-          noPushPull: {
+          boxSpeed: {
             isAllowed: hasDev,
             isEnabled: true,
             price: Number(0).toFixed(2),
@@ -1748,7 +1755,7 @@ router.put('/labs/:labId/settings/service-pricing', (req, res) => {
             //     returnUncut: [],
             //     returnSleeved: [],
             //     returnMounted: [],
-            //     noPushPull: [],
+            //     boxSpeed: [],
             //     push1: [],
             //     push2: [],
             //     push3: [],

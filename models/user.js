@@ -37,6 +37,85 @@ const userSchema = new mongoose.Schema(
       ref: 'Lab',
       required: false,
     },
+    cart: {
+      lab: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Lab',
+        required: false,
+      },
+      filmRolls: [
+        {
+          filmStock: String,
+          notes: String,
+          service: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Service',
+          },
+          addOns: {
+            hasScanAndSansDev: {
+              receiveSleeved: {
+                type: Boolean,
+                default: false,
+              },
+            },
+            hasE6AndHasScanAndSansDev: {
+              receiveMounted: {
+                type: Boolean,
+                default: false,
+              },
+            },
+            hasScanOrHasDev: {
+              returnSleeved: {
+                type: Boolean,
+                default: false,
+              },
+            },
+            hasE6: {
+              returnMounted: {
+                type: Boolean,
+                default: false,
+              },
+            },
+            hasDev: {
+              push1: {
+                type: Boolean,
+                default: false,
+              },
+              push2: {
+                type: Boolean,
+                default: false,
+              },
+              push3: {
+                type: Boolean,
+                default: false,
+              },
+              pull1: {
+                type: Boolean,
+                default: false,
+              },
+              pull2: {
+                type: Boolean,
+                default: false,
+              },
+              pull3: {
+                type: Boolean,
+                default: false,
+              },
+            },
+            hasScan: {
+              rawScans: {
+                type: Boolean,
+                default: false,
+              },
+            },
+          },
+          quantity: {
+            type: Number,
+            default: 1,
+          },
+        },
+      ],
+    },
   },
   { timestamps: true }
 );
