@@ -8,9 +8,22 @@ const User = require('../models/user');
 // import middleware
 const { userById } = require('../controllers/user');
 
-router.get('/users', (__, res) => {
+router.get('/users', requireSignin, isAdmin, (__, res) => {
+  console.log('made it this far');
   User.find().then(foundUsers => {
     return res.json({ users: foundUsers });
+  });
+});
+
+router.get('/dashboard', requireSignin, (req, res) => {
+  console.log(req.auth._id);
+  User.findById(req.auth._id).then(foundUser => {
+    if (!foundUser) return res.status(404).json({ error: 'User not found' });
+    const user = {
+      fullName: foundUser.fullName,
+      email: foundUser.email,
+    };
+    return res.json({ user: user });
   });
 });
 

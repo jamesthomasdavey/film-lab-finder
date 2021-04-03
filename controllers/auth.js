@@ -54,7 +54,7 @@ exports.signin = (req, res) => {
       user: {
         _id: foundUser._id,
         email: foundUser.email,
-        name: foundUser.name,
+        fullName: foundUser.fullName,
         role: foundUser.role,
       },
     });
@@ -129,7 +129,7 @@ exports.isAdmin = (req, res, next) => {
       isAdministrator = true;
     }
     if (!isAdministrator) {
-      return res.status(403).json({ error: 'Unauthorized.' });
+      return res.status(401).json({ error: 'Unauthorized.' });
     }
     next();
   });

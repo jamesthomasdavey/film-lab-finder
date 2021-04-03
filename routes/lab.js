@@ -6,6 +6,8 @@ const Lab = require('../models/lab');
 const Service = require('../models/service');
 const User = require('../models/user');
 
+const { requireSignin, isAuth, isAdmin } = require('../controllers/auth');
+
 // import helper functions
 const isNumber = require('../validation/is-number');
 
@@ -25,7 +27,7 @@ const maximums = {
 // @route   get /api/labs
 // @desc    returns all available labs, period
 // @access  admin
-router.get('/labs', (req, res) => {
+router.get('/labs', requireSignin, isAdmin, (req, res) => {
   Lab.find().then(foundLabs => {
     return res.json({ labs: foundLabs });
   });
