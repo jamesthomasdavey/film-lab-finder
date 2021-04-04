@@ -19,6 +19,65 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    shippingInfo: {
+      address: {
+        street1: {
+          type: String,
+          trim: true,
+        },
+        street2: {
+          type: String,
+          trim: true,
+        },
+        city: {
+          type: String,
+          trim: true,
+        },
+        state: {
+          type: String,
+          trim: true,
+        },
+        zipCode: {
+          type: String,
+          trim: true,
+        },
+      },
+    },
+    billingInfo: {
+      address: {
+        sameAsShippingAddress: Boolean,
+        street1: {
+          type: String,
+          trim: true,
+        },
+        street2: {
+          type: String,
+          trim: true,
+        },
+        city: {
+          type: String,
+          trim: true,
+        },
+        state: {
+          type: String,
+          trim: true,
+        },
+        zipCode: {
+          type: String,
+          trim: true,
+        },
+      },
+    },
+    orders: {
+      current: {
+        type: Array,
+        default: [],
+      },
+      previous: {
+        type: Array,
+        default: [],
+      },
+    },
     about: {
       type: String,
       trim: true,
@@ -27,10 +86,6 @@ const userSchema = new mongoose.Schema(
     role: {
       type: Number,
       default: 0,
-    },
-    history: {
-      type: Array,
-      default: [],
     },
     lab: {
       type: mongoose.Schema.Types.ObjectId,
@@ -46,6 +101,10 @@ const userSchema = new mongoose.Schema(
       filmRolls: [
         {
           filmStock: String,
+          quantity: {
+            type: Number,
+            default: 1,
+          },
           notes: String,
           service: {
             type: mongoose.Schema.Types.ObjectId,
@@ -108,10 +167,6 @@ const userSchema = new mongoose.Schema(
                 default: false,
               },
             },
-          },
-          quantity: {
-            type: Number,
-            default: 1,
           },
         },
       ],

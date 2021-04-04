@@ -142,16 +142,16 @@ exports.isLabOwner = (req, res, next) => {
   let isAuthorized = false;
   Lab.findById(labId).then(foundLab => {
     if (!foundLab) return res.status(404).json({ error: 'Lab not found.' });
-    foundLab.ownedBy.forEach(labOwnerId => {
-      if (labOwnerId.toString() === signedInUserId) isAuthorized = true;
+    if (foundLab.ownedBy && foundLab.ownedBy.toString() === signedInUserId) {
+      isAuthorized = true;
+    }
+    if (isAuthorized) return next();
+    User.findById(signedInUserId).then(foundSignedInUser => {
+      if (!foundSignedInUser)
+        return res.status(404).json({ error: 'User not found.' });
+      if (foundSignedInUser.role === 1) isAuthorized = true;
       if (isAuthorized) return next();
-      User.findById(signedInUserId).then(foundSignedInUser => {
-        if (!foundSignedInUser)
-          return res.status(404).json({ error: 'User not found.' });
-        if (foundSignedInUser.role === 1) isAuthorized = true;
-        if (isAuthorized) return next();
-        return res.status(403).json({ error: 'Unauthorized.' });
-      });
+      return res.status(401).json({ error: 'Unauthorized.' });
     });
   });
 };
