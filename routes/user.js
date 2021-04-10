@@ -8,15 +8,40 @@ const User = require('../models/user');
 // import middleware
 const { userById } = require('../controllers/user');
 
+// @route   get /api/users
+// @desc    shows a list of all users
+// @access
 router.get('/users', requireSignin, isAdmin, (__, res) => {
-  console.log('made it this far');
   User.find().then(foundUsers => {
     return res.json({ users: foundUsers });
   });
 });
 
 router.get('/dashboard', requireSignin, (req, res) => {
-  console.log(req.auth._id);
+  User.findById(req.auth._id)
+    .populate('lab')
+    .then(foundUser => {
+      if (!foundUser) return res.status(404).json({ error: 'User not found' });
+      const user = {
+        fullName: foundUser.fullName,
+        email: foundUser.email,
+      };
+      if (foundUser.lab) {
+        user.lab = {
+          name: foundUser.lab.name,
+          _id: foundUser.lab._id.toString(),
+        };
+      } else {
+        user.lab = {
+          name: '',
+          _id: '',
+        };
+      }
+      return res.json({ user: user });
+    });
+});
+
+router.get('/dashboard/edit', requireSignin, (req, res) => {
   User.findById(req.auth._id).then(foundUser => {
     if (!foundUser) return res.status(404).json({ error: 'User not found' });
     const user = {
@@ -24,12 +49,6 @@ router.get('/dashboard', requireSignin, (req, res) => {
       email: foundUser.email,
     };
     return res.json({ user: user });
-  });
-});
-
-router.get('/users/:userId/dashboard', (req, res) => {
-  User.findById(req.params.userId).then(foundUser => {
-    return res.json({ user: foundUser });
   });
 });
 

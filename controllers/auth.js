@@ -9,6 +9,7 @@ const Lab = require('../models/lab');
 const validateRegisterInput = require('../validation/register');
 const validateSigninInput = require('../validation/signin');
 const isEmpty = require('../validation/is-empty');
+const Validator = require('validator');
 
 const { validate } = require('uuid');
 
@@ -59,6 +60,78 @@ exports.signin = (req, res) => {
       },
     });
   });
+};
+
+exports.savePassword = (req, res) => {
+  const errors = {
+    oldPassword: [],
+    newPassword: [],
+    newPasswordConfirm: [],
+  };
+  const reqBody = req.body;
+  reqBody.oldPassword = !isEmpty(reqBody.oldPassword)
+    ? reqBody.oldPassword
+    : '';
+  reqBody.newPassword = !isEmpty(reqBody.newPassword)
+    ? reqBody.newPassword
+    : '';
+  reqBody.newPasswordConfirm = !isEmpty(reqBody.newPasswordConfirm)
+    ? reqBody.newPasswordConfirm
+    : '';
+
+  if (Validator.isEmpty(reqBody.oldPassword)) {
+    errors.oldPassword.push('Password is required.');
+  }
+
+  if (Validator.isEmpty(reqBody.newPassword)) {
+    errors.newPassword.push('New password is required.');
+  } else if (!Validator.isLength(reqBody.newPassword, { min: 6 })) {
+    errors.newPassword.push('New password must be at least 6 characters.');
+  } else if (!Validator.isLength(reqBody.newPassword, { max: 30 })) {
+    errors.newPassword.push('New password may not exceed 30 characters.');
+  }
+
+  if (Validator.isEmpty(reqBody.newPasswordConfirm)) {
+    errors.newPasswordConfirm.push('New password confirmation is required.');
+  } else if (
+    !Validator.equals(reqBody.newPassword, reqBody.newPasswordConfirm)
+  ) {
+    errors.newPasswordConfirm.push('Passwords do not match.');
+  }
+
+  if (errors.oldPassword.length > 0) {
+    return res.json({ errors: errors });
+  }
+
+  User.findById(req.auth._id).then(foundUser => {
+    if (!foundUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    if (!foundUser.authenticate(reqBody.oldPassword)) {
+      errors.oldPassword.push('Old password is incorrect.');
+      return res.json({ errors: errors });
+    }
+    if (
+      errors.oldPassword.length > 0 ||
+      errors.newPassword.length > 0 ||
+      errors.newPasswordConfirm.length > 0
+    ) {
+      return res.json({ errors: errors });
+    }
+  });
+};
+
+exports.saveDashboard = (req, res) => {
+  console.log('dashboard saving...');
+  // create an errors object
+  // validate the name
+  // validate the email
+  // send the errors object back if it's not empty
+  // search to see if a user with that email exists
+  // if the user exists and it's not the same as the current user, add to the errors object
+  // send the errors object back if it's not empty
+  // otherwise, save the name and email
+  // later, we'll have to do some email verification thing
 };
 
 exports.signout = (req, res) => {

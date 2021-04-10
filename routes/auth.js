@@ -5,7 +5,9 @@ const {
   register,
   signin,
   signout,
+  savePassword,
   requireSignin,
+  saveDashboard,
 } = require('../controllers/auth');
 
 // @route   post /api/register
@@ -22,5 +24,9 @@ router.post('/signin', signin);
 // @desc    signs out user
 // @access  signed in user
 router.get('/signout', signout);
+
+router.put('/password', requireSignin, savePassword);
+
+router.put('/dashboard', requireSignin, saveDashboard);
 
 module.exports = router;
